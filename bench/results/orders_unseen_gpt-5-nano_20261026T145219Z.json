@@ -1883,6 +1883,7 @@
       "python": "3.11.16",
       "cpus": 8
     },
-    "written": "2026-10-26T14:52:19.653739+00:00"
+    "written": "2026-10-26T14:52:19.653739+00:00",
+    "note": "commit set by hand from the run's start time (the manifest took HEAD at write time)"
   }
 }

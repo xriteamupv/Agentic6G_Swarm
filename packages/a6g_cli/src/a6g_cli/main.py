@@ -1011,6 +1011,25 @@ def bench_g10(
         raise typer.Exit(code=1)
 
 
+paper_app = typer.Typer(help="Paper exports (SPEC A4.9).", no_args_is_help=True)
+app.add_typer(paper_app, name="paper")
+
+
+@paper_app.command("export")
+def paper_export_cmd(
+    out: Annotated[Path, typer.Option("--out", help="paper directory")] = Path("paper"),
+    config_dir: ConfigDirOpt = None,
+) -> None:
+    """RESULTS.md and the CSV files of the paper figures, from the latest results (stale
+    results, from another commit, are flagged)."""
+    from a6g_devstack.paper_export import export
+
+    cfg = load_config(config_dir, fleet_file="sim/fleet.yaml")
+    result = export(out, cfg)
+    for name, path in result["written"].items():
+        typer.echo(f"{name}: {path}")
+
+
 dataset_app = typer.Typer(help="Dataset DS09 (SPEC A3.8).", no_args_is_help=True)
 app.add_typer(dataset_app, name="dataset")
 

@@ -643,7 +643,7 @@
   },
   "stamp": "2026-10-26T14:33:22.834062+00:00",
   "manifest": {
-    "commit": "9f184076eb94d9df1781ed516eddbda1a1666619",
+    "commit": "6fdd63f4cdbde341f1d3eafa52428a4c3519befb",
     "dirty": false,
     "command": "a6g bench orders",
     "config_dir": "config",
@@ -688,6 +688,7 @@
       "python": "3.11.16",
       "cpus": 8
     },
-    "written": "2026-10-26T14:33:22.844697+00:00"
+    "written": "2026-10-26T14:33:22.844697+00:00",
+    "note": "commit set by hand from the run's start time (the manifest took HEAD at write time)"
   }
 }
