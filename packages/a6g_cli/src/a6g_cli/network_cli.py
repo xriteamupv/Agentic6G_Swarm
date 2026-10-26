@@ -116,9 +116,7 @@ def preview_html(cfg, cmap, calibration: dict | None) -> str:
         f"<p>{legend} &nbsp; shaded: the pilot area outdoors (2 m cells; "
         "hover for RSRP and SINR); black-edged squares on the velodrome loop: predicted "
         "levels to compare with UPV's plots; dark green dashed line: tree-lined walk "
-        "(foliage loss)</p>"
-        + "".join(out)
-        + f"<pre>{meta}</pre></body></html>"
+        "(foliage loss)</p>" + "".join(out) + f"<pre>{meta}</pre></body></html>"
     )
 
 
@@ -144,7 +142,12 @@ def calibrate_cmd(config_dir: Annotated[Path | None, typer.Option("--config-dir"
 
 @network_app.command("import-coverage")
 def import_cmd(
-    rsrp: Annotated[Path, typer.Option("--rsrp", help="CSV lat,lon,cell_id,rsrp_dbm[,sinr_db]")],
+    rsrp: Annotated[
+        Path | None,
+        typer.Option(
+            "--rsrp", help="CSV lat,lon,cell_id,rsrp_dbm[,sinr_db] (default: radio_dt_file)"
+        ),
+    ] = None,
     config_dir: Annotated[Path | None, typer.Option("--config-dir")] = None,
 ) -> None:
     """Import the RSRP map of UPV's ray-tracing radio twin, interpolated to the footpaths."""
@@ -152,6 +155,12 @@ def import_cmd(
     from a6g_common.geo import Datum
 
     cfg = _cfg(config_dir, "radio_dt")
+    if rsrp is None:
+        if not cfg.network.coverage.radio_dt_file:
+            raise typer.BadParameter(
+                "give --rsrp or set coverage.radio_dt_file", param_hint="--rsrp"
+            )
+        rsrp = (Path(cfg.config_dir) / cfg.network.coverage.radio_dt_file).resolve()
     d = cfg.campus.datum or {}
     datum = Datum(d["lat_deg"], d["lon_deg"], d.get("alt_m", 0.0), d.get("heading_deg", 0.0))
     scale = cfg.campus.scale or 1.0

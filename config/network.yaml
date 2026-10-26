@@ -22,7 +22,7 @@ network:
       dl_mimo: "4x4 or 4x2 closed-loop spatial multiplexing"
   coverage:
     source: ${A6G_COVERAGE_SOURCE:-model}     # model (default, 2026-10-26) | radio_dt | shadows (legacy polygons)
-    radio_dt_file: data/network/upv_vera_cpi_rsrp.csv   # TODO(UPV): lat,lon,cell_id,rsrp_dbm
+    radio_dt_file: ../sim_gazebo/data/network/upv_vera_cpi_n40_rsrp.csv   # UPV radio DT export (relative to config/)
     model: {pathloss: 3gpp_38901_uma, h_ut_m: 1.5, los_from_footprints: true, shadow_fading: false}
     calibration: plots          # no measurement CSV: values read from UPV's velodrome plots
     calibration_targets:
