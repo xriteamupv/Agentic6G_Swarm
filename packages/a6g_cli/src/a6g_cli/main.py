@@ -1235,6 +1235,74 @@ def bench_scarcity(
     typer.echo(f"figure data: {write_csv(result, csv_out)}")
 
 
+@bench_app.command("protocols")
+def bench_protocols(
+    matrix: Annotated[Path, typer.Option("--matrix", help="the block matrix")] = Path(
+        "config/bench/protocols.yaml"
+    ),
+    reduced: Annotated[
+        bool, typer.Option("--reduced", help="the reduced scope of the SPEC A4.10 stop rule")
+    ] = False,
+    bindings: Annotated[
+        str | None,
+        typer.Option(
+            "--bindings", help="only these binding/mode/encoding, e.g. mqtt/persistent/cbor"
+        ),
+    ] = None,
+    patterns: Annotated[str | None, typer.Option("--patterns", help="only these patterns")] = None,
+    profiles: Annotated[str | None, typer.Option("--profiles", help="only these profiles")] = None,
+    repeats: Annotated[int | None, typer.Option("--repeats", help="override repeats")] = None,
+    count: Annotated[int | None, typer.Option("--count", help="override counts (testing)")] = None,
+    csv_out: Annotated[Path, typer.Option("--csv", help="paper table")] = Path(
+        "paper/table_protocols.csv"
+    ),
+    out: Annotated[Path, typer.Option("--out", help="results directory")] = Path("bench/results"),
+    workdir: Annotated[Path, typer.Option("--workdir", help="lab directories")] = Path(
+        "var/runs/n5_protocols"
+    ),
+    config_dir: ConfigDirOpt = None,
+) -> None:
+    """Agent protocols over emulated radio links (SPEC A4.8): A2A JSON-RPC (cold, warm),
+    REST, gRPC and MQTT (JSON, CBOR) on real sockets in rootless network namespaces with
+    tc netem per link profile; latency, wire bytes, deadline misses, outage recovery."""
+    import asyncio
+
+    from a6g_devstack.bench_protocols import load_spec, run, summary, write, write_csv
+
+    cfg = load_config(config_dir, fleet_file="sim/fleet.yaml")
+    spec = load_spec(matrix)
+    if bindings:
+        want = {tuple(b.split("/")) for b in bindings.split(",")}
+        key = "reduced" if reduced else None
+        for where in ([spec["reduced"]] if key else []) + [spec]:
+            where["bindings"] = [
+                b for b in where["bindings"] if (b["binding"], b["mode"], b["encoding"]) in want
+            ]
+    if patterns:
+        names = patterns.split(",")
+        spec["patterns"] = {k: v for k, v in spec["patterns"].items() if k in names}
+        spec["reduced"]["patterns"] = [p for p in spec["reduced"]["patterns"] if p in names]
+        if "outage" not in names:
+            spec["outages"], spec["reduced"]["outages"] = [], []
+    if profiles:
+        spec["profiles"] = profiles.split(",")
+    if repeats is not None:
+        spec["repeats"] = repeats
+    if count is not None:
+        for v in spec["patterns"].values():
+            if "count" in v:
+                v["count"] = count
+            if "duration_s" in v:
+                v["duration_s"] = count
+        spec["outage_stream_s"] = max(60, count)
+    result = asyncio.run(run(cfg, spec, workdir, reduced))
+    result["manifest"] = _manifest(cfg, spec.get("seed"), time_factor="real time (rule 33)")
+    result["manifest"]["matrix"] = spec
+    typer.echo(summary(result))
+    typer.echo(f"results: {write(result, out)}")
+    typer.echo(f"table: {write_csv(result, csv_out)}")
+
+
 @bench_app.command("retrieval")
 def bench_retrieval(
     seeds: Annotated[int, typer.Option("--seeds", help="seeded scenarios")] = 50,

@@ -7,6 +7,7 @@ The buses move raw bytes; :mod:`a6g_transport.messaging` wraps each payload in a
 import asyncio
 import contextlib
 import json
+import socket
 from collections import defaultdict
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
@@ -103,7 +104,14 @@ class MqttBus:
             topic, payload, qos, retain = self.will
             will = aiomqtt.Will(topic, payload, qos=qos, retain=retain)
         return aiomqtt.Client(
-            self.host, self.port, identifier=identifier, keepalive=self.keepalive, will=will
+            self.host,
+            self.port,
+            identifier=identifier,
+            keepalive=self.keepalive,
+            will=will,
+            # paho leaves Nagle on: a small message then waits for the peer's delayed ACK
+            # (~40 ms each way; found by the protocol micro-benchmark, SPEC A4.8)
+            socket_options=[(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)],
         )
 
     async def __aenter__(self) -> "MqttBus":
