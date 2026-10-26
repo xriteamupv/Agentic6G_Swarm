@@ -247,6 +247,25 @@ class ShadowV2(_M):
     link_quality: Literal["lost", "degraded"] = "lost"
 
 
+class NetworkSiteV2(_M):
+    """A gNB site (SPEC A4.6.1), WGS84; its radio parameters are in config/network.yaml."""
+
+    id: str
+    name: str = ""
+    lat: float
+    lon: float
+    height_m: float = 20.0  # TODO(UPV): antenna height above ground
+
+
+class CalibrationLoopV2(_M):
+    """A loop with measured coverage (SPEC A4.6): the velodrome track of UPV's plots."""
+
+    id: str
+    name: str = ""
+    polygon_wgs84: list[LatLon] = Field(min_length=3)
+    source: str = ""
+
+
 class RecoveryPointV2(_M):
     id: str
     lat: float
@@ -270,6 +289,9 @@ class CampusV2(_M):
     pois: list[PoiV2] = Field(default_factory=list)
     coverage_shadows: list[ShadowV2] = Field(default_factory=list)
     link_recovery_points: list[RecoveryPointV2] = Field(default_factory=list)
+    #: SPEC A4: gNB sites and coverage-calibration loops (geometry defined once, rule 16)
+    network_sites: list[NetworkSiteV2] = Field(default_factory=list)
+    calibration_loops: list[CalibrationLoopV2] = Field(default_factory=list)
     # v3 (optional: a v2 file is a v3 file without a knowledge base)
     route_graph: RouteGraphV3 | None = None
     documents: list[DocumentV3] = Field(default_factory=list)
@@ -468,6 +490,27 @@ class CampusV2(_M):
                     "pose": dict(zip(("x", "y"), spot((r.lat, r.lon)), strict=True)),
                 }
                 for r in self.link_recovery_points
+            ],
+            "network_sites": [
+                {
+                    "site_id": n.id,
+                    "name": n.name,
+                    "x": xy((n.lat, n.lon))[0],
+                    "y": xy((n.lat, n.lon))[1],
+                    "height_m": n.height_m,
+                    "lat": n.lat,
+                    "lon": n.lon,
+                }
+                for n in self.network_sites
+            ],
+            "calibration_loops": [
+                {
+                    "loop_id": c.id,
+                    "name": c.name,
+                    "source": c.source,
+                    "polygon": [xy(p) for p in c.polygon_wgs84],
+                }
+                for c in self.calibration_loops
             ],
             "pilot_area": corners,
             "obstacles": obstacles,

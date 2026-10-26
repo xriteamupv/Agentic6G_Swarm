@@ -22,6 +22,7 @@ import yaml
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 
 from a6g_common.geometry import point_in_polygon
+from a6g_common.netconfig import NetworkConfig
 from a6g_common.routegraph import DEFAULT_PROFILES, RouteGraph, RoutingProfile
 from a6g_common.schemas import (
     A6GModel,
@@ -635,6 +636,9 @@ class CampusConfig(Versioned):
         default_factory=list, description="simulator: polygons where link_quality = lost"
     )
     link_recovery_points: list[LinkRecoveryPoint] = Field(default_factory=list)
+    #: SPEC A4.6: gNB sites (campus_map x, y; height above ground) and calibration loops
+    network_sites: list[dict[str, Any]] = Field(default_factory=list)
+    calibration_loops: list[dict[str, Any]] = Field(default_factory=list)
     #: Campus v3 knowledge base (SPEC A3.3): outdoor route graph, documents, profiles.
     route_graph: RouteGraph | None = None
     route_graph_notes: list[str] = Field(default_factory=list)
@@ -1144,6 +1148,10 @@ class InteractionsConfig(A6GModel):
     timeout_s: float = Field(3.0, gt=0.0, description="store calls; past it the robot copy")
 
 
+class _NetworkFile(BaseModel):
+    network: NetworkConfig = Field(default_factory=NetworkConfig)
+
+
 class A6GConfig(BaseModel):
     """Everything under ``config/``, cross-validated."""
 
@@ -1157,6 +1165,8 @@ class A6GConfig(BaseModel):
     comms: CommsConfig | None = None
     knowledge: KnowledgeConfig = Field(default_factory=KnowledgeConfig)
     interactions: InteractionsConfig = Field(default_factory=InteractionsConfig)
+    #: SPEC A4: the campus cell, coverage map, link profiles and capacity
+    network: NetworkConfig = Field(default_factory=NetworkConfig)
 
     @property
     def show_constraints_to_operator(self) -> bool:
@@ -1354,6 +1364,9 @@ def load_config(
         interactions=load_model(InteractionsConfig, root / "interactions.yaml", env)
         if (root / "interactions.yaml").exists()
         else InteractionsConfig(),
+        network=load_model(_NetworkFile, root / "network.yaml", env).network
+        if (root / "network.yaml").exists()
+        else NetworkConfig(),
     )
 
 

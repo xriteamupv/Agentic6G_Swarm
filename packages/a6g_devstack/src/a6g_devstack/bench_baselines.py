@@ -32,12 +32,13 @@ not an edge partition.
 """
 
 import asyncio
+import contextlib
 import csv
 import json
 import math
 import random
+import shutil
 import statistics
-from concurrent.futures import ProcessPoolExecutor
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -144,6 +145,8 @@ async def run_one(
     wall_s: float = 900,
 ) -> dict[str, Any]:
     sched = schedule(seed, outage_s)
+    if workdir.exists():  # a run cut short earlier: start clean (logs are appended)
+        shutil.rmtree(workdir)
     # Fake models: the outcomes do not depend on the speed, so the runs go at 200x.
     stack = SimStack(cfg, workdir, baseline=arm, realtime_factor=200.0)
     pois = [p.poi_id for p in cfg.campus.pois]
@@ -258,6 +261,8 @@ async def run_one(
         out["error"] = repr(exc)
     finally:
         await stack.stop()
+    if "error" not in out:
+        (workdir / "row.json").write_text(json.dumps(out, default=str))
     return out
 
 
@@ -268,6 +273,44 @@ def _one(job: tuple[str, str, str, int, int, float, float]) -> dict[str, Any]:
     config_dir, workdir, arm, fleet, seed, outage_s, horizon_s = job
     cfg = load_config(config_dir, fleet_file="sim/fleet.yaml")
     return asyncio.run(run_one(cfg, Path(workdir), arm, fleet, seed, outage_s, horizon_s))
+
+
+async def _subprocess(
+    job: tuple[str, str, str, int, int, float, float], wall_s: float
+) -> dict[str, Any]:
+    """One run in a child process: a crash or a hang costs that run only (a worker died
+    in a process pool on 2026-10-26 and took the whole sweep with it). The row is saved
+    next to the run (``row.json``), so a rerun of the sweep skips finished runs."""
+    import sys
+
+    row_path = Path(job[1]) / "row.json"
+    if row_path.exists():
+        with contextlib.suppress(ValueError):
+            return json.loads(row_path.read_text())
+    proc = await asyncio.create_subprocess_exec(
+        sys.executable,
+        "-m",
+        "a6g_devstack.bench_baselines",
+        json.dumps(list(job)),
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.DEVNULL,
+    )
+    try:
+        await asyncio.wait_for(proc.wait(), wall_s)
+    except TimeoutError:
+        proc.kill()
+        await proc.wait()
+    if row_path.exists():
+        with contextlib.suppress(ValueError):
+            return json.loads(row_path.read_text())
+    _, _, arm, fleet, seed, outage_s, _ = job
+    return {
+        "arm": LABEL[arm],
+        "fleet": fleet,
+        "seed": seed,
+        "outage_s": outage_s,
+        "error": f"child process exited with {proc.returncode} (no row)",
+    }
 
 
 def _median(values: list[float]) -> float | None:
@@ -303,14 +346,13 @@ async def run(
         for arm in arms
         for seed in range(seeds)
     ]
-    if jobs > 1:
-        import multiprocessing
+    gate = asyncio.Semaphore(max(1, jobs))
 
-        loop = asyncio.get_running_loop()
-        with ProcessPoolExecutor(jobs, mp_context=multiprocessing.get_context("spawn")) as pool:
-            rows = list(await asyncio.gather(*(loop.run_in_executor(pool, _one, j) for j in plan)))
-    else:
-        rows = [await run_one(cfg, Path(j[1]), j[2], j[3], j[4], j[5], j[6]) for j in plan]
+    async def one(j: tuple[str, str, str, int, int, float, float]) -> dict[str, Any]:
+        async with gate:
+            return await _subprocess(j, wall_s=1800)
+
+    rows = list(await asyncio.gather(*(one(j) for j in plan)))
     manual = yaml.safe_load((Path(cfg.config_dir) / "bench/manual_round.yaml").read_text())
     minutes = manual["operator_minutes_per_command"]
     for r in rows:
@@ -445,3 +487,9 @@ def summary(result: dict[str, Any]) -> str:
             + (f"  ({c['errors']} errors)" if c["errors"] else "")
         )
     return "\n".join(lines)
+
+
+if __name__ == "__main__":  # one run, in a child process of the sweep
+    import sys
+
+    _one(tuple(json.loads(sys.argv[1])))  # type: ignore[arg-type]
