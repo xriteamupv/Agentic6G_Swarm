@@ -786,6 +786,28 @@ def _manifest(cfg: Any, seeds: Any, time_factor: Any = None, **roles: Any) -> di
     )
 
 
+NetworkOpt = Annotated[
+    str | None,
+    typer.Option(
+        "--network",
+        help="capacity: the network stand-in that can refuse, on the coverage map (SPEC A4)",
+    ),
+]
+CoverageOpt = Annotated[
+    str | None, typer.Option("--coverage", help="coverage source: model | radio_dt | shadows")
+]
+
+
+def _network_env(network: str | None, coverage: str | None) -> None:
+    """``--network capacity`` (and ``--coverage``) for this run, via the config's env."""
+    if network:
+        os.environ["A6G_NETWORK_MODE"] = network
+        if network == "capacity":
+            os.environ.setdefault("A6G_COVERAGE_SOURCE", "model")
+    if coverage:
+        os.environ["A6G_COVERAGE_SOURCE"] = coverage
+
+
 def _sim_factor() -> str:
     import os
 
@@ -802,10 +824,13 @@ def bench_kpi11(
         bool,
         typer.Option("--robot-model", help="robots deliberate with onboard_vlm, as in the stacks"),
     ] = False,
+    network: NetworkOpt = None,
+    coverage: CoverageOpt = None,
     out: Annotated[Path, typer.Option("--out", help="results directory")] = Path("bench/results"),
     config_dir: ConfigDirOpt = None,
 ) -> None:
     """UC2-KPI-11: posture change to emergency -> reconciled envelopes (p50, p95)."""
+    _network_env(network, coverage)
     import asyncio
 
     from a6g_common.config import ModelRole
@@ -824,6 +849,10 @@ def bench_kpi11(
 
         robots = chat_model(ModelRole.ONBOARD_VLM, cfg.models)
         label += "+robots"
+    if os.environ.get("A6G_NETWORK_MODE") == "capacity":  # SPEC A4: under scarcity
+        label += f"+capacity{os.environ.get('A6G_UL_CAPACITY_MBPS', '22')}"
+        if os.environ.get("A6G_POST_SENSING"):
+            label += f"+{os.environ['A6G_POST_SENSING']}"
     from langsmith import tracing_context
 
     with tracing_context(enabled=False):  # hundreds of runs: no LangSmith traces
@@ -945,10 +974,13 @@ def bench_g10(
     pg_dsn: Annotated[
         str | None, typer.Option("--pg-dsn", help="Postgres DSN for --persistence postgres")
     ] = None,
+    network: NetworkOpt = None,
+    coverage: CoverageOpt = None,
     config_dir: ConfigDirOpt = None,
 ) -> None:
     """Scenario G10 (SPEC A3.11): the D2.1 story in one run per seed (2D simulator, fake
     models), its checks, and the KPI report of each run (kpi.md in the run directory)."""
+    _network_env(network, coverage)
     import asyncio
 
     from a6g_devstack import kpi_report, scenario_g10
