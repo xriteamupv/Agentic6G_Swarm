@@ -1146,6 +1146,58 @@ def bench_overhead(
     typer.echo(f"table: {write_csv(result, csv_out)}")
 
 
+@bench_app.command("scarcity")
+def bench_scarcity(
+    capacities: Annotated[
+        str, typer.Option("--capacities", help="uplink capacity of the cell, Mbps")
+    ] = "2,4,8,12,16,22,44",
+    variants: Annotated[
+        str, typer.Option("--variants", help="reconcile_off,reconcile,reconcile_relocate")
+    ] = "reconcile_off,reconcile,reconcile_relocate",
+    fleets: Annotated[
+        str, typer.Option("--fleets", help="fleet sizes (8 if >= 8 posts)")
+    ] = "3,5,8",
+    seeds: Annotated[int, typer.Option("--seeds", help="seeds per cell")] = 10,
+    jobs: Annotated[int, typer.Option("--jobs", help="runs in parallel (processes)")] = 1,
+    csv_out: Annotated[Path, typer.Option("--csv", help="paper figure data")] = Path(
+        "paper/fig_scarcity.csv"
+    ),
+    out: Annotated[Path, typer.Option("--out", help="results directory")] = Path("bench/results"),
+    runs: Annotated[Path, typer.Option("--runs", help="run directories")] = Path(
+        "var/runs/n4_scarcity"
+    ),
+    config_dir: ConfigDirOpt = None,
+) -> None:
+    """Scenario G13 (SPEC A4.7): an emergency under network scarcity, swept over the cell's
+    uplink capacity, the reconciliation variants and the fleet sizes."""
+    import asyncio
+
+    from a6g_common import coverage as cv
+    from a6g_devstack.bench_scarcity import run, summary, write, write_csv
+    from a6g_devstack.scenario_g13 import g13_config
+
+    cfg = g13_config(str(config_dir or "config"), 22.0, "reconcile")
+    cmap = cv.load_or_build(cfg)
+    cov = {**cmap.summary(cfg.campus), "label": cmap.meta.get("label")}
+    result = asyncio.run(
+        run(
+            cfg,
+            runs,
+            tuple(float(x) for x in capacities.split(",")),
+            tuple(v.strip() for v in variants.split(",")),
+            tuple(int(x) for x in fleets.split(",")),
+            seeds,
+            jobs,
+            cov,
+        )
+    )
+    result["manifest"] = _manifest(cfg, seeds, time_factor="up to 200x")
+    result["manifest"]["network_derived"] = cfg.network.derived()
+    typer.echo(summary(result))
+    typer.echo(f"results: {write(result, out)}")
+    typer.echo(f"figure data: {write_csv(result, csv_out)}")
+
+
 @bench_app.command("retrieval")
 def bench_retrieval(
     seeds: Annotated[int, typer.Option("--seeds", help="seeded scenarios")] = 50,

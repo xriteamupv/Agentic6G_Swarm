@@ -9,7 +9,7 @@ polygons (``coverage.source: shadows``). Benches select the new modes explicitly
 import math
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 LEVELS = ("good", "cell_edge", "degraded", "lost")
 
@@ -173,6 +173,14 @@ class NetworkConfig(_M):
     link_profiles: dict[str, LinkProfile] = Field(default_factory=dict)
     capacity: CapacityConfig = Field(default_factory=CapacityConfig)
     reconcile: ReconcileConfig = Field(default_factory=ReconcileConfig)
+    #: sensing mode of posts without one (SPEC A4.7 G13: video); None keeps telemetry_plus
+    post_sensing_mode: Literal["video", "telemetry"] | None = None
+
+    @field_validator("post_sensing_mode", mode="before")
+    @classmethod
+    def _empty_is_none(cls, v: object) -> object:
+        return None if v in ("", "none", "None") else v
+
     #: the noa_stub's model writes only nl.rationale; off in every bench (rule 21)
     stub_llm: bool = False
     #: where parameters come from (rule 32); copied into result manifests

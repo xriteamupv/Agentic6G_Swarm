@@ -353,7 +353,34 @@ class RobotAgent:
             self._skill_task_id = dispatch["task_id"]
             self._skill = asyncio.create_task(self._run_skill(thread, dispatch))
 
+    async def _open_stream(self, thread: str, task_id: str) -> None:
+        """SPEC A4.7, I3 (rule 29): a class above telemetry opens only when its flow is
+        granted (or degraded), at the granted rate; otherwise the robot stays on telemetry.
+        The opening goes to the message log (``direction: budget``)."""
+        with contextlib.suppress(Exception):
+            values = (await self.graph.aget_state(self._config(thread))).values
+            flow = ((values.get("envelope") or {}).get("flows") or {}).get(task_id)
+            if not flow:
+                return
+            ok = flow.get("state") in ("granted", "degraded")
+            from a6g_observability.comms import comms_log
+
+            comms_log().record(
+                {
+                    "ts": time.time(),
+                    "direction": "budget",
+                    "agent": self.robot_id,
+                    "task_id": task_id,
+                    "flow_class": flow.get("class"),
+                    "grant_state": flow.get("state"),
+                    "opened": flow.get("class") if ok else "telemetry",
+                    "ul_mbps": (flow.get("ul_mbps") or 0.0) if ok else 0.0,
+                    "pattern": "budget",
+                }
+            )
+
     async def _run_skill(self, thread: str, dispatch: dict[str, Any]) -> None:
+        await self._open_stream(thread, dispatch["task_id"])
         result = await self.skills.call(
             dispatch["tool"], dispatch["args"], dispatch.get("mission_id")
         )

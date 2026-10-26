@@ -134,6 +134,36 @@ def _baseline_row(kpi: str, results: Path) -> dict:
     return _row(kpi, value, source=found[0].name, note=note + " (fault-injection bench)")
 
 
+def _kpi3_row(flows: list[Decision]) -> dict:
+    """UC2-KPI-3. With ``network.mode: capacity`` (SPEC A4.7) from the grants: the share of
+    the streaming flows requested that the network granted at the requested level (still
+    emulated, rule 32). With the always-grant stand-in it is 1.0 by construction (proxy)."""
+    capacity = any((d.policy or {}).get("network") == "capacity" for d in flows)
+    answers = [
+        a
+        for d in flows
+        for a in (d.output.get("answers") if isinstance(d.output.get("answers"), list) else [])
+        if a.get("flow_class") != "telemetry"
+    ]
+    if capacity and answers:
+        share = round(sum(1 for a in answers if a.get("state") == "granted") / len(answers), 4)
+        return _row(
+            "UC2-KPI-3",
+            share,
+            "share",
+            "network answers in the reconcile decisions",
+            "emulated network (capacity model on the coverage map, rule 32): streaming flows "
+            "granted at the requested level, of those requested",
+        )
+    return _row(
+        "UC2-KPI-3",
+        1.0 if flows else None,
+        "share",
+        "flow records",
+        "proxy: the network branch is a stand-in that grants every request until C5",
+    )
+
+
 def report(run_dir: Path, cfg: A6GConfig, results: Path = Path("bench/results")) -> dict:
     run = json.loads((run_dir / "run.json").read_text())
     end = _when(run["timeline"][-1]["sim"]) if run["timeline"] else None
@@ -188,13 +218,7 @@ def report(run_dir: Path, cfg: A6GConfig, results: Path = Path("bench/results"))
             "config/bench/manual_round.yaml is TODO(UPV)",
         ),
         _baseline_row("UC2-KPI-2", results),
-        _row(
-            "UC2-KPI-3",
-            1.0 if flows else None,
-            "share",
-            "flow records",
-            "proxy: the network branch is a stand-in that grants every request until C5",
-        ),
+        _kpi3_row(flows),
         _row(
             "UC2-KPI-4",
             sorted({r.platform.value for r in cfg.manifests.values()}),

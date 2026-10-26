@@ -1080,9 +1080,11 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
         specs: list[TaskSpec],
         default_priority: int,
         pinned: list[str] | None = None,
+        flows: dict[str, dict[str, Any]] | None = None,
     ) -> Envelope:
         now = deps.clock.now()
         return Envelope(
+            flows=flows or {},
             envelope_id=rec["envelope_id"],
             robot_id=rid,
             mission_id=mission_id,
@@ -3859,6 +3861,34 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             rounds=(state.get("rounds") or 0) + 1,
         )
 
+    def _flow_request(flow: dict[str, Any], tasks: dict[str, dict[str, Any]]) -> dict[str, Any]:
+        """A flow request with what the network needs to admit it (SPEC A4.7): the task's
+        priority and where it will stream (the POI or post; a sector's centroid)."""
+        t = tasks.get(flow["task_id"]) or {}
+        spec = _spec(t) if t else None
+        out = {**flow, "priority": spec.priority if spec else 0, "risk": 0}
+        target = spec.target if spec else None
+        xy = None
+        if isinstance(target, PoiTarget):
+            poi = cfg.campus.poi(target.poi_id) if hasattr(cfg.campus, "poi") else None
+            if poi is None:
+                poi = next((p for p in cfg.campus.pois if p.poi_id == target.poi_id), None)
+            if poi is not None:
+                xy = (poi.pose.x, poi.pose.y)
+                out["risk"] = 1 if getattr(poi, "exposed", False) else 0
+        elif isinstance(target, SectorTarget):
+            sec = next((s for s in cfg.campus.sectors if s.sector_id == target.sector_id), None)
+            if sec is not None and sec.polygon:
+                xy = (
+                    sum(p[0] for p in sec.polygon) / len(sec.polygon),
+                    sum(p[1] for p in sec.polygon) / len(sec.polygon),
+                )
+        elif isinstance(target, PoseTarget):
+            xy = (target.pose.x, target.pose.y)
+        if xy is not None:
+            out["x"], out["y"] = xy
+        return out
+
     async def reconcile(state: CoordState) -> dict[str, Any]:
         """SPEC A3.7 (D-02): the flows the envelopes imply, requested from the network
         branch, and the invariants I1 (no live task without a flow) and I2 (no flow without
@@ -3869,36 +3899,142 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
         now = deps.clock.now()
         requested: list[str] = []
         released: list[str] = []
+        switched: list[str] = []
+        answers_all: list[dict[str, Any]] = []  # every answer, in order (a post's video
+        # and telemetry flows share a flow id: a dict would keep only the last)
         problems: dict[str, list] = {"i1": [], "i2": []}
         rounds = 0
+        net_cfg = cfg.network
+        # SPEC A4.7: the degradation loop (code only); off in the reconcile_off baseline
+        degrade = getattr(deps.network, "mode", "always_grant") == "capacity" and (
+            net_cfg.reconcile.mode != "off"
+        )
+        if net_cfg.post_sensing_mode:  # SPEC A4.7 G13: posts stream video unless degraded
+            for t in tasks.values():
+                if t["spec"]["kind"] == TaskKind.HOLD_POST.value and not t["spec"].get(
+                    "sensing_mode"
+                ):
+                    t["spec"]["sensing_mode"] = net_cfg.post_sensing_mode
         for _ in range(cfg.fleet.defaults.coordinator.reconcile_max_iter):
             rounds += 1
             asks, gone = flow_rules.derive(tasks, flows, now)
-            if asks:
-                answers = await deps.network.request_flows(state["mission_id"], asks)
-                for fid, answer in answers.items():
-                    flows[fid].update(answer)
-                requested += [a["flow_id"] for a in asks]
-            if gone:
+            if gone:  # releases first: their capacity goes to this round's requests
                 await deps.network.release_flows(state["mission_id"], gone)
                 released += gone
+            if asks:
+                answers = await deps.network.request_flows(
+                    state["mission_id"], [_flow_request(a, tasks) for a in asks]
+                )
+                for fid, answer in answers.items():
+                    flows[fid].update(answer)
+                    answers_all.append(
+                        {
+                            "flow_id": fid,
+                            "flow_class": flows[fid]["flow_class"],
+                            "state": answer["state"],
+                            "reason": answer.get("reason", ""),
+                        }
+                    )
+                requested += [a["flow_id"] for a in asks]
+            if degrade:
+                # A rejected or degraded video flow: the post switches to telemetry sensing,
+                # lowest priority (risk) first; the new telemetry_plus flow is requested on
+                # the next pass.
+                bad = sorted(
+                    (
+                        f
+                        for f in flows.values()
+                        if f["flow_class"] == "video_control"
+                        and f["state"] in ("rejected", "degraded")
+                        and f["task_id"] in tasks
+                    ),
+                    key=lambda f: (_spec(tasks[f["task_id"]]).priority, f["flow_id"]),
+                )
+                # A telemetry flow refused for capacity while a video post holds a grant:
+                # that video post (the lowest priority) gives way, and the refused flows
+                # are asked again (sensing at every post before video at some).
+                starved = [
+                    f
+                    for f in flows.values()
+                    if f["flow_class"] != "video_control"
+                    and f["state"] == "rejected"
+                    and str(f.get("reason", "")).startswith("capacity")
+                    and f["task_id"] in tasks
+                ]
+                if starved and not bad:
+                    granted_video = sorted(
+                        (
+                            f
+                            for f in flows.values()
+                            if f["flow_class"] == "video_control"
+                            and f["state"] in ("granted", "degraded")
+                            and f["task_id"] in tasks
+                        ),
+                        key=lambda f: (_spec(tasks[f["task_id"]]).priority, f["flow_id"]),
+                    )
+                    bad = granted_video[:1]
+                if starved and bad:
+                    for f in starved:
+                        f.update(state="released", reason=f"asked again ({f['reason']})")
+                if bad:
+                    for f in bad:
+                        t = tasks[f["task_id"]]
+                        t["spec"]["sensing_mode"] = "telemetry"
+                        t["degraded_from"] = "video"
+                        f.update(state="released", reason=f"switched to telemetry ({f['reason']})")
+                        switched.append(f["task_id"])
+                    await deps.network.release_flows(
+                        state["mission_id"], [f["flow_id"] for f in bad]
+                    )
+                    continue
             problems = flow_rules.check(tasks, flows)
             if not problems["i1"] and not problems["i2"]:
                 break
+        problems = flow_rules.check(tasks, flows)  # after the last pass, whatever it did
+        escalated = []
+        if degrade and problems["i1"]:
+            floor = net_cfg.reconcile.recharge_reassign_min_priority
+            escalated = [t for t in problems["i1"] if _spec(tasks[t]).priority >= floor]
         if requested or released or problems["i1"] or problems["i2"]:
+            report = None
+            if getattr(deps.network, "mode", "") == "capacity":
+                report = await deps.network.get_achievable(state["mission_id"])
             run.decide(
                 DecisionKind.RECONCILE,
                 {
                     "requested": requested,
                     "released": released,
+                    "answers": answers_all,
+                    "switched_to_telemetry": switched,
+                    "escalated_without_flow": escalated,
+                    "achievable": report,
                     "tasks_without_flow": problems["i1"],
                     "flows_without_task": problems["i2"],
                     "iterations": rounds,
                 },
-                policy={"rule": "D-02: flows reconciled before publication (SPEC A3.7)"},
+                policy={
+                    "rule": "D-02: flows reconciled before publication (SPEC A3.7)",
+                    "network": getattr(deps.network, "mode", "always_grant"),
+                    "reconcile": net_cfg.reconcile.mode,
+                },
                 justification="robot and network branches consistent"
                 if not problems["i1"] and not problems["i2"]
                 else "inconsistency left after the fix-up passes",
+            )
+        if switched:
+            run.note(
+                "📶 The network cannot carry video at "
+                + join(narr.task_id(tasks, t) for t in dict.fromkeys(switched))
+                + ": "
+                + ("that post switches" if len(set(switched)) == 1 else "those posts switch")
+                + " to telemetry sensing."
+            )
+        if escalated:
+            run.note(
+                "⚠️ No network flow for "
+                + join(narr.task_id(tasks, t) for t in escalated)
+                + " even after degrading: please decide (move the post, or accept it without "
+                "sensing)."
             )
         if problems["i1"]:
             run.note(
@@ -3939,6 +4075,17 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 specs,
                 POSTURE_PRIORITY[Posture(state.get("posture") or "routine")],
                 pinned=[t for t in mine if tasks[t].get("pinned_to") == rid],
+                flows={
+                    f["task_id"]: {
+                        "class": f["flow_class"],
+                        "state": f["state"],
+                        "ul_mbps": (f.get("granted") or {}).get("ul_mbps"),
+                    }
+                    for f in (state.get("flows") or {}).values()
+                    if f.get("robot_id") == rid
+                    and f["task_id"] in mine
+                    and f["state"] != "released"
+                },
             )
             batch.append((rid, entry, rec, envelope, mine))
 

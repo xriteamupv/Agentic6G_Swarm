@@ -323,6 +323,10 @@ class Envelope(Versioned):
     #: Tasks the operator gave to this robot by name: a robot model may not refuse them
     #: while they are feasible (SPEC A2 rule 20).
     pinned_task_ids: list[Identifier] = Field(default_factory=list)
+    #: SPEC A4.7 (I3): the network's answer per task with a streaming flow: class, state
+    #: (granted | degraded | rejected) and the granted uplink rate. A robot opens a class
+    #: above telemetry only when it is granted, at the granted rate.
+    flows: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _check(self) -> "Envelope":

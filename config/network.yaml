@@ -60,6 +60,7 @@ network:
     mode: ${A6G_RECONCILE_MODE:-on}   # on | off (experiment baseline) | relocate
     relocate_radius_m: 20
     recharge_reassign_min_priority: 80
+  post_sensing_mode: ${A6G_POST_SENSING:-}   # video in G13; empty: posts on telemetry_plus
   stub_llm: false
   provenance:
     cell: "UPV network document, 2026-10-26 (5G_UPV Nodo2, NRCELL-9)"

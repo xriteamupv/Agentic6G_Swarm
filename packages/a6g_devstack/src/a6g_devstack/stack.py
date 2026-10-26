@@ -42,6 +42,7 @@ from a6g_common.schemas import (
 )
 from a6g_coordinator.graph import CoordinatorDeps
 from a6g_coordinator.links import A2ARobotLink
+from a6g_coordinator.network import CapacityNetwork, NetworkBranchClient
 from a6g_coordinator.persistence import open_persistence
 from a6g_coordinator.runtime import Coordinator
 from a6g_interactions import InteractionClient, InteractionStore
@@ -262,6 +263,16 @@ class SimStack:
 
             self.world.coverage = load_or_build(self.cfg)
             self.world.coverage_net = self.cfg.network
+        # SPEC A4.7: the network stand-in, kept across coordinator restarts (it is the
+        # network branch, not the coordinator's state)
+        self.network = NetworkBranchClient()
+        if self.cfg.network.mode == "capacity":
+            self.network = CapacityNetwork(
+                self.cfg.network,
+                self.world.coverage,
+                where=lambda f: (f["x"], f["y"]) if "x" in f and "y" in f else None,
+                accounting_only=self.cfg.network.reconcile.mode == "off",
+            )
         self.world.models_freeze_time = self.model_time == "freeze"
         self.bus = self.bus if self.bus is not None else memory_bus("devstack")
         self.log = DecisionLog(self.workdir / "decisions.jsonl")
@@ -456,6 +467,7 @@ class SimStack:
                 clock=self.world.clock,
                 ids=self.ids,
                 model=self.model,
+                network=self.network,
                 kb=KnowledgeClient(
                     self.kb_server,
                     agent_id="coordinator",
