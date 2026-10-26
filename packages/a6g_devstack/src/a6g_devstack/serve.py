@@ -334,6 +334,8 @@ async def _amain(args: argparse.Namespace) -> None:
                             "moving": r.job is not None,
                             "failed": r.failed,
                             "link": world.link_quality(rid).value,
+                            "rsrp_dbm": world.radio(rid)[0],
+                            "sinr_db": world.radio(rid)[1],
                             "agent": stack.robots[rid].alive,
                         }
                         for rid, r in world.robots.items()
@@ -354,6 +356,9 @@ async def _amain(args: argparse.Namespace) -> None:
                     "moving": r.job is not None,
                     "failed": r.failed,
                     "link": world.link_quality(rid).value,
+                    "link_level": world.link_level(rid)[0],
+                    "rsrp_dbm": world.radio(rid)[0],
+                    "sinr_db": world.radio(rid)[1],
                     "activity": await robot_activity(proc.agent if proc else None),
                 }
             return {

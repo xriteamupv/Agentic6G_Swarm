@@ -639,6 +639,8 @@ class CampusConfig(Versioned):
     #: SPEC A4.6: gNB sites (campus_map x, y; height above ground) and calibration loops
     network_sites: list[dict[str, Any]] = Field(default_factory=list)
     calibration_loops: list[dict[str, Any]] = Field(default_factory=list)
+    #: heights (real m) aligned with ``obstacles``: buildings; None for trees (SPEC A4.6)
+    obstacle_heights: list[float | None] = Field(default_factory=list)
     #: Campus v3 knowledge base (SPEC A3.3): outdoor route graph, documents, profiles.
     route_graph: RouteGraph | None = None
     route_graph_notes: list[str] = Field(default_factory=list)

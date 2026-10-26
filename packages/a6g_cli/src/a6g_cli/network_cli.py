@@ -59,13 +59,6 @@ def preview_html(cfg, cmap, calibration: dict | None) -> str:
             f'height="{cell}" fill="{LEVEL_COLOUR[s["level"]]}" fill-opacity="0.3">'
             f"<title>RSRP {s['rsrp']} dBm, SINR {s['sinr']} dB, {s['level']}</title></rect>"
         )
-    for s in cmap.path_samples:
-        out.append(
-            f'<circle cx="{sx(s["x"])}" cy="{sy(s["y"])}" r="2.2" '
-            f'fill="{LEVEL_COLOUR[s["level"]]}">'
-            f"<title>{s['edge']}: RSRP {s['rsrp']} dBm, SINR {s['sinr']} dB, {s['level']}"
-            f"{' (injected shadow)' if s.get('injected') else ''}</title></circle>"
-        )
     if calibration is not None and c.calibration_loops:
         model = cv.radio_model(c, cfg.network, calibration["offset_db"])
         for x, y in cv.loop_samples(c, cfg.network.coverage.sample_step_m):
@@ -106,9 +99,9 @@ def preview_html(cfg, cmap, calibration: dict | None) -> str:
         "<!doctype html><html><head><meta charset='utf-8'><title>Coverage preview</title></head>"
         "<body style='font-family:sans-serif;margin:16px'>"
         f"<h3>Coverage levels ({cmap.meta.get('source')}): emulated, not measured</h3>"
-        f"<p>{legend} &nbsp; dots: footpaths; shaded: the rest of the pilot "
-        "area (outdoors); black-edged squares on the velodrome loop: predicted levels to compare "
-        "with UPV's plots; dashed: placeholder shadows</p>"
+        f"<p>{legend} &nbsp; shaded: the pilot area outdoors (2 m cells; "
+        "hover for RSRP and SINR); black-edged squares on the velodrome loop: predicted "
+        "levels to compare with UPV's plots; dashed: placeholder shadows</p>"
         + "".join(out)
         + f"<pre>{meta}</pre></body></html>"
     )

@@ -33,7 +33,7 @@ from a6g_common.geometry import point_in_polygon
 from a6g_common.netconfig import LEVELS, NetworkConfig
 
 C = 299_792_458.0
-MODEL_VERSION = "38901-uma-footprint-los/2"  # /2: the whole pilot area (grid)
+MODEL_VERSION = "38901-uma-3d-los/3"  # /3: 3D buildings (heights) for LOS
 
 
 # --------------------------------------------------------------------------- radio model
@@ -60,43 +60,68 @@ def pathloss_uma(d2d_m: float, h_bs: float, h_ut: float, fc_ghz: float, los: boo
     return max(pl_los, pl_nlos)
 
 
-def _segments_cross(
-    p1: tuple[float, float],
-    p2: tuple[float, float],
-    q1: tuple[float, float],
-    q2: tuple[float, float],
-) -> bool:
-    def orient(a: tuple[float, float], b: tuple[float, float], c: tuple[float, float]) -> float:
-        return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
-
-    d1, d2 = orient(q1, q2, p1), orient(q1, q2, p2)
-    d3, d4 = orient(p1, p2, q1), orient(p1, p2, q2)
-    return (d1 > 0) != (d2 > 0) and (d3 > 0) != (d4 > 0)
-
-
 class Footprints:
-    """Building footprints for the LOS test; the site's own building (rooftop antenna)
-    never blocks."""
+    """Buildings in 3D for the line-of-sight test: footprints with heights (OSM ``height``,
+    else levels x 3 m, else the default). The straight line from the antenna to the robot's
+    antenna is blocked where it crosses a footprint below that building's roof. Trees are
+    not obstructions. Heights are real metres; on a scaled campus only the plan shrinks."""
 
-    def __init__(self, polygons: list[list[tuple[float, float]]], site: tuple[float, float]):
-        self.polys = [p for p in polygons if len(p) >= 3 and not point_in_polygon(site, p)]
+    def __init__(
+        self,
+        polygons: list[list[tuple[float, float]]],
+        heights: list[float | None] | None = None,
+        default_height_m: float = 10.0,
+    ):
+        heights = heights or []
+        self.polys: list[list[tuple[float, float]]] = []
+        self.heights: list[float] = []
+        for i, p in enumerate(polygons):
+            h = heights[i] if i < len(heights) else default_height_m
+            if len(p) >= 3 and h is not None:  # None: a tree
+                self.polys.append(p)
+                self.heights.append(float(h))
         self.boxes = [
             (min(x for x, _ in p), min(y for _, y in p), max(x for x, _ in p), max(y for _, y in p))
             for p in self.polys
         ]
 
-    def blocked(self, a: tuple[float, float], b: tuple[float, float]) -> bool:
+    def blocked(
+        self, a: tuple[float, float], b: tuple[float, float], h_a: float = 1e9, h_b: float = 0.0
+    ) -> bool:
+        """Whether the 3D segment from ``a`` at ``h_a`` m to ``b`` at ``h_b`` m passes
+        through a building."""
         lo_x, hi_x = min(a[0], b[0]), max(a[0], b[0])
         lo_y, hi_y = min(a[1], b[1]), max(a[1], b[1])
-        for poly, (x0, y0, x1, y1) in zip(self.polys, self.boxes, strict=True):
+        for poly, height, (x0, y0, x1, y1) in zip(
+            self.polys, self.heights, self.boxes, strict=True
+        ):
             if x1 < lo_x or x0 > hi_x or y1 < lo_y or y0 > hi_y:
                 continue
-            if point_in_polygon(b, poly):
+            if point_in_polygon(b, poly) and h_b < height:
                 return True
             for i in range(len(poly)):
-                if _segments_cross(a, b, poly[i], poly[(i + 1) % len(poly)]):
+                t = _crossing(a, b, poly[i], poly[(i + 1) % len(poly)])
+                if t is not None and h_a + (h_b - h_a) * t < height:
                     return True
         return False
+
+
+def _crossing(
+    p1: tuple[float, float],
+    p2: tuple[float, float],
+    q1: tuple[float, float],
+    q2: tuple[float, float],
+) -> float | None:
+    """Where segment p1-p2 crosses segment q1-q2, as the fraction along p1-p2 (None: no)."""
+    rx, ry = p2[0] - p1[0], p2[1] - p1[1]
+    sx, sy = q2[0] - q1[0], q2[1] - q1[1]
+    den = rx * sy - ry * sx
+    if abs(den) < 1e-12:
+        return None
+    qpx, qpy = q1[0] - p1[0], q1[1] - p1[1]
+    t = (qpx * sy - qpy * sx) / den
+    u = (qpx * ry - qpy * rx) / den
+    return t if 0.0 <= t <= 1.0 and 0.0 <= u <= 1.0 else None
 
 
 @dataclass
@@ -113,9 +138,10 @@ class RadioModel:
     def rsrp(self, x: float, y: float) -> tuple[float, bool]:
         cell = self.net.cells[0]
         d2d = math.dist(self.site_xy, (x, y)) / self.scale  # real metres on a scaled campus
+        h_ut = self.net.coverage.model.h_ut_m
         los = not (
             self.net.coverage.model.los_from_footprints
-            and self.footprints.blocked(self.site_xy, (x, y))
+            and self.footprints.blocked(self.site_xy, (x, y), self.site_height_m, h_ut)
         )
         pl = pathloss_uma(
             d2d, self.site_height_m, self.net.coverage.model.h_ut_m, cell.frequency_mhz / 1000, los
@@ -197,7 +223,10 @@ def radio_model(campus: Any, net: NetworkConfig, offset_db: float = 0.0) -> Radi
         net=net,
         site_xy=xy,
         site_height_m=float(site.get("height_m") or 20.0),
-        footprints=Footprints([[tuple(p) for p in o] for o in campus.obstacles or []], xy),
+        footprints=Footprints(
+            [[tuple(p) for p in o] for o in campus.obstacles or []],
+            list(getattr(campus, "obstacle_heights", None) or []),
+        ),
         scale=campus.scale or 1.0,
         offset_db=offset_db,
     )

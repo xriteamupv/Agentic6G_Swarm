@@ -175,3 +175,18 @@ def test_a_point_near_a_footpath_takes_the_footpath_level() -> None:
     )
     assert m.nearest(1.2, 0.0)["level"] == "good"  # within 3 m of the path
     assert m.nearest(39.0, 0.0)["level"] == "cell_edge"  # open ground: the area grid
+
+
+def test_line_of_sight_uses_building_heights() -> None:
+    """3D buildings (2026-10-26): a ray over a roof is clear, one through a wall is not."""
+    box = [(10.0, -5.0), (20.0, -5.0), (20.0, 5.0), (10.0, 5.0)]
+    fp = cv.Footprints([box, [(40.0, -1.0), (41.0, -1.0), (41.0, 1.0)]], [8.0, None])
+    assert fp.blocked((0.0, 0.0), (30.0, 0.0), h_a=6.0, h_b=1.5)  # below the 8 m roof
+    assert not fp.blocked((0.0, 0.0), (30.0, 0.0), h_a=30.0, h_b=1.5)  # well above it
+    assert not fp.blocked((35.0, 0.0), (45.0, 0.0), h_a=2.0, h_b=1.5)  # a tree: no obstruction
+
+
+def test_the_gnb_height_is_its_rooftop_plus_the_mast() -> None:
+    site = _cfg().campus.network_sites[0]
+    assert site["host_building"] is not None and site["height_source"].startswith("rooftop")
+    assert site["height_m"] > 3.0

@@ -29,7 +29,7 @@ network:
       sinr_db: {min: 8, max: 26}
     sinr_from_rsrp: {offset_db: 101, clip_db: [-10, 26]}   # read from the plots
     sample_step_m: 2            # along the footpaths, where the robots work
-    grid_step_m: 4              # and over the rest of the pilot area, outdoors (any point)
+    grid_step_m: 2              # and over the rest of the pilot area, outdoors (any point)
     levels_by: sinr
     thresholds_sinr_db: {good: 13, cell_edge: 5, degraded: -5}   # below degraded: lost
     lost_rsrp_dbm: -115

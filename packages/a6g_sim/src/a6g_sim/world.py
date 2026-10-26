@@ -257,6 +257,19 @@ class SimWorld:
         level = tracker.update(sample, self.clock.now())
         return level, tracker.cell
 
+    def radio(self, robot_id: str) -> tuple[float | None, float | None]:
+        """(RSRP dBm, SINR dB) where the robot stands, from the coverage map (None: no map,
+        or the link is cut)."""
+        robot = self.robot(robot_id)
+        if self.coverage is None or (
+            robot.link_lost_until and self.clock.now() < robot.link_lost_until
+        ):
+            return None, None
+        sample = self.coverage.nearest(robot.x, robot.y)
+        if sample is None:
+            return None, None
+        return sample.get("rsrp"), sample.get("sinr")
+
     def link_quality(self, robot_id: str) -> LinkQuality:
         robot = self.robot(robot_id)
         if robot.link_lost_until and self.clock.now() < robot.link_lost_until:
@@ -284,6 +297,7 @@ class SimWorld:
     def state(self, robot_id: str, *, armed: bool = False) -> RobotState:
         robot = self.robot(robot_id)
         level, cell = self.link_level(robot_id)
+        rsrp, sinr = self.radio(robot_id)
         m = robot.manifest
         return RobotState(
             robot_id=robot.robot_id,
@@ -296,6 +310,8 @@ class SimWorld:
             link_quality=self.link_quality(robot_id),
             link_level=level,
             cell_id=cell,
+            rsrp_dbm=rsrp,
+            sinr_db=sinr,
             armed=armed,
             stamp=self.clock.now(),
         )

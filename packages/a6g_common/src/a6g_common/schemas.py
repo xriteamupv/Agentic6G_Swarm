@@ -296,6 +296,9 @@ class RobotState(Versioned):
     #: level (lost -> lost, degraded -> degraded, otherwise ok). None: not known.
     link_level: Literal["good", "cell_edge", "degraded", "lost"] | None = None
     cell_id: str | None = None
+    #: SPEC A4.6: the radio as the robot's modem reports it (emulated from the coverage map)
+    rsrp_dbm: float | None = None
+    sinr_db: float | None = None
     armed: bool = False
     stamp: UtcDatetime
 

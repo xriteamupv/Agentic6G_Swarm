@@ -8,6 +8,7 @@ agree (Rule 16).
 """
 
 import json
+import math
 from pathlib import Path
 from typing import Any, Literal
 
@@ -254,7 +255,10 @@ class NetworkSiteV2(_M):
     name: str = ""
     lat: float
     lon: float
-    height_m: float = 20.0  # TODO(UPV): antenna height above ground
+    #: antenna height above ground; None: the height of the building it stands on (the
+    #: nearest footprint within 5 m: the rooftop site) plus ``mast_m``
+    height_m: float | None = None
+    mast_m: float = 3.0  # TODO(UPV): mast above the roof
 
 
 class CalibrationLoopV2(_M):
@@ -361,8 +365,10 @@ class CampusV2(_M):
         """The runtime ``CampusConfig`` as a dict (validated by the caller)."""
         d = self.projection()
         obstacles: list[list[tuple[float, float]]] = []
+        heights: list[float | None] = []
         if self.world.osm_cache:
             obstacles = osm_obstacles(self, _resolve(self.world.osm_cache, base_dir))
+            heights = osm_obstacle_heights(self, _resolve(self.world.osm_cache, base_dir))
 
         def xy(p: LatLon) -> tuple[float, float]:
             return d.xy(p[0], p[1])
@@ -492,15 +498,7 @@ class CampusV2(_M):
                 for r in self.link_recovery_points
             ],
             "network_sites": [
-                {
-                    "site_id": n.id,
-                    "name": n.name,
-                    "x": xy((n.lat, n.lon))[0],
-                    "y": xy((n.lat, n.lon))[1],
-                    "height_m": n.height_m,
-                    "lat": n.lat,
-                    "lon": n.lon,
-                }
+                _site_entry(n, xy((n.lat, n.lon)), obstacles, heights, self.world.scale)
                 for n in self.network_sites
             ],
             "calibration_loops": [
@@ -514,6 +512,7 @@ class CampusV2(_M):
             ],
             "pilot_area": corners,
             "obstacles": obstacles,
+            "obstacle_heights": heights,
             **knowledge,
             "datum": self.datum.model_dump(),
             "scale": self.world.scale,
@@ -676,6 +675,34 @@ def _segments_cross(a, b, c, d) -> bool:
     return o1 != o2 and o3 != o4 and 0 not in (o1, o2, o3, o4)
 
 
+def building_height(b: dict[str, Any], campus: "CampusV2") -> float:
+    """OSM ``height``, else ``building:levels`` x ``level_height_m``, else the default
+    (the rule of the Gazebo world generator)."""
+    if b.get("height"):
+        return float(b["height"])
+    if b.get("levels"):
+        return float(b["levels"]) * campus.world.level_height_m
+    return campus.world.default_building_height_m
+
+
+def osm_obstacle_heights(campus: "CampusV2", cache: Path) -> list[float | None]:
+    """Heights (real metres) aligned with ``osm_obstacles``: buildings, then trees (None:
+    foliage is not an obstruction for the line-of-sight test)."""
+    if not cache.exists():
+        return []
+    data = json.loads(cache.read_text())
+    d = campus.projection()
+    out: list[float | None] = []
+    for b in data.get("buildings", []):
+        ring = [d.xy(lat, lon) for lat, lon in b["outer"]]
+        if ring and ring[0] == ring[-1]:
+            ring = ring[:-1]
+        if len(ring) >= 3:
+            out.append(building_height(b, campus))
+    out += [None] * len(data.get("trees", []))
+    return out
+
+
 def osm_obstacles(campus: CampusV2, cache: Path) -> list[list[tuple[float, float]]]:
     """Building footprints (and trees as small squares) in campus_map, deterministic order."""
     if not cache.exists():
@@ -703,6 +730,60 @@ def osm_obstacles(campus: CampusV2, cache: Path) -> list[list[tuple[float, float
             ]
         )
     return out
+
+
+def _site_entry(
+    n: "NetworkSiteV2",
+    at: tuple[float, float],
+    obstacles: list[list[tuple[float, float]]],
+    heights: list[float | None],
+    scale: float,
+) -> dict[str, Any]:
+    """A gNB site in campus_map; on a rooftop its height is the building's plus the mast."""
+    from a6g_common.geometry import point_in_polygon
+
+    def gap(poly: list[tuple[float, float]]) -> float:
+        if point_in_polygon(at, poly):
+            return 0.0
+        best = math.inf
+        for i, a in enumerate(poly):
+            b = poly[(i + 1) % len(poly)]
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            t = max(
+                0.0,
+                min(
+                    1.0, ((at[0] - a[0]) * dx + (at[1] - a[1]) * dy) / ((dx * dx + dy * dy) or 1.0)
+                ),
+            )
+            best = min(best, math.dist(at, (a[0] + t * dx, a[1] + t * dy)))
+        return best
+
+    host = None
+    hosts = [
+        (gap(o), i) for i, o in enumerate(obstacles) if i < len(heights) and heights[i] is not None
+    ]
+    if hosts:
+        g, i = min(hosts)
+        if g <= 5.0 * scale:
+            host = i
+    if n.height_m is not None:
+        height, source = n.height_m, "campus file"
+    elif host is not None:
+        height = float(heights[host]) + n.mast_m
+        source = f"rooftop: building {host} ({heights[host]:g} m) + mast {n.mast_m:g} m"
+    else:
+        height, source = 20.0 + n.mast_m, "no building found within 5 m: 20 m + mast"
+    return {
+        "site_id": n.id,
+        "name": n.name,
+        "x": at[0],
+        "y": at[1],
+        "height_m": round(height, 2),
+        "height_source": source,
+        "host_building": host,
+        "lat": n.lat,
+        "lon": n.lon,
+    }
 
 
 def world_name(campus_id: str, scale: float) -> str:

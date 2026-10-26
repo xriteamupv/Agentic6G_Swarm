@@ -80,7 +80,7 @@ link_recovery_points:            # reachable spots with known good 5G coverage (
      aliases: [puerta este, porta est, east entrance gate]}
   - {id: lrp_staging, lat: 39.4785533, lon: -0.3346788, note: staging area}
 network_sites:                   # SPEC A4.6.1: the n40 gNB of 5G_UPV Nodo2 (radio: config/network.yaml)
-  - {id: site_8g, name: "n40 gNB (Building 8G)", lat: 39.4784439, lon: -0.3338678, height_m: 20}   # height TODO(UPV)
+  - {id: site_8g, name: "n40 gNB (Building 8G)", lat: 39.4784439, lon: -0.3338678, mast_m: 3}   # rooftop: Building 8G's height + mast (TODO(UPV): mast)
 calibration_loops:               # SPEC A4.6: UPV's velodrome coverage plots were taken along this loop
   - id: velodrome
     name: Velódromo UPV
