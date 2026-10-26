@@ -992,6 +992,11 @@ def bench_g10(
     failed = 0
     for seed in range(seeds):
         run_dir = out / f"seed{seed}"
+        if persistence == "postgres" and pg_dsn:  # every seed starts from an empty twin
+            import psycopg
+
+            with psycopg.connect(pg_dsn, autocommit=True) as conn:
+                conn.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public")
         result = asyncio.run(scenario_g10.run(cfg, run_dir, seed=seed, **stack_kw))
         oks = {k: v["ok"] for k, v in result["checks"].items() if isinstance(v, dict) and "ok" in v}
         good = result["error"] is None and all(oks.values())
