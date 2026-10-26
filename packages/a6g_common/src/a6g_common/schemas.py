@@ -269,8 +269,9 @@ class TaskSpec(Versioned):
             None,
             "video",
             "telemetry",
+            "state_only",  # SPEC A4.7: the network can carry no sensing stream there
         ):
-            raise ValueError("hold_post sensing_mode must be video or telemetry")
+            raise ValueError("hold_post sensing_mode must be video, telemetry or state_only")
         if self.task_id in self.depends_on:
             raise ValueError(f"task {self.task_id} depends on itself")
         if len(set(self.depends_on)) != len(self.depends_on):
@@ -293,8 +294,8 @@ class RobotState(Versioned):
     commitment_until: UtcDatetime | None = None
     link_quality: LinkQuality = LinkQuality.OK
     #: SPEC A4.6: coverage level and serving cell; ``link_quality`` is derived from the
-    #: level (lost -> lost, degraded -> degraded, otherwise ok). None: not known.
-    link_level: Literal["good", "cell_edge", "degraded", "lost"] | None = None
+    #: level (lost -> lost, low -> degraded, otherwise ok). None: not known.
+    link_level: Literal["good", "medium", "low", "lost"] | None = None
     cell_id: str | None = None
     #: SPEC A4.6: the radio as the robot's modem reports it (emulated from the coverage map)
     rsrp_dbm: float | None = None

@@ -22,6 +22,7 @@ from a6g_common.schemas import (
     TaskSpec,
 )
 from a6g_devstack import SimStack
+from a6g_devstack.scenario_g10 import outage_polygon
 from conftest import WHOLE_CAMPUS, wait_for
 
 pytestmark = pytest.mark.scenario
@@ -33,6 +34,8 @@ async def stack(tmp_path: Path):
     cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
     s = SimStack(cfg, tmp_path / "stack")
     await s.start()
+    # coverage is emulated (no shadow polygons since 2026-10-26): an injected outage zone
+    s.outage_zone(outage_polygon(cfg))
     try:
         yield s
     finally:
@@ -45,7 +48,7 @@ def _inside_shadow(stack: SimStack) -> Pose2D:
     from a6g_common.footpaths import walker_for
 
     campus = stack.cfg.campus
-    shadow = campus.link_shadows[0]
+    shadow = stack.world.outage_zones[0]
     x = sum(p[0] for p in shadow) / len(shadow)
     y = sum(p[1] for p in shadow) / len(shadow)
     x, y = walker_for(campus.route_graph).project((x, y)).point
@@ -115,7 +118,7 @@ async def test_robot_leaves_shadow_for_recovery_point_after_hold(stack: SimStack
 
     await wait_for(reconnected, timeout=60)
     assert stack.world.link_quality("go2_01") is LinkQuality.OK
-    shadow = stack.cfg.campus.link_shadows[0]
+    shadow = stack.world.outage_zones[0]
     assert not point_in_polygon((robot.x, robot.y), shadow)  # out of the coverage shadow
     delivered = [r for r in stack.delivered if r.robot_id == "go2_01"]
     assert any(

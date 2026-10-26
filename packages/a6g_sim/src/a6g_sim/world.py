@@ -181,6 +181,8 @@ class SimWorld:
         #: SPEC A4.6: coverage levels from the network twin (None: the shadow polygons)
         self.coverage: Any = None
         self.coverage_net: Any = None  # the NetworkConfig the map was built with
+        #: injected outage zones (scenarios and tests): link lost inside, labelled injected
+        self.outage_zones: list[list[tuple[float, float]]] = []
         self._trackers: dict[str, Any] = {}
         #: Charging rate of an idle robot inside the staging area (the dock).
         self.charge_pct_per_s = charge_pct_per_s
@@ -243,9 +245,11 @@ class SimWorld:
         robot = self.robot(robot_id)
         if robot.link_lost_until and self.clock.now() < robot.link_lost_until:
             return "lost", None
+        if any(point_in_polygon((robot.x, robot.y), z) for z in self.outage_zones):
+            return "lost", None
         if self.coverage is None:
             q = self._shadow_quality(robot)
-            return {LinkQuality.LOST: "lost", LinkQuality.DEGRADED: "degraded"}.get(q, "good"), None
+            return {LinkQuality.LOST: "lost", LinkQuality.DEGRADED: "low"}.get(q, "good"), None
         sample = self.coverage.nearest(robot.x, robot.y)
         if sample is None:
             return "lost", None
@@ -274,9 +278,9 @@ class SimWorld:
         robot = self.robot(robot_id)
         if robot.link_lost_until and self.clock.now() < robot.link_lost_until:
             return LinkQuality.LOST
-        if self.coverage is not None:
+        if self.coverage is not None or self.outage_zones:
             level, _ = self.link_level(robot_id)
-            return {"lost": LinkQuality.LOST, "degraded": LinkQuality.DEGRADED}.get(
+            return {"lost": LinkQuality.LOST, "low": LinkQuality.DEGRADED}.get(
                 level, LinkQuality.OK
             )
         return self._shadow_quality(robot)
@@ -429,6 +433,11 @@ class SimWorld:
         robot = self.robot(robot_id)
         robot.failed = True
         self._finish(robot, JobResult(SkillOutcome.FAILED, "robot failure"))
+
+    def inject_outage_zone(self, polygon: list[tuple[float, float]]) -> None:
+        """An injected outage (a stress case, not a property of the coverage map): the
+        link is lost while a robot is inside ``polygon``."""
+        self.outage_zones.append([tuple(p) for p in polygon])
 
     def inject_link_loss(self, robot_id: str, seconds: float) -> None:
         self.robot(robot_id).link_lost_until = self.clock.now() + timedelta(seconds=seconds)

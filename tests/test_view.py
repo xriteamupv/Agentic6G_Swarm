@@ -20,7 +20,8 @@ def test_view_routes_serve_page_campus_and_state() -> None:
     assert page.status_code == 200 and "<title>a6g test</title>" in page.text
     geo = client.get("/sim/view/campus").json()
     assert {s["id"] for s in geo["sectors"]} == {"sec_north", "sec_south", "sec_east"}
-    assert len(geo["buildings"]) > 20 and geo["shadows"] and geo["recovery"]
+    # no shadow polygons since 2026-10-26: the emulated coverage is drawn instead
+    assert len(geo["buildings"]) > 20 and geo["coverage"] and geo["recovery"] and geo["sites"]
     assert geo["robots"]["summit_01"]["platform"] == "summit"
     assert client.get("/sim/view/state").json()["robots"]["go2_01"]["x"] == 1.0
 

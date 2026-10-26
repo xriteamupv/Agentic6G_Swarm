@@ -31,9 +31,8 @@ def test_geometry_scales_uniformly(full, small) -> None:
     # Points only move where the shrunk campus leaves a real-size robot no room.
     kiosk_f, kiosk_s = full.poi("poi_kiosk").pose, small.poi("poi_kiosk").pose
     assert (kiosk_s.x, kiosk_s.y) == pytest.approx((kiosk_f.x * 0.1, kiosk_f.y * 0.1), abs=0.002)
-    assert small.link_shadows[0][1] == pytest.approx(
-        (full.link_shadows[0][1][0] * 0.1, full.link_shadows[0][1][1] * 0.1), abs=0.002
-    )
+    loop_f, loop_s = full.calibration_loops[0]["polygon"], small.calibration_loops[0]["polygon"]
+    assert loop_s[1] == pytest.approx((loop_f[1][0] * 0.1, loop_f[1][1] * 0.1), abs=0.002)
 
 
 def test_every_target_is_reachable_with_room_at_0_1(small) -> None:
@@ -47,8 +46,3 @@ def test_every_target_is_reachable_with_room_at_0_1(small) -> None:
     targets += [(w.x, w.y) for s in small.sectors for w in s.survey_waypoints]
     for t in targets:
         assert planner.plan(start, t) is not None, t
-    # The east survey still crosses the coverage shadow (G5).
-    from a6g_common.geometry import point_in_polygon
-
-    wps = small.sector("sec_east").survey_waypoints
-    assert any(point_in_polygon((w.x, w.y), small.link_shadows[0]) for w in wps)

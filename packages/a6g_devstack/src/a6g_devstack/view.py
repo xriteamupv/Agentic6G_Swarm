@@ -212,10 +212,10 @@ PAGE = r"""<!doctype html>
     <div class="legend">
       <div><span style="background:var(--building)"></span>building (OSM)</div>
       <div><span style="background:rgba(var(--sector),.18);border:1px solid rgb(var(--sector))"></span>patrol zone (its footpaths, one colour each) · dots = survey waypoints</div>
-      <div><span style="background:rgba(var(--shadow),.18);border:1px dashed rgb(var(--shadow))"></span>5G coverage shadow (link lost) · <span style="background:rgba(217,113,28,.18);border:1px dashed rgb(217,113,28)"></span>degraded</div>
+      <div><span style="background:transparent;border:1px dashed #1b5e20"></span>tree-lined walk (foliage loss)</div>
       <div><span style="background:var(--poi)"></span>point of interest · <span style="background:var(--exposed)"></span>exposed</div>
       <div><span style="background:var(--recovery)"></span>link recovery point · staging square</div>
-      <div><span style="background:#e41a1c"></span>n40 gNB site · emulated coverage (shaded area): <span style="background:#1b9e77"></span>good <span style="background:#e6ab02"></span>cell edge <span style="background:#d95f02"></span>degraded <span style="background:#7570b3"></span>lost</div>
+      <div><span style="background:#e41a1c"></span>n40 gNB site · emulated coverage (shaded area): <span style="background:#1b9e77"></span>good <span style="background:#e6ab02"></span>medium <span style="background:#d95f02"></span>low <span style="background:#7570b3"></span>lost</div>
       <div><span style="background:transparent;border:2px solid var(--pilot)"></span>pilot area</div>
       <div><label><input type="checkbox" id="paths" checked> <span style="background:var(--path)"></span>footpath (OSM) · dashed: open space · <span style="background:#c24141"></span>stairs</label></div>
       <div><span style="background:#e02424"></span>restricted (closed, obstructed, flooded…)</div>
@@ -293,7 +293,7 @@ function draw() {
     ctx.lineWidth = 1;
     for (const b of campus.buildings) poly(b, css("--building"), css("--building-edge"));
     if (document.getElementById("paths").checked) drawPaths();
-    const lvl = {good: "#1b9e77", cell_edge: "#e6ab02", degraded: "#d95f02", lost: "#7570b3"};
+    const lvl = {good: "#1b9e77", medium: "#e6ab02", low: "#d95f02", lost: "#7570b3"};
     for (const [x, y, l, cell] of campus.coverage || []) {
       const [u, v] = toPx(x, y); ctx.fillStyle = lvl[l] || "#999";
       const [u2, v2] = toPx(x + cell, y + cell), w = Math.max(1, u2 - u + 0.5), h = Math.max(1, v - v2 + 0.5);

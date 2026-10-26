@@ -33,7 +33,7 @@ from a6g_common.geometry import point_in_polygon
 from a6g_common.netconfig import LEVELS, NetworkConfig
 
 C = 299_792_458.0
-MODEL_VERSION = "38901-uma-3d-los/3"  # /3: 3D buildings (heights) for LOS
+MODEL_VERSION = "38901-uma-3d-los-sector/6"  # /4: sector pattern, setback, foliage
 
 
 # --------------------------------------------------------------------------- radio model
@@ -126,27 +126,86 @@ def _crossing(
 
 @dataclass
 class RadioModel:
-    """RSRP (dBm) at a campus_map point from the first cell of ``network.yaml``."""
+    """RSRP (dBm) at a campus_map point from the first cell of ``network.yaml``: 38.901 UMa
+    path loss with LOS/NLOS from 3D buildings, the sector's antenna pattern, and foliage."""
 
     net: NetworkConfig
-    site_xy: tuple[float, float]
+    site_xy: tuple[float, float]  # the antenna (after the setback from the roof edge)
     site_height_m: float
     footprints: Footprints
     scale: float = 1.0
     offset_db: float = 0.0
+    #: (polygon, tree-lined paths, half width, canopy height): see ``in_canopy``
+    vegetation: list[
+        tuple[list[tuple[float, float]], list[list[tuple[float, float]]], float, float]
+    ] = field(default_factory=list)
+
+    def geometry(self, x: float, y: float) -> tuple[float, float, float]:
+        """(2D distance m, bearing deg from north, depression deg below the horizon)."""
+        dx, dy = (x - self.site_xy[0]) / self.scale, (y - self.site_xy[1]) / self.scale
+        d2d = math.hypot(dx, dy)
+        bearing = math.degrees(math.atan2(dx, dy)) % 360.0
+        h_ut = self.net.coverage.model.h_ut_m
+        depression = math.degrees(math.atan2(self.site_height_m - h_ut, max(d2d, 1.0)))
+        return d2d, bearing, depression
+
+    def foliage_db(self, x: float, y: float) -> float:
+        """Excess loss along the part of the ray inside a canopy (1 m steps)."""
+        if not self.vegetation:
+            return 0.0
+        veg = self.net.coverage.vegetation
+        h_ut = self.net.coverage.model.h_ut_m
+        d = math.dist(self.site_xy, (x, y))
+        n = max(1, int(d / max(self.scale, 1e-6)))
+        inside = 0.0
+        for k in range(n + 1):
+            f = k / n
+            px = self.site_xy[0] + (x - self.site_xy[0]) * f
+            py = self.site_xy[1] + (y - self.site_xy[1]) * f
+            h = self.site_height_m + (h_ut - self.site_height_m) * f
+            for poly, paths, half_width, canopy in self.vegetation:
+                if h <= canopy and in_canopy((px, py), poly, paths, half_width):
+                    inside += d / self.scale / n
+                    break
+        under = 0.0
+        for poly, paths, half_width, _ in self.vegetation:  # the robot under the trees
+            if in_canopy((x, y), poly, paths, half_width):
+                under = float(veg.get("under_canopy_db", 0.0))
+                break
+        return min(inside * veg["loss_db_per_m"] + under, veg["max_loss_db"])
 
     def rsrp(self, x: float, y: float) -> tuple[float, bool]:
         cell = self.net.cells[0]
-        d2d = math.dist(self.site_xy, (x, y)) / self.scale  # real metres on a scaled campus
+        d2d, bearing, depression = self.geometry(x, y)
         h_ut = self.net.coverage.model.h_ut_m
         los = not (
             self.net.coverage.model.los_from_footprints
             and self.footprints.blocked(self.site_xy, (x, y), self.site_height_m, h_ut)
         )
-        pl = pathloss_uma(
-            d2d, self.site_height_m, self.net.coverage.model.h_ut_m, cell.frequency_mhz / 1000, los
-        )
-        return cell.rs_epre_dbm + cell.antenna.gain_dbi + self.offset_db - pl, los
+        pl = pathloss_uma(d2d, self.site_height_m, h_ut, cell.frequency_mhz / 1000, los)
+        gain = cell.antenna.gain_dbi + cell.antenna.pattern_db(bearing, depression)
+        return cell.rs_epre_dbm + gain + self.offset_db - pl - self.foliage_db(x, y), los
+
+
+def _to_segment(p: tuple[float, float], a: tuple[float, float], b: tuple[float, float]) -> float:
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / ((dx * dx + dy * dy) or 1.0)
+    t = max(0.0, min(1.0, t))
+    return math.dist(p, (a[0] + t * dx, a[1] + t * dy))
+
+
+def in_canopy(
+    p: tuple[float, float],
+    poly: list[tuple[float, float]],
+    paths: list[list[tuple[float, float]]],
+    half_width: float,
+) -> bool:
+    """Inside a vegetation polygon, or within ``half_width`` of a tree-lined path."""
+    if len(poly) >= 3 and point_in_polygon(p, poly):
+        return True
+    return any(
+        _to_segment(p, a, b) <= half_width for path in paths for a, b in itertools.pairwise(path)
+    )
 
 
 def sinr_from_rsrp(net: NetworkConfig, rsrp: float) -> float:
@@ -160,10 +219,10 @@ def level_of(net: NetworkConfig, sinr: float, rsrp: float | None = None) -> str:
         return "lost"
     if sinr >= t["good"]:
         return "good"
-    if sinr >= t["cell_edge"]:
-        return "cell_edge"
-    if sinr >= t["degraded"]:
-        return "degraded"
+    if sinr >= t["medium"]:
+        return "medium"
+    if sinr >= t["low"]:
+        return "low"
     return "lost"
 
 
@@ -216,10 +275,36 @@ def _site(campus: Any, net: NetworkConfig) -> dict[str, Any]:
     raise ValueError("no network_sites in the campus file (SPEC A4.6.1)")
 
 
+def antenna_xy(campus: Any, net: NetworkConfig) -> tuple[float, float]:
+    """The antenna: the given site moved ``setback_m`` back from the roof edge, away from
+    where the sector points (into the building it stands on)."""
+    site = _site(campus, net)
+    ant = net.cells[0].antenna
+    if ant.azimuth_deg is None or not ant.setback_m:
+        return site["x"], site["y"]
+    az = math.radians(ant.azimuth_deg)
+    back = ant.setback_m * (campus.scale or 1.0)
+    return (
+        round(site["x"] - back * math.sin(az), 3),
+        round(site["y"] - back * math.cos(az), 3),
+    )
+
+
 def radio_model(campus: Any, net: NetworkConfig, offset_db: float = 0.0) -> RadioModel:
     site = _site(campus, net)
-    xy = (site["x"], site["y"])
+    xy = antenna_xy(campus, net)
+    canopy = net.coverage.vegetation["canopy_height_m"]
     return RadioModel(
+        vegetation=[
+            (
+                [tuple(p) for p in v.get("polygon") or []],
+                [[tuple(p) for p in path] for path in v.get("paths") or []],
+                float(v.get("half_width_m") or 0.0),
+                float(v.get("canopy_height_m") or canopy),
+            )
+            for v in getattr(campus, "vegetation_areas", None) or []
+            if len(v.get("polygon") or []) >= 3 or v.get("paths")
+        ],
         net=net,
         site_xy=xy,
         site_height_m=float(site.get("height_m") or 20.0),
@@ -236,15 +321,24 @@ def radio_model(campus: Any, net: NetworkConfig, offset_db: float = 0.0) -> Radi
 
 
 def calibrate(campus: Any, net: NetworkConfig) -> dict[str, Any]:
-    """One RSRP offset so that the model's median on the velodrome loop equals the plotted
-    median (no measurement CSV: values read from UPV's plots)."""
+    """One RSRP offset fitted (least squares) to the plotted minimum, median and maximum on
+    the velodrome loop (no measurement CSV: values read from UPV's plots)."""
     model = radio_model(campus, net)
     pts = loop_samples(campus, net.coverage.sample_step_m)
     if not pts:
         raise ValueError("no calibration_loops in the campus file")
     raw = [model.rsrp(x, y) for x, y in pts]
     target = net.coverage.calibration_targets
-    offset = target.rsrp_dbm["median"] - statistics.median(r for r, _ in raw)
+    # least squares over the plotted min, median and max (the median alone left the line-
+    # of-sight spots 14 dB above the plotted maximum, 2026-10-26)
+    raw_r = [r for r, _ in raw]
+    offset = statistics.fmean(
+        [
+            target.rsrp_dbm["min"] - min(raw_r),
+            target.rsrp_dbm["median"] - statistics.median(raw_r),
+            target.rsrp_dbm["max"] - max(raw_r),
+        ]
+    )
     rsrp = [r + offset for r, _ in raw]
     sinr = [sinr_from_rsrp(net, r) for r in rsrp]
     spread = max(rsrp) - min(rsrp)
@@ -491,8 +585,8 @@ def build_model_map(campus: Any, net: NetworkConfig, calibration: dict[str, Any]
         meta={
             "source": "model",
             "model_version": MODEL_VERSION,
-            "label": "model (38.901 UMa, offset matched to the plotted velodrome RSRP; SINR from "
-            "the plots); footpaths behind buildings (NLOS) extrapolated",
+            "label": "model (38.901 UMa, 3D buildings, one sector, foliage; offset fitted to the "
+            "plotted velodrome RSRP min/median/max; SINR from the plots); NLOS extrapolated",
             "calibration": calibration,
             "sample_step_m": net.coverage.sample_step_m,
             "grid_step_m": net.coverage.grid_step_m,
@@ -629,7 +723,7 @@ class LevelTracker:
 
 def quality_of(level: str) -> str:
     """``link_quality`` derived from the level (the link-loss policy acts on ``lost``)."""
-    return {"lost": "lost", "degraded": "degraded"}.get(level, "ok")
+    return {"lost": "lost", "low": "degraded"}.get(level, "ok")
 
 
 def levels(samples: Iterable[dict[str, Any]]) -> dict[str, int]:

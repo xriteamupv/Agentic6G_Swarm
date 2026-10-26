@@ -29,7 +29,7 @@ def _map(level_at: dict[tuple[float, float], tuple[str, float]]) -> CoverageMap:
 GOOD = (0.0, 0.0)
 EDGE = (100.0, 0.0)
 LOST = (200.0, 0.0)
-COVERAGE = _map({GOOD: ("good", 25.0), EDGE: ("cell_edge", 6.0), LOST: ("lost", -9.0)})
+COVERAGE = _map({GOOD: ("good", 25.0), EDGE: ("medium", 6.0), LOST: ("lost", -9.0)})
 
 
 def _flow(fid: str, cls: str, xy: tuple[float, float], priority: int = 90) -> dict:
@@ -95,7 +95,7 @@ async def test_a_flow_is_rejected_where_coverage_is_too_poor() -> None:
 
 async def test_rtt_requirement_is_checked_per_level() -> None:
     net = _net(100.0)
-    net.link_profiles["cell_edge"].rtt_ms = 200.0  # above conversational's 150 ms
+    net.link_profiles["medium"].rtt_ms = 200.0  # above conversational's 150 ms
     stub = CapacityNetwork(net, COVERAGE, where=lambda f: (f["x"], f["y"]))
     answers = await stub.request_flows("m", [_flow("talk", "conversational", EDGE)])
     assert answers["talk"]["state"] == "rejected"
@@ -131,9 +131,9 @@ async def test_reevaluation_on_a_level_change() -> None:
     stub = _stub(100.0)
     await stub.request_flows("m", [_flow("a", "video_control", GOOD)])
     assert stub.reevaluate() == []
-    stub.coverage = _map({GOOD: ("cell_edge", 6.0)})
+    stub.coverage = _map({GOOD: ("medium", 6.0)})
     events = stub.reevaluate()
-    assert events and events[0]["from"][1] == "good" and events[0]["to"][1] == "cell_edge"
+    assert events and events[0]["from"][1] == "good" and events[0]["to"][1] == "medium"
 
 
 async def test_without_admission_the_cell_is_shared_by_fair_share() -> None:
@@ -156,10 +156,13 @@ async def test_g13_keeps_the_invariants_with_refusals(tmp_path: Path, capacity: 
     r = await G.run(cfg, tmp_path / "run", fleet=3, seed=0, variant="reconcile")
     assert "error" not in r, r.get("error")
     assert r["i1_violations"] == 0 and r["i2_violations"] == 0 and r["i3_violations"] == 0
-    assert r["posts_sensing_usable"] == r["posts_held"] == r["exposed_pois"]
-    if capacity >= 44:
-        assert r["posts_video_usable"] == r["exposed_pois"]  # nothing to degrade
-    else:
+    assert r["posts_held"] == r["exposed_pois"]
+    # a post the network cannot serve at all is held without sensing and escalated
+    assert r["posts_sensing_usable"] + r["escalations"] >= r["exposed_pois"]
+    # every post either keeps video or was switched to telemetry (capacity or coverage: the
+    # bike rack is in low coverage, so even 44 Mbps does not carry its video)
+    assert r["posts_video_usable"] + r["switched_to_telemetry"] >= r["exposed_pois"]
+    if capacity < 44:
         assert r["switched_to_telemetry"] > 0
 
 
@@ -170,6 +173,8 @@ async def test_g13_with_spare_capacity_reconcile_and_off_agree(tmp_path: Path) -
 
     out = {}
     for variant in ("reconcile", "reconcile_off"):
-        cfg = G.g13_config("config", 44.0, variant)
+        # 200 Mbps: above the demand even with the bike rack's low-coverage video (its
+        # poor spectral efficiency makes 4 Mbps cost ~55 cell units)
+        cfg = G.g13_config("config", 200.0, variant)
         out[variant] = await G.run(cfg, tmp_path / variant, fleet=3, seed=1, variant=variant)
     assert out["reconcile"]["posts_video_usable"] == out["reconcile_off"]["posts_video_usable"]

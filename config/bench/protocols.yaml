@@ -11,7 +11,7 @@ bindings:                   # binding, mode, encoding
   - {binding: a2a_grpc, mode: warm, encoding: json}
   - {binding: mqtt, mode: persistent, encoding: json}
   - {binding: mqtt, mode: persistent, encoding: cbor}
-profiles: [good, cell_edge, degraded]   # link profiles of config/network.yaml
+profiles: [good, medium, low]   # link profiles of config/network.yaml
 patterns:                   # pattern, count (P4: duration), nl policies
   P1: {count: 200, nl: [full, none]}
   P2: {count: 200, nl: [full, none]}

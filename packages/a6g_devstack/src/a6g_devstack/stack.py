@@ -436,6 +436,10 @@ class SimStack:
         manifest = load_manifest(Path(manifest_path))
         return await self.start_robot(manifest.robot_id, manifest)
 
+    def outage_zone(self, polygon: list[tuple[float, float]]) -> None:
+        """An injected outage zone (scenarios, tests): see ``SimWorld.inject_outage_zone``."""
+        self.world.inject_outage_zone(polygon)
+
     def link_loss(self, robot_id: str, seconds: float) -> None:
         self.world.inject_link_loss(robot_id, seconds)
 

@@ -17,9 +17,11 @@ def _cfg(source: str = "model"):
     return load_config("config", env={"A6G_COVERAGE_SOURCE": source}, fleet_file="sim/fleet.yaml")
 
 
-def test_defaults_keep_the_shadows_and_always_grant() -> None:
+def test_coverage_is_emulated_by_default_and_the_network_grants() -> None:
+    """2026-10-26: the shadow polygons are gone; coverage comes from the model."""
     cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
-    assert cfg.network.mode == "always_grant" and cfg.network.coverage.source == "shadows"
+    assert cfg.network.mode == "always_grant" and cfg.network.coverage.source == "model"
+    assert cfg.campus.link_shadows == []
 
 
 def test_derived_rates_of_the_campus_cell() -> None:
@@ -47,25 +49,40 @@ def test_calibration_and_the_map_are_deterministic() -> None:
     cfg = _cfg()
     a = cv.calibrate(cfg.campus, cfg.network)
     b = cv.calibrate(cfg.campus, cfg.network)
-    assert a == b and a["rsrp_dbm"]["median"] == pytest.approx(-86.0, abs=0.05)
+    assert a == b and a["spread_ok"]
+    # the offset is fitted to the plotted min, median and max together
+    plotted = a["rsrp_dbm"]["plotted"]
+    errors = [a["rsrp_dbm"][k] - plotted[k] for k in ("min", "median", "max")]
+    assert abs(sum(errors)) < 0.5
     m1 = cv.build_model_map(cfg.campus, cfg.network, a)
     m2 = cv.build_model_map(cfg.campus, cfg.network, b)
     assert json.dumps(m1.to_json()) == json.dumps(m2.to_json())
     assert m1.meta["source"] == "model" and "38.901" in m1.meta["label"]
 
 
-def test_placeholder_shadows_stay_lost_and_are_labelled_injected() -> None:
+def test_the_sector_points_at_the_campus_and_the_back_is_weaker() -> None:
+    """One sector at 300 degrees (UPV): behind it the 38.901 pattern takes up to 30 dB."""
+    ant = _cfg().network.cells[0].antenna
+    assert ant.azimuth_deg == 300
+    assert ant.pattern_db(300, ant.tilt_deg or 0) == pytest.approx(0.0)
+    assert ant.pattern_db(120, ant.tilt_deg or 0) == pytest.approx(-ant.front_back_db)
+
+
+def test_trees_lower_the_level_under_them() -> None:
     cfg = _cfg()
-    m = cv.build_model_map(cfg.campus, cfg.network, cv.calibrate(cfg.campus, cfg.network))
-    in_shadow = [s for s in m.samples if s["injected"]]
-    assert in_shadow and all(s["level"] == "lost" for s in in_shadow)
+    model = cv.radio_model(cfg.campus, cfg.network)
+    walk = cfg.campus.vegetation_areas[0]["paths"][0]
+    x, y = walk[len(walk) // 2]
+    assert model.foliage_db(x, y) >= cfg.network.coverage.vegetation["under_canopy_db"]
+    site = cfg.campus.network_sites[0]
+    assert model.foliage_db(site["x"] - 10, site["y"]) == 0.0  # by Building 8G: no trees
 
 
 def test_levels_from_sinr_and_rsrp() -> None:
     net = NetworkConfig()
     assert cv.level_of(net, 20) == "good"
-    assert cv.level_of(net, 8) == "cell_edge"
-    assert cv.level_of(net, 0) == "degraded"
+    assert cv.level_of(net, 8) == "medium"
+    assert cv.level_of(net, 0) == "low"
     assert cv.level_of(net, -8) == "lost"
     assert cv.level_of(net, 20, rsrp=-120) == "lost"
 
@@ -112,14 +129,14 @@ def test_hysteresis_and_minimum_dwell() -> None:
     t = cv.LevelTracker(net)
     assert t.update(s(20, "good"), T0) == "good"
     # just below the good threshold, inside the hysteresis band: stays good
-    assert t.update(s(12, "cell_edge"), T0 + timedelta(seconds=1)) == "good"
+    assert t.update(s(12, "medium"), T0 + timedelta(seconds=1)) == "good"
     # well below: the change waits for the dwell
-    assert t.update(s(9, "cell_edge"), T0 + timedelta(seconds=2)) == "good"
-    assert t.update(s(9, "cell_edge"), T0 + timedelta(seconds=3)) == "good"
-    assert t.update(s(9, "cell_edge"), T0 + timedelta(seconds=4.1)) == "cell_edge"
+    assert t.update(s(9, "medium"), T0 + timedelta(seconds=2)) == "good"
+    assert t.update(s(9, "medium"), T0 + timedelta(seconds=3)) == "good"
+    assert t.update(s(9, "medium"), T0 + timedelta(seconds=4.1)) == "medium"
     # back up needs the threshold plus the margin, then the dwell
-    assert t.update(s(14, "good"), T0 + timedelta(seconds=5)) == "cell_edge"
-    assert t.update(s(16, "good"), T0 + timedelta(seconds=6)) == "cell_edge"
+    assert t.update(s(14, "good"), T0 + timedelta(seconds=5)) == "medium"
+    assert t.update(s(16, "good"), T0 + timedelta(seconds=6)) == "medium"
     assert t.update(s(16, "good"), T0 + timedelta(seconds=8.1)) == "good"
 
 
@@ -132,8 +149,9 @@ async def test_the_simulator_reports_level_and_cell(tmp_path: Path) -> None:
         state = stack.world.state("go2_01")
     finally:
         await stack.stop()
-    assert state.link_level == "good" and state.cell_id == "n40_nodo2_cell9"
-    assert state.link_quality.value == "ok"
+    # the staging area is at the end of the tree-lined north-west walk: medium
+    assert state.link_level in ("good", "medium") and state.cell_id == "n40_nodo2_cell9"
+    assert state.link_quality.value == "ok" and state.rsrp_dbm is not None
 
 
 @pytest.mark.scenario
@@ -170,11 +188,11 @@ def test_a_point_near_a_footpath_takes_the_footpath_level() -> None:
         samples=[
             {"kind": "path", "edge": "a", "x": 0.0, "y": 0.0, "level": "good", "sinr": 20},
             {"kind": "area", "edge": None, "x": 1.0, "y": 0.0, "level": "lost", "sinr": -9},
-            {"kind": "area", "edge": None, "x": 40.0, "y": 0.0, "level": "cell_edge", "sinr": 7},
+            {"kind": "area", "edge": None, "x": 40.0, "y": 0.0, "level": "medium", "sinr": 7},
         ]
     )
     assert m.nearest(1.2, 0.0)["level"] == "good"  # within 3 m of the path
-    assert m.nearest(39.0, 0.0)["level"] == "cell_edge"  # open ground: the area grid
+    assert m.nearest(39.0, 0.0)["level"] == "medium"  # open ground: the area grid
 
 
 def test_line_of_sight_uses_building_heights() -> None:

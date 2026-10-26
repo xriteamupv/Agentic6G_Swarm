@@ -74,7 +74,23 @@ def test_the_editor_page_and_api(config_copy: Path) -> None:
     assert bad.status_code == 400 and "error" in bad.json()
 
 
+LEGACY = (
+    "coverage_shadows:                # emulated 5G shadows (TODO(UPV): uplink survey)\n"
+    "  - {id: shadow_east, link_quality: lost, polygon_wgs84: [[39.4782885, -0.3341788], "
+    "[39.4780638, -0.3334241], [39.4788163, -0.3330652], [39.4790278, -0.3338341]]}\n"
+)
+
+
+def _with_legacy_shadow(config_copy: Path) -> None:
+    """The campus has no shadow polygons since 2026-10-26 (coverage is emulated); the
+    editor still edits legacy ones."""
+    path = config_copy / "campus" / "upv_vera_cpi.yaml"
+    lines = path.read_text().splitlines(keepends=True)
+    path.write_text("".join(LEGACY if ln.startswith("coverage_shadows:") else ln for ln in lines))
+
+
 def test_shadows_are_moved_reshaped_added_and_deleted(config_copy: Path) -> None:
+    _with_legacy_shadow(config_copy)
     ed = _editor(config_copy)
     before = ed.path.read_text()
     east = next(sh for sh in ed.state()["shadows"] if sh["id"] == "shadow_east")

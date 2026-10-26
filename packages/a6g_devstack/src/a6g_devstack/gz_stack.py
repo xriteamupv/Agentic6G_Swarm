@@ -85,9 +85,12 @@ ANOMALY_MARKER_SDF = (
 class LinkEmulator:
     """5G link quality per robot (SPEC A1 11): injected losses + coverage shadows."""
 
-    def __init__(self, link_shadows, degraded_shadows) -> None:
+    def __init__(self, link_shadows, degraded_shadows, coverage=None, net=None) -> None:
         self.link_shadows = [list(p) for p in link_shadows]
         self.degraded_shadows = [list(p) for p in degraded_shadows]
+        #: SPEC A4.6: levels from the coverage map (the same as the 2D simulator)
+        self.coverage, self.net = coverage, net
+        self.trackers: dict[str, Any] = {}
         self.poses: dict[str, dict[str, float]] = {}
         self.lost_until: dict[str, float] = {}
 
@@ -104,6 +107,19 @@ class LinkEmulator:
                 return LinkQuality.LOST
             if any(point_in_polygon(xy, s) for s in self.degraded_shadows):
                 return LinkQuality.DEGRADED
+            if self.coverage is not None:
+                from datetime import UTC, datetime
+
+                from a6g_common.coverage import LevelTracker
+
+                sample = self.coverage.nearest(*xy)
+                if sample is not None:
+                    tracker = self.trackers.setdefault(robot_id, LevelTracker(self.net))
+                    level = tracker.update(sample, datetime.now(UTC))
+                    if level == "lost":
+                        return LinkQuality.LOST
+                    if level == "low":
+                        return LinkQuality.DEGRADED
         return LinkQuality.OK
 
 
@@ -309,7 +325,14 @@ class GzStack:
         self.echo_speech = False
         self.store = InMemoryStore()
         campus = self.cfg.campus
-        self.links = LinkEmulator(campus.link_shadows, campus.degraded_shadows)
+        coverage = None
+        if self.cfg.network.coverage.source != "shadows":
+            from a6g_common.coverage import load_or_build
+
+            coverage = load_or_build(self.cfg)
+        self.links = LinkEmulator(
+            campus.link_shadows, campus.degraded_shadows, coverage, self.cfg.network
+        )
         self.robots: dict[str, GzRobot] = {}
         self.anomalies: dict[str, str] = {}
         self.injections: list[dict[str, Any]] = []

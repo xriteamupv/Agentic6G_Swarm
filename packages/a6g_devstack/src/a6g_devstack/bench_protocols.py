@@ -140,7 +140,7 @@ async def run(cfg: A6GConfig, spec: dict[str, Any], workdir: Path, reduced: bool
     payloads = workdir / "payloads.json"
     payloads.write_text(json.dumps(sizes))
     # every level (the outage tests run on `good` whatever profiles are selected)
-    profiles = {p: cfg.network.level_profile(p) for p in ("good", "cell_edge", "degraded")}
+    profiles = {p: cfg.network.level_profile(p) for p in ("good", "medium", "low")}
     blocks = matrix(spec, reduced)
     robots = spec["reduced"]["robots"] if reduced else spec["robots"]
     jobs = []

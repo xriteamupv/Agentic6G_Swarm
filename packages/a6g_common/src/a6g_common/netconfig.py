@@ -11,7 +11,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-LEVELS = ("good", "cell_edge", "degraded", "lost")
+LEVELS = ("good", "medium", "low", "lost")  # 2026-10-26: medium, low (were cell_edge, degraded)
 
 
 class _M(BaseModel):
@@ -19,10 +19,29 @@ class _M(BaseModel):
 
 
 class AntennaConfig(_M):
+    """One sector (SPEC A4.6.1): the 3GPP TR 38.901 Table 7.3-1 element pattern,
+    A = -min(-(A_H + A_V), front_back_db), A_H = -min(12 (phi/h_bw)^2, front_back_db),
+    A_V = -min(12 ((theta - tilt)/v_bw)^2, front_back_db)."""
+
     ports: int = 4
     gain_dbi: float = 10.0  # TODO(UPV)
-    azimuth_deg: float | None = None  # None: omnidirectional
-    tilt_deg: float | None = None
+    azimuth_deg: float | None = None  # bearing, degrees clockwise from north; None: omni
+    tilt_deg: float | None = None  # electrical + mechanical downtilt
+    h_beamwidth_deg: float = 65.0
+    v_beamwidth_deg: float = 65.0
+    front_back_db: float = 30.0
+    #: the antenna stands this far back from the roof edge (the given site), towards the
+    #: building: the roof hides the ground close to the building (NLOS) (TODO(UPV))
+    setback_m: float = 5.0
+
+    def pattern_db(self, bearing_deg: float, depression_deg: float) -> float:
+        if self.azimuth_deg is None:
+            return 0.0
+        phi = (bearing_deg - self.azimuth_deg + 180.0) % 360.0 - 180.0
+        a_h = -min(12.0 * (phi / self.h_beamwidth_deg) ** 2, self.front_back_db)
+        theta = depression_deg - (self.tilt_deg or 0.0)
+        a_v = -min(12.0 * (theta / self.v_beamwidth_deg) ** 2, self.front_back_db)
+        return -min(-(a_h + a_v), self.front_back_db)
 
 
 class CellConfig(_M):
@@ -95,10 +114,21 @@ class CoverageConfig(_M):
     grid_step_m: float = Field(4.0, ge=0.0)
     levels_by: Literal["sinr"] = "sinr"
     thresholds_sinr_db: dict[str, float] = Field(
-        default_factory=lambda: {"good": 13.0, "cell_edge": 5.0, "degraded": -5.0}
+        default_factory=lambda: {"good": 13.0, "medium": 5.0, "low": -5.0}
     )
     lost_rsrp_dbm: float = -115.0
     hysteresis_db: float = 3.0
+    #: foliage (campus ``vegetation_areas``): excess loss along the part of the ray inside
+    #: the canopy (in leaf, ~2.4 GHz), capped (ITU-R P.833 order of magnitude)
+    vegetation: dict[str, float] = Field(
+        default_factory=lambda: {
+            "loss_db_per_m": 0.4,
+            "max_loss_db": 15.0,
+            "canopy_height_m": 8.0,
+            # a terminal under tree cover (ITU-R P.2108 clutter order of magnitude)
+            "under_canopy_db": 8.0,
+        }
+    )
     min_dwell_s: float = 2.0
     shadows_override: bool = True
     #: the map file (``a6g network coverage --build`` / ``calibrate``), relative to config/

@@ -28,6 +28,8 @@ def flow_class(spec: TaskSpec) -> str:
     if spec.kind is TaskKind.ESCORT:
         return "conversational"
     if spec.kind is TaskKind.HOLD_POST:
+        if spec.sensing_mode == "state_only":  # no sensing stream the network can carry
+            return "telemetry"
         return "video_control" if spec.sensing_mode == "video" else "telemetry_plus"
     return "telemetry"  # inspect, go_to, return_home: state and A2A only
 

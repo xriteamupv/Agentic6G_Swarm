@@ -260,6 +260,12 @@ class CapacityNetwork(NetworkBranchClient):
             share = 1.0 if demand <= cap or demand <= 0 else cap / demand
             for r in recs:
                 eff = 0.0 if not math.isfinite(r["cost"]) else r["rate"] * share
+                # a robot cannot send more than its uplink allows where it stands
+                eff = (
+                    0.0
+                    if r["level"] == "lost"
+                    else min(eff, self.net.uplink_rate.rate_mbps(r["sinr"]))
+                )
                 out[r["flow_id"]] = {
                     "cell": cell,
                     "class": r["flow_class"],

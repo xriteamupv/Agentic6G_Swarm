@@ -270,6 +270,19 @@ class CalibrationLoopV2(_M):
     source: str = ""
 
 
+class VegetationAreaV2(_M):
+    """Trees that attenuate the radio (SPEC A4.6): a polygon, or the footpaths of a patrol
+    zone widened by ``half_width_m`` (a tree-lined walk) until the tree line is drawn."""
+
+    id: str
+    name: str = ""
+    sector: str | None = None
+    half_width_m: float = 6.0
+    polygon_wgs84: list[LatLon] | None = None
+    canopy_height_m: float | None = None
+    note: str = ""
+
+
 class RecoveryPointV2(_M):
     id: str
     lat: float
@@ -296,6 +309,7 @@ class CampusV2(_M):
     #: SPEC A4: gNB sites and coverage-calibration loops (geometry defined once, rule 16)
     network_sites: list[NetworkSiteV2] = Field(default_factory=list)
     calibration_loops: list[CalibrationLoopV2] = Field(default_factory=list)
+    vegetation_areas: list[VegetationAreaV2] = Field(default_factory=list)
     # v3 (optional: a v2 file is a v3 file without a knowledge base)
     route_graph: RouteGraphV3 | None = None
     documents: list[DocumentV3] = Field(default_factory=list)
@@ -476,6 +490,31 @@ class CampusV2(_M):
                 (sx - h, sy + h),
             ],
             "sectors": sectors,
+            "vegetation_areas": [
+                {
+                    "area_id": v.id,
+                    "name": v.name,
+                    "canopy_height_m": v.canopy_height_m,
+                    "polygon": [xy(p) for p in v.polygon_wgs84] if v.polygon_wgs84 else [],
+                    # a tree-lined walk: the zone's footpaths, widened
+                    "paths": [
+                        [tuple(p) for p in e["geometry"]]
+                        for e in (knowledge.get("route_graph") or {}).get("edges", [])
+                        if not v.polygon_wgs84
+                        and e.get("id")
+                        in next(
+                            (
+                                set(sec.get("path_edges") or [])
+                                for sec in sectors
+                                if sec["sector_id"] == v.sector
+                            ),
+                            set(),
+                        )
+                    ],
+                    "half_width_m": v.half_width_m * self.world.scale,
+                }
+                for v in self.vegetation_areas
+            ],
             "pois": pois,
             "link_shadows": [
                 [xy(p) for p in c.polygon_wgs84]

@@ -3993,8 +3993,20 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
         problems = flow_rules.check(tasks, flows)  # after the last pass, whatever it did
         escalated = []
         if degrade and problems["i1"]:
+            # The last step: a post the network cannot serve at all is held on state
+            # telemetry only (no sensing stream, so no flow: I1 holds) and escalated.
             floor = net_cfg.reconcile.recharge_reassign_min_priority
-            escalated = [t for t in problems["i1"] if _spec(tasks[t]).priority >= floor]
+            for tid in problems["i1"]:
+                t = tasks[tid]
+                if t["spec"]["kind"] == TaskKind.HOLD_POST.value:
+                    t["spec"]["sensing_mode"] = "state_only"
+                    t["degraded_from"] = t.get("degraded_from") or "telemetry"
+                if _spec(t).priority >= floor:
+                    escalated.append(tid)
+            for f in flows.values():
+                if f["task_id"] in problems["i1"] and f["state"] == "rejected":
+                    f.update(state="released", reason=f"post held without sensing ({f['reason']})")
+            problems = flow_rules.check(tasks, flows)
         if requested or released or problems["i1"] or problems["i2"]:
             report = None
             if getattr(deps.network, "mode", "") == "capacity":
@@ -4031,10 +4043,10 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             )
         if escalated:
             run.note(
-                "⚠️ No network flow for "
+                "⚠️ The network cannot carry any sensing stream at "
                 + join(narr.task_id(tasks, t) for t in escalated)
-                + " even after degrading: please decide (move the post, or accept it without "
-                "sensing)."
+                + ": the robot holds the post without sensing. Please decide (move the post, "
+                "or accept it like this)."
             )
         if problems["i1"]:
             run.note(

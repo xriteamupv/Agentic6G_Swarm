@@ -738,16 +738,25 @@ the n40 gNB of 5G_UPV (Nodo2) on Building 8G, NRCELL-9, 2380 MHz, 20 MHz TDD (UL
 the measured single-device uplink, 22 Mbps (velodrome, TCP), is the anchor of the uplink
 rate model and the default cell capacity.
 
-**Coverage levels (N3).** `a6g network calibrate` builds the map from the 3GPP 38.901 UMa
-path loss of the site (LOS/NLOS from the building footprints, no shadow fading) with one
-RSRP offset matched to the median of UPV's velodrome plots (the loop is OSM way 23389345);
-SINR = RSRP + 101 dB (read from the plots). `a6g network coverage --preview cov.html`
-summarises the footpaths per level and draws the map; `a6g network import-coverage --rsrp
-<csv>` takes the radio DT export instead. Robots get `link_level` (good, cell_edge,
-degraded, lost) and `cell_id`, with hysteresis and minimum dwell; `link_quality` derives
-from the level, so the link-loss policy is unchanged. The placeholder shadow polygons stay
-`lost` (G10 needs its link loss: an injected stress case, labelled so). The live view and
-`a6g campus edit` draw the gNB.
+**Coverage levels (N3).** Coverage is fully emulated (2026-10-26: the hand-drawn shadow
+polygons are gone; `coverage.source: model` is the default). `a6g network calibrate` builds
+the map from the 3GPP 38.901 UMa path loss of the gNB, which stands on the roof of Building 8G
+(its height: the building's, from OSM or the 10 m default, plus a 3 m mast; TODO(UPV)) set
+back 5 m from the roof edge, so the ground close to the building is hidden by the roof
+(NLOS) while further points may be in LOS. LOS is decided in 3D against the building heights
+(OSM `height`, else levels x 3 m, else 10 m). One sector, azimuth 300 degrees (towards the
+campus centre), with the 38.901 element pattern (65 degree beams, 30 dB front-to-back):
+behind it the levels fall to low and lost. Trees (`vegetation_areas` in the campus file: the
+north-west walk, widened 6 m) add foliage loss along the ray and under the canopy. One RSRP
+offset is fitted to the minimum, median and maximum of UPV's velodrome plots (OSM way
+23389345); SINR = RSRP + 101 dB (read from the plots). Levels: **good, medium, low, lost**
+(SINR 13 / 5 / -5 dB). The map covers the whole outdoor pilot area (2 m cells) and the
+footpaths (2 m samples, used by robots on paths). `a6g network coverage --preview cov.html`
+summarises and draws it (hover for RSRP and SINR); `a6g network import-coverage --rsrp <csv>`
+takes the radio DT export instead. Robots report `link_level`, `cell_id`, `rsrp_dbm` and
+`sinr_db` (the live view shows them next to the battery), with hysteresis and minimum dwell;
+`link_quality` derives from the level. G10's link loss is an injected outage zone (the former
+placeholder shadow), labelled so in its results.
 
 **A network that can refuse (N4).** With `A6G_NETWORK_MODE=capacity` the network stand-in
 admits flows from the cell's uplink capacity and the coverage where each flow streams

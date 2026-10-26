@@ -16,10 +16,12 @@ network:
       ul_slot_share: 0.3        # UL:DL logical data slot ratio 3:7
       scs_khz: 30               # TODO(UPV): confirm (51 PRB at 30 kHz; 106 PRB at 15 kHz)
       max_output_power_dbm: 26.5      # TODO(UPV): total or per port
-      antenna: {ports: 4, gain_dbi: 10, azimuth_deg: null, tilt_deg: null}   # TODO(UPV)
+      # one sector, towards the centre of the campus (UPV, 2026-10-26); 38.901 element pattern
+      antenna: {ports: 4, gain_dbi: 10, azimuth_deg: 300, tilt_deg: 6, h_beamwidth_deg: 65,
+                v_beamwidth_deg: 65, front_back_db: 30, setback_m: 5}   # gain, tilt, setback TODO(UPV)
       dl_mimo: "4x4 or 4x2 closed-loop spatial multiplexing"
   coverage:
-    source: ${A6G_COVERAGE_SOURCE:-shadows}   # shadows (default) | model | radio_dt
+    source: ${A6G_COVERAGE_SOURCE:-model}     # model (default, 2026-10-26) | radio_dt | shadows (legacy polygons)
     radio_dt_file: data/network/upv_vera_cpi_rsrp.csv   # TODO(UPV): lat,lon,cell_id,rsrp_dbm
     model: {pathloss: 3gpp_38901_uma, h_ut_m: 1.5, los_from_footprints: true, shadow_fading: false}
     calibration: plots          # no measurement CSV: values read from UPV's velodrome plots
@@ -31,19 +33,20 @@ network:
     sample_step_m: 2            # along the footpaths, where the robots work
     grid_step_m: 2              # and over the rest of the pilot area, outdoors (any point)
     levels_by: sinr
-    thresholds_sinr_db: {good: 13, cell_edge: 5, degraded: -5}   # below degraded: lost
+    thresholds_sinr_db: {good: 13, medium: 5, low: -5}   # below low: lost
     lost_rsrp_dbm: -115
     hysteresis_db: 3
+    vegetation: {loss_db_per_m: 0.4, max_loss_db: 15, canopy_height_m: 8, under_canopy_db: 8}   # campus vegetation_areas; model assumptions
     min_dwell_s: 2              # simulated seconds before a level change takes effect
-    shadows_override: true      # the campus coverage_shadows (placeholders) stay `lost`
+    shadows_override: true      # campus coverage_shadows, if any, stay `lost` (none since 2026-10-26)
     map_file: ../sim_gazebo/src/a6g_gz_worlds/sim/{campus}_coverage.json   # next to the route graph
   uplink_rate:                  # maximum uplink rate of one robot at a location
     anchor: {ul_mbps: 22, sinr_db: 25}   # measured single-UE TCP goodput, velodrome, 20 MHz
     spectral_efficiency: {alpha: 0.6, se_max_bps_hz: 5.55}
   link_profiles:                # per level, for the protocol micro-benchmark (N5, netem)
     good:      {ul_mbps: derived, dl_mbps: 100, rtt_ms: 19, jitter_ms: 5,  loss_pct: 0.1}
-    cell_edge: {ul_mbps: derived, dl_mbps: 20,  rtt_ms: 45, jitter_ms: 15, loss_pct: 1}   # rtt, jitter, loss TODO(UPV)
-    degraded:  {ul_mbps: derived, dl_mbps: 5,   rtt_ms: 80, jitter_ms: 30, loss_pct: 3}   # TODO(UPV)
+    medium:    {ul_mbps: derived, dl_mbps: 20,  rtt_ms: 45, jitter_ms: 15, loss_pct: 1}   # rtt, jitter, loss TODO(UPV)
+    low:       {ul_mbps: derived, dl_mbps: 5,   rtt_ms: 80, jitter_ms: 30, loss_pct: 3}   # TODO(UPV)
     lost:      {outage: true}
   capacity:
     cells:

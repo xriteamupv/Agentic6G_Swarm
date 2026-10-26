@@ -8,7 +8,7 @@ import typer
 
 network_app = typer.Typer(help="Campus 5G cell, coverage levels (SPEC A4.6).", no_args_is_help=True)
 
-LEVEL_COLOUR = {"good": "#1b9e77", "cell_edge": "#e6ab02", "degraded": "#d95f02", "lost": "#7570b3"}
+LEVEL_COLOUR = {"good": "#1b9e77", "medium": "#e6ab02", "low": "#d95f02", "lost": "#7570b3"}
 
 
 def _cfg(config_dir: Path | None, source: str | None = None):
@@ -71,6 +71,20 @@ def preview_html(cfg, cmap, calibration: dict | None) -> str:
                 f'stroke="#000" stroke-width="0.4"><title>velodrome: RSRP {rsrp:.1f} dBm, SINR '
                 f"{sinr:.1f} dB ({'LOS' if los else 'NLOS'})</title></rect>"
             )
+    for v in getattr(c, "vegetation_areas", None) or []:  # tree-lined walks: dashed line
+        hw = float(v.get("half_width_m") or 0)
+        for path in v.get("paths") or []:
+            d = " ".join(f"{sx(x)},{sy(y)}" for x, y in path)
+            out.append(
+                f'<polyline points="{d}" fill="none" stroke="#1b5e20" stroke-width="2" '
+                f'stroke-dasharray="5 4"><title>{v["name"]} (trees within {hw:g} m)</title>'
+                "</polyline>"
+            )
+        if len(v.get("polygon") or []) >= 3:
+            d = " ".join(f"{sx(x)},{sy(y)}" for x, y in v["polygon"])
+            out.append(
+                f'<polygon points="{d}" fill="none" stroke="#1b5e20" stroke-dasharray="5 4"/>'
+            )
     for p in c.pois:
         out.append(
             f'<circle cx="{sx(p.pose.x)}" cy="{sy(p.pose.y)}" r="5" fill="none" stroke="#000">'
@@ -101,7 +115,8 @@ def preview_html(cfg, cmap, calibration: dict | None) -> str:
         f"<h3>Coverage levels ({cmap.meta.get('source')}): emulated, not measured</h3>"
         f"<p>{legend} &nbsp; shaded: the pilot area outdoors (2 m cells; "
         "hover for RSRP and SINR); black-edged squares on the velodrome loop: predicted "
-        "levels to compare with UPV's plots; dashed: placeholder shadows</p>"
+        "levels to compare with UPV's plots; dark green dashed line: tree-lined walk "
+        "(foliage loss)</p>"
         + "".join(out)
         + f"<pre>{meta}</pre></body></html>"
     )

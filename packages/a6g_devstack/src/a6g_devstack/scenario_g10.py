@@ -96,6 +96,28 @@ def _decisions(stack: SimStack, kind: DecisionKind | None = None) -> list:
     return [d for d in stack.log.read() if kind is None or d.kind is kind]
 
 
+#: Step 4's outage: the former placeholder shadow around the shelters (removed from the
+#: campus on 2026-10-26, coverage is emulated), injected here as a stress case
+OUTAGE_WGS84 = [
+    (39.4782885, -0.3341788),
+    (39.4780638, -0.3334241),
+    (39.4788163, -0.3330652),
+    (39.4790278, -0.3338341),
+]
+
+
+def outage_polygon(cfg: A6GConfig) -> list[tuple[float, float]]:
+    from a6g_common.geo import Datum
+
+    d = cfg.campus.datum or {}
+    datum = Datum(d["lat_deg"], d["lon_deg"], d.get("alt_m", 0.0), d.get("heading_deg", 0.0))
+    scale = cfg.campus.scale or 1.0
+    return [
+        (round(x * scale, 3), round(y * scale, 3))
+        for x, y, _ in (datum.to_enu(lat, lon) for lat, lon in OUTAGE_WGS84)
+    ]
+
+
 async def run(
     cfg: A6GConfig, workdir: Path, seed: int = 0, timeout_s: float = 600, **stack_kw: Any
 ) -> dict[str, Any]:
@@ -112,6 +134,7 @@ async def run(
 
     operator: list[dict[str, str]] = []
     await stack.start()
+    stack.outage_zone(outage_polygon(cfg))
     sampler = asyncio.create_task(_telemetry(stack, workdir / "telemetry.jsonl"))
     iid = speaker = None
     error = None
@@ -185,11 +208,9 @@ async def run(
         "network": {
             "mode": cfg.network.mode,
             "coverage_source": cfg.network.coverage.source,
-            # SPEC A4.6: with a coverage map the shelters' shadow is a placeholder kept as
-            # an override; the measured velodrome shows no outage
-            "link_loss": "injected shadow (placeholder polygon, a stress case)"
-            if cfg.network.coverage.source != "shadows"
-            else "shadow polygon",
+            # SPEC A4.6: the outage around the shelters is injected (the emulated coverage has
+            # no outage there; the measured velodrome shows none): a stress case
+            "link_loss": "injected outage zone (former placeholder shadow, a stress case)",
         },
         "stamp": datetime.now(UTC).isoformat(),
     }

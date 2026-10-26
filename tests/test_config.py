@@ -1,5 +1,6 @@
 """P0 acceptance: config loads, and validation fails loudly on a bad manifest."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -170,8 +171,22 @@ def test_campus_poi_outside_pilot_sector_rejected(config_copy: Path) -> None:
         load_config(config_copy, env={})
 
 
+#: a legacy shadow polygon (the campus has none since 2026-10-26: coverage is emulated)
+LEGACY_SHADOW = {
+    "id": "shadow_east",
+    "link_quality": "lost",
+    "polygon_wgs84": [
+        [39.4782885, -0.3341788],
+        [39.4780638, -0.3334241],
+        [39.4788163, -0.3330652],
+        [39.4790278, -0.3338341],
+    ],
+}
+
+
 def test_campus_self_intersecting_polygon_rejected(config_copy: Path) -> None:
     def bow_tie(d):
+        d["coverage_shadows"] = [json.loads(json.dumps(LEGACY_SHADOW))]
         p = d["coverage_shadows"][0]["polygon_wgs84"]
         p[1], p[2] = p[2], p[1]
 
@@ -190,7 +205,10 @@ def test_campus_point_inside_a_building_rejected(config_copy: Path) -> None:
 
 
 def test_shadow_needs_a_reachable_recovery_point(config_copy: Path) -> None:
-    _edit_yaml(config_copy / "campus" / CAMPUS, lambda d: d.update(link_recovery_points=[]))
+    _edit_yaml(
+        config_copy / "campus" / CAMPUS,
+        lambda d: d.update(link_recovery_points=[], coverage_shadows=[LEGACY_SHADOW]),
+    )
     with pytest.raises(ConfigError, match="no reachable link recovery point"):
         load_config(config_copy, env={})
 
