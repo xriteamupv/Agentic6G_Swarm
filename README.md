@@ -723,6 +723,65 @@ The bench also found that a robot added while no mission ran was ignored by late
 until the coordinator restarted, and was then admitted again as a newcomer, re-planning
 everyone's work; both fixed.
 
+## The network in the loop and the paper results (SPEC Part A4, stages N0-N6)
+
+Everything here is **emulated**, never measured on the campus network (rule 32); every
+result file carries a manifest (rule 31: commit and dirty flag, command, config hashes,
+seeds, models and fidelity, network mode, coverage source, time factor, host), and
+`a6g paper export` flags results from another commit as possibly stale. Defaults are
+unchanged (`network.mode: always_grant`, `coverage.source: shadows`); benches select the
+new modes.
+
+**The campus cell** (`config/network.yaml`, site in the campus file as `network_sites`):
+the n40 gNB of 5G_UPV (Nodo2) on Building 8G, NRCELL-9, 2380 MHz, 20 MHz TDD (UL 30 %),
+26.5 dBm. Derived (TS 38.306): uplink peak 26.3 Mbps (1 layer, 64QAM), downlink 306 Mbps;
+the measured single-device uplink, 22 Mbps (velodrome, TCP), is the anchor of the uplink
+rate model and the default cell capacity.
+
+**Coverage levels (N3).** `a6g network calibrate` builds the map from the 3GPP 38.901 UMa
+path loss of the site (LOS/NLOS from the building footprints, no shadow fading) with one
+RSRP offset matched to the median of UPV's velodrome plots (the loop is OSM way 23389345);
+SINR = RSRP + 101 dB (read from the plots). `a6g network coverage --preview cov.html`
+summarises the footpaths per level and draws the map; `a6g network import-coverage --rsrp
+<csv>` takes the radio DT export instead. Robots get `link_level` (good, cell_edge,
+degraded, lost) and `cell_id`, with hysteresis and minimum dwell; `link_quality` derives
+from the level, so the link-loss policy is unchanged. The placeholder shadow polygons stay
+`lost` (G10 needs its link loss: an injected stress case, labelled so). The live view and
+`a6g campus edit` draw the gNB.
+
+**A network that can refuse (N4).** With `A6G_NETWORK_MODE=capacity` the network stand-in
+admits flows from the cell's uplink capacity and the coverage where each flow streams
+(code only): guaranteed flows in priority order (rate within the robot's uplink there, RTT
+within the level's, cost `rate x SE(anchor)/SE(SINR)` within the remaining capacity, else
+`coverage` or `capacity`), best effort shares the rest (degraded). `reconcile` degrades:
+a refused video post switches to telemetry, lowest priority first, and a video post gives
+way when telemetry is refused for capacity; envelopes carry the grants and robots open a
+stream only when granted (I3, `direction: budget` records). `a6g bench scarcity` runs
+scenario G13 (a weather alert, every exposed POI held with video) over the cell capacity
+(2-44 Mbps), `reconcile` against `reconcile_off` (no admission, fair share), fleets 3 and 5.
+
+**Benches.**
+
+```bash
+uv run a6g bench baselines --jobs 6        # N1: outages 60-inf s x fleets 3,5,8 x 10 seeds
+uv run a6g bench scarcity --jobs 6         # N4: G13 over the cell capacity
+uv run a6g bench g10 --seeds 10 --network capacity --checkpoint-meter \
+    --persistence postgres --pg-dsn postgresql://a6g:a6g@127.0.0.1:5433/a6g
+uv run a6g bench overhead                  # N2: traffic per posture/fleet, patterns, model calls, checkpoints
+uv run a6g bench protocols [--reduced]     # N5: protocols over emulated radio links (real time)
+uv run a6g paper export                    # N6: paper/RESULTS.md + CSV files
+```
+
+**Protocols over emulated radio links (N5)** run on real sockets in rootless Linux network
+namespaces (`unshare --user --map-root-user --net --mount`: no sudo): `edge` and `r1..rN`
+joined by veth pairs to a bridge, `tc netem` per link level on both radio legs (so robot to
+robot crosses two). A2A JSON-RPC (cold and warm), REST and gRPC (`a2a-sdk`), and MQTT
+(persistent session, QoS 1, JSON and CBOR), all over TLS 1.3, with payload sizes sampled
+from the G10 logs. The bench found that paho (under `aiomqtt`) leaves Nagle on: a small
+MQTT request waited for delayed ACKs (84 ms on localhost); the robots' MQTT bus now sets
+`TCP_NODELAY`. On Ubuntu, `tcpdump` cannot be stopped from a user namespace (AppArmor);
+the capture check counts frames with a raw socket instead.
+
 ## Model-first understanding: the `coordinator_agentic` stack (2026-10-22)
 
 A second coordinator, chosen at launch, to compare with the default one on the same simulator:
