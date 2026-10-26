@@ -47,7 +47,8 @@ from a6g_coordinator.runtime import Coordinator
 from a6g_interactions import InteractionClient, InteractionStore
 from a6g_kb import KnowledgeClient, KnowledgeService, build_kb_server
 from a6g_kb.index import HashingEmbedder
-from a6g_observability.comms import fresh_log
+from a6g_observability.checkpoint_meter import MeteredSaver
+from a6g_observability.comms import fresh_log, set_sim_clock
 from a6g_observability.decision_log import DecisionLog
 from a6g_robot_agent import RobotAgent, build_robot_agent
 from a6g_robot_agent.skills import SkillClient
@@ -230,6 +231,8 @@ class SimStack:
     #: full speed, so the wait counts as wall latency x the speed factor in simulated time;
     #: "freeze" it waits, so model calls take no simulated time.
     model_time: str = "full"
+    #: SPEC A4 N2: record checkpoint bytes and write latency (``checkpoints.jsonl``)
+    checkpoint_meter: bool = False
     #: Coordinator persistence: "sqlite" (default) or "postgres" (SPEC A1 12.3, needs pg_dsn).
     coordinator_persistence: str = "sqlite"
     #: SPEC A3.8 comparison: none (P), independent (B0), central_memory (B1: the
@@ -259,6 +262,7 @@ class SimStack:
         self.log = DecisionLog(self.workdir / "decisions.jsonl")
         # Every inter-agent message is measured (SPEC A2 rule 23), here per stack workdir.
         configure_messaging(self.cfg.comms, log_path=fresh_log(self.workdir / "comms.jsonl"))
+        set_sim_clock(self.world.clock.now)
         self.net = InProcessNet(self._robot_agent, lambda: self.coordinator)
         # Campus knowledge server (SPEC A3.3), in-process; served over HTTP by the service.
         self.kb_service = KnowledgeService(
@@ -353,6 +357,10 @@ class SimStack:
             checkpointer = await stack.enter_async_context(
                 AsyncSqliteSaver.from_conn_string(str(self.workdir / f"{robot_id}.sqlite"))
             )
+            if self.checkpoint_meter:
+                checkpointer = MeteredSaver(
+                    checkpointer, robot_id, self.workdir / "checkpoints.jsonl"
+                )
             skills = await stack.enter_async_context(SkillClient(build_mcp_server(service)))
             agent = build_robot_agent(
                 self.cfg,
@@ -431,6 +439,10 @@ class SimStack:
             else:
                 checkpointer = await stack.enter_async_context(
                     AsyncSqliteSaver.from_conn_string(str(self.workdir / "coordinator.sqlite"))
+                )
+            if self.checkpoint_meter:
+                checkpointer = MeteredSaver(
+                    checkpointer, "coordinator", self.workdir / "checkpoints.jsonl"
                 )
             deps = CoordinatorDeps(
                 cfg=self.cfg,

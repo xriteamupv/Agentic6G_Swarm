@@ -22,6 +22,7 @@ from typing import Any
 from a6g_common.config import A6GConfig
 from a6g_common.schemas import DecisionKind
 
+from a6g_devstack import model_calls
 from a6g_devstack.stack import SimStack
 
 TARGET_S = 3.0
@@ -69,8 +70,10 @@ async def run_seed(
                     followup_s = None  # reported as missing, the KPI stands
         finally:
             await stack.stop()
+            calls = model_calls.read(Path(tmp) / "comms.jsonl")
     return {
         "seed": seed,
+        "model_calls": calls,
         "alert_after_s_sim": round(wait, 1),
         "kpi11_s": first["posture_change_to_publication_s"],
         "acknowledged_s": first["posture_change_to_acknowledged_s"],

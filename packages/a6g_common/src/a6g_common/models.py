@@ -9,12 +9,14 @@ Structured outputs use the provider's native ``with_structured_output`` when ava
 fallback. Models never drive control: they only choose, triage, or justify (SPEC Rule 1).
 """
 
+import contextlib
 import json
 import logging
 import os
 import re
 import time
 from collections.abc import Callable, Mapping, Sequence
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
@@ -152,6 +154,26 @@ def _text(content: Any) -> str:
     return str(content)
 
 
+#: Who is calling a model (SPEC A4 N2): the coordinator runtime sets "coordinator" around
+#: its graph runs; robot cognition sets its robot id (it records its own calls, rule 23).
+MODEL_CALLER: ContextVar[str | None] = ContextVar("a6g_model_caller", default=None)
+_RECORDER: Callable[[str, str, "LLMTrace"], None] | None = None
+
+
+def set_call_recorder(recorder: Callable[[str, str, "LLMTrace"], None] | None) -> None:
+    """``recorder(caller, function, trace)`` for calls made while MODEL_CALLER is set to a
+    caller that does not record its own (the coordinator)."""
+    global _RECORDER
+    _RECORDER = recorder
+
+
+def _record(schema: type, trace: "LLMTrace") -> None:
+    caller = MODEL_CALLER.get()
+    if _RECORDER is not None and caller == "coordinator":
+        with contextlib.suppress(Exception):  # metrics never break a call
+            _RECORDER(caller, schema.__name__, trace)
+
+
 async def structured_call(
     model: BaseChatModel | None,
     schema: type[M],
@@ -184,6 +206,7 @@ async def structured_call(
             usage = getattr(raw, "usage_metadata", None) or {}
             trace.input_tokens = usage.get("input_tokens")
             trace.output_tokens = usage.get("output_tokens")
+        _record(schema, trace)
         return value, trace
 
     try:

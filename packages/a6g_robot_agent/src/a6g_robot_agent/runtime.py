@@ -46,6 +46,7 @@ from a6g_common.schemas import (
     TrafficClass,
 )
 from a6g_interactions import language as lang_
+from a6g_observability.checkpoint_meter import CHECKPOINT_EVENT
 from a6g_observability.decision_log import make_decision
 from a6g_transport.budget import Admission
 from a6g_transport.messaging import (
@@ -299,9 +300,13 @@ class RobotAgent:
 
     async def invoke(self, thread: str, event: dict[str, Any]) -> dict[str, Any]:
         async with self._lock, self._gate():  # never hold time still while queued
-            state = await self.graph.ainvoke(
-                {"event": event, "robot_id": self.robot_id}, self._config(thread)
-            )
+            token = CHECKPOINT_EVENT.set(str(event.get("type") or "other"))
+            try:
+                state = await self.graph.ainvoke(
+                    {"event": event, "robot_id": self.robot_id}, self._config(thread)
+                )
+            finally:
+                CHECKPOINT_EVENT.reset(token)
         self._track(thread, state)
         if state.get("cancel_current") and self._skill is not None:
             await self.skills.call(SkillName.CANCEL)  # preempted by a new envelope version

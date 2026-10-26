@@ -26,7 +26,7 @@ from typing import Any, Literal, TypeVar
 
 from a6g_common.messages import suspicious as _suspicious
 from a6g_common.messages import untrusted as _untrusted
-from a6g_common.models import structured_call
+from a6g_common.models import MODEL_CALLER, structured_call
 from a6g_common.schemas import RefusalReason
 from a6g_interactions.language import stated_constraint  # noqa: F401 (re-exported)
 from a6g_observability.comms import comms_log
@@ -188,11 +188,15 @@ async def ask_once(
     # Interaction content (SPEC A3.5): model-call tracing off, inputs and outputs unseen.
     hidden = tracing_context(enabled=False) if private else contextlib.nullcontext()
     try:
-        with hidden:
-            value, trace = await asyncio.wait_for(
-                structured_call(model, schema, messages, lambda: None),  # type: ignore[arg-type,return-value]
-                timeout_s,
-            )
+        token = MODEL_CALLER.set(agent_id)  # it records its own calls (below)
+        try:
+            with hidden:
+                value, trace = await asyncio.wait_for(
+                    structured_call(model, schema, messages, lambda: None),  # type: ignore[arg-type,return-value]
+                    timeout_s,
+                )
+        finally:
+            MODEL_CALLER.reset(token)
     except TimeoutError:
         value, trace = None, None
         log.info("%s %s: model timed out after %.1f s", agent_id, function, timeout_s)

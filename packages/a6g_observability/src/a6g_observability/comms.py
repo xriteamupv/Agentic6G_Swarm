@@ -13,13 +13,14 @@ Records go to an in-memory ring (tests), to a JSON-lines file (``config/comms.ya
 when tracing is set up, to OpenTelemetry as one span event per message.
 """
 
+import contextlib
 import csv
 import json
 import os
 import statistics
 import threading
 from collections import deque
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any
 
@@ -64,6 +65,9 @@ class CommsLog:
             self.path.parent.mkdir(parents=True, exist_ok=True)
 
     def record(self, rec: dict[str, Any]) -> None:
+        if _SIM_CLOCK is not None and "sim_ts" not in rec:
+            with contextlib.suppress(Exception):  # SPEC A4 N2: traffic by mission phase
+                rec["sim_ts"] = _SIM_CLOCK().isoformat()
         self.records.append(rec)
         if self.path is not None:
             line = json.dumps(rec, separators=(",", ":")) + "\n"
@@ -78,6 +82,14 @@ class CommsLog:
 
 
 _default: CommsLog | None = None
+_SIM_CLOCK: Callable[[], Any] | None = None
+
+
+def set_sim_clock(clock: Callable[[], Any] | None) -> None:
+    """Simulated time on every record (``sim_ts``): the simulator runs faster than wall
+    time, and traffic is reported per simulated second and per mission phase."""
+    global _SIM_CLOCK
+    _SIM_CLOCK = clock
 
 
 def comms_log() -> CommsLog:

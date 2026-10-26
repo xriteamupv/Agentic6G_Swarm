@@ -1,0 +1,313 @@
+{
+  "kpi": "UC2-KPI-11",
+  "definition": "posture change to emergency written to the twin -> reconciled envelopes published (wall clock); acknowledged_*: until every robot has answered",
+  "simulator": "2D",
+  "model": "gpt-5-nano+robots",
+  "decompose_mode": {
+    "routine": "model",
+    "interactive": "model",
+    "emergency": "template_then_model"
+  },
+  "seeds": 20,
+  "failed_runs": 0,
+  "p50_s": 0.046,
+  "p95_s": 0.094,
+  "max_s": 0.206,
+  "mean_s": 0.058,
+  "acknowledged_p50_s": 1.821,
+  "acknowledged_p95_s": 2.097,
+  "target_p95_s": 3.0,
+  "meets_target": true,
+  "runs": [
+    {
+      "seed": 0,
+      "alert_after_s_sim": 511.3,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 1.636,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": 11.886
+    },
+    {
+      "seed": 1,
+      "alert_after_s_sim": 106.6,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 1.636,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 8.833
+    },
+    {
+      "seed": 2,
+      "alert_after_s_sim": 574.9,
+      "kpi11_s": 0.028,
+      "acknowledged_s": 2.507,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": 13.511
+    },
+    {
+      "seed": 3,
+      "alert_after_s_sim": 165.6,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 1.882,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 8.143
+    },
+    {
+      "seed": 4,
+      "alert_after_s_sim": 164.5,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 1.732,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 11.045
+    },
+    {
+      "seed": 5,
+      "alert_after_s_sim": 385.1,
+      "kpi11_s": 0.046,
+      "acknowledged_s": 1.711,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 8.333
+    },
+    {
+      "seed": 6,
+      "alert_after_s_sim": 482.2,
+      "kpi11_s": 0.088,
+      "acknowledged_s": 1.69,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": 10.735
+    },
+    {
+      "seed": 7,
+      "alert_after_s_sim": 214.6,
+      "kpi11_s": 0.206,
+      "acknowledged_s": 2.044,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 7.439
+    },
+    {
+      "seed": 8,
+      "alert_after_s_sim": 159.2,
+      "kpi11_s": 0.049,
+      "acknowledged_s": 1.551,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 9.878
+    },
+    {
+      "seed": 9,
+      "alert_after_s_sim": 293.9,
+      "kpi11_s": 0.046,
+      "acknowledged_s": 1.812,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 8.644
+    },
+    {
+      "seed": 10,
+      "alert_after_s_sim": 355.7,
+      "kpi11_s": 0.036,
+      "acknowledged_s": 1.545,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 7.946
+    },
+    {
+      "seed": 11,
+      "alert_after_s_sim": 287.9,
+      "kpi11_s": 0.058,
+      "acknowledged_s": 1.883,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 9.306
+    },
+    {
+      "seed": 12,
+      "alert_after_s_sim": 300.5,
+      "kpi11_s": 0.056,
+      "acknowledged_s": 1.858,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 7.618
+    },
+    {
+      "seed": 13,
+      "alert_after_s_sim": 177.6,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 1.826,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 9.808
+    },
+    {
+      "seed": 14,
+      "alert_after_s_sim": 90.9,
+      "kpi11_s": 0.087,
+      "acknowledged_s": 1.817,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 8.594
+    },
+    {
+      "seed": 15,
+      "alert_after_s_sim": 580.2,
+      "kpi11_s": 0.029,
+      "acknowledged_s": 2.075,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": 14.656
+    },
+    {
+      "seed": 16,
+      "alert_after_s_sim": 236.1,
+      "kpi11_s": 0.061,
+      "acknowledged_s": 1.83,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 6.651
+    },
+    {
+      "seed": 17,
+      "alert_after_s_sim": 327.5,
+      "kpi11_s": 0.065,
+      "acknowledged_s": 1.874,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 8.669
+    },
+    {
+      "seed": 18,
+      "alert_after_s_sim": 133.3,
+      "kpi11_s": 0.084,
+      "acknowledged_s": 2.027,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 7.58
+    },
+    {
+      "seed": 19,
+      "alert_after_s_sim": 416.0,
+      "kpi11_s": 0.046,
+      "acknowledged_s": 1.71,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": 12.872
+    }
+  ],
+  "stamp": "2026-10-26T14:27:18.135718+00:00",
+  "manifest": {
+    "commit": "6fdd63f4cdbde341f1d3eafa52428a4c3519befb",
+    "dirty": false,
+    "command": "a6g bench kpi11 --seeds 20 --model --robot-model",
+    "config_dir": "config",
+    "config_sha256": {
+      "allocator.yaml": "61f02e4b8bea56ed",
+      "bench/manual_round.yaml": "da07a9c882d38634",
+      "campus/upv_vera_cpi.yaml": "58a098da2df47d02",
+      "comms.yaml": "a037a5d6d9172c95",
+      "fleet.yaml": "8e5885270fb4b0f1",
+      "gazebo/fleet.yaml": "6ef9a1346ca29fba",
+      "interactions.yaml": "0e776ba4683c7062",
+      "knowledge.yaml": "c222a4844dc2ab45",
+      "models.yaml": "b44f9a6ecfcd63e5",
+      "profiles/gazebo.yaml": "11eb4c94b3a9a2ff",
+      "profiles/real.yaml": "bc6d5823ca4a95e1",
+      "profiles/sim.yaml": "52291f229063d99b",
+      "robots/go2_01.yaml": "f877cde419645d48",
+      "robots/go2_02.yaml": "c4bfed9582bfd02c",
+      "robots/go2_03.yaml": "bcce48836640f943",
+      "robots/go2_04.yaml": "0a9ca6c013020bad",
+      "robots/go2_05.yaml": "77a6e53af6c8cb0c",
+      "robots/summit_01.yaml": "5469b3e0d34469a6",
+      "robots/summit_02.yaml": "05fef14e455bfece",
+      "robots/summit_03.yaml": "631138048e1f0d66",
+      "sim/fleet.yaml": "155240a79a6d1d5a"
+    },
+    "seeds": 20,
+    "models": {
+      "coordinator_llm": {
+        "model": "gpt-5-nano",
+        "fidelity": "functional",
+        "endpoint": "cloud"
+      },
+      "onboard_vlm": {
+        "model": "gpt-5-nano",
+        "fidelity": "functional",
+        "endpoint": "cloud"
+      }
+    },
+    "network": "stand-in",
+    "mode": "always_grant",
+    "coverage_source": "shadows",
+    "time_factor": "up to 50x",
+    "host": {
+      "name": "iterate-Inspiron-14-5410",
+      "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+      "python": "3.11.16",
+      "cpus": 8
+    },
+    "written": "2026-10-26T14:27:18.145930+00:00",
+    "note": "commit corrected by hand: the run started at this commit (the manifest took HEAD at write time)"
+  }
+}

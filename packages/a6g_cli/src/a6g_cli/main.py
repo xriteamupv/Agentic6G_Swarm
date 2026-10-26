@@ -729,6 +729,19 @@ bench_app = typer.Typer(help="Benches for the KPIs (SPEC A3.8).", no_args_is_hel
 app.add_typer(bench_app, name="bench")
 
 
+def _record_start() -> None:
+    """Rule 31: the commit a run starts from (its results record this one)."""
+    if "A6G_RUN_GIT" not in os.environ:
+        from a6g_devstack.manifest import current_git_state
+
+        os.environ["A6G_RUN_GIT"] = json.dumps(current_git_state())
+
+
+@app.callback()
+def _start() -> None:
+    _record_start()
+
+
 def _manifest(cfg: Any, seeds: Any, time_factor: Any = None, **roles: Any) -> dict[str, Any]:
     """Rule 31: what produced a result (commit, command, config hashes, models, network)."""
     from a6g_devstack import manifest
@@ -887,6 +900,16 @@ def bench_decompose(
 def bench_g10(
     seeds: Annotated[int, typer.Option("--seeds", help="seeded runs")] = 3,
     out: Annotated[Path, typer.Option("--out", help="runs directory")] = Path("var/runs/g10"),
+    checkpoint_meter: Annotated[
+        bool,
+        typer.Option("--checkpoint-meter", help="record checkpoint bytes and latency (A4 N2)"),
+    ] = False,
+    persistence: Annotated[
+        str, typer.Option("--persistence", help="coordinator checkpointer: sqlite | postgres")
+    ] = "sqlite",
+    pg_dsn: Annotated[
+        str | None, typer.Option("--pg-dsn", help="Postgres DSN for --persistence postgres")
+    ] = None,
     config_dir: ConfigDirOpt = None,
 ) -> None:
     """Scenario G10 (SPEC A3.11): the D2.1 story in one run per seed (2D simulator, fake
@@ -896,10 +919,13 @@ def bench_g10(
     from a6g_devstack import kpi_report, scenario_g10
 
     cfg = load_config(config_dir, fleet_file="sim/fleet.yaml")
+    stack_kw: dict[str, Any] = {"checkpoint_meter": checkpoint_meter}
+    if persistence == "postgres":
+        stack_kw.update(coordinator_persistence="postgres", pg_dsn=pg_dsn)
     failed = 0
     for seed in range(seeds):
         run_dir = out / f"seed{seed}"
-        result = asyncio.run(scenario_g10.run(cfg, run_dir, seed=seed))
+        result = asyncio.run(scenario_g10.run(cfg, run_dir, seed=seed, **stack_kw))
         oks = {k: v["ok"] for k, v in result["checks"].items() if isinstance(v, dict) and "ok" in v}
         good = result["error"] is None and all(oks.values())
         failed += not good
@@ -1041,6 +1067,48 @@ def bench_orders(
     )
     typer.echo(summary(result))
     typer.echo(f"results: {write(result, out)}")
+
+
+@bench_app.command("overhead")
+def bench_overhead(
+    g10: Annotated[Path, typer.Option("--g10", help="G10 run directories (seed*)")] = Path(
+        "var/runs/g10_n2"
+    ),
+    n1: Annotated[Path, typer.Option("--n1", help="N1 run directories")] = Path(
+        "var/runs/n1_outage"
+    ),
+    results: Annotated[Path, typer.Option("--results", help="bench results (model calls)")] = Path(
+        "bench/results"
+    ),
+    persistence: Annotated[
+        str, typer.Option("--persistence", help="coordinator checkpointer of the G10 runs")
+    ] = "postgres",
+    csv_out: Annotated[Path, typer.Option("--csv", help="paper table")] = Path(
+        "paper/table_overhead.csv"
+    ),
+    out: Annotated[Path, typer.Option("--out", help="results directory")] = Path("bench/results"),
+    config_dir: ConfigDirOpt = None,
+) -> None:
+    """Agent traffic and the overhead of the twin as memory (SPEC A4 N2): per-robot bytes
+    per posture and fleet, per-pattern sizes, model calls, checkpoint bytes and latency."""
+    from a6g_devstack.bench_overhead import report, write, write_csv
+
+    cfg = load_config(config_dir, fleet_file="sim/fleet.yaml")
+    g10_dirs = sorted(d for d in g10.glob("seed*") if (d / "comms.jsonl").exists())
+    n1_dirs = sorted(d for d in n1.glob("P_f*_o60_s*") if (d / "comms.jsonl").exists())
+    model_results = sorted(results.glob("e5_kpi11_*.json")) + sorted(
+        results.glob("orders_unseen_*.json")
+    )
+    result = report(g10_dirs, n1_dirs, model_results, persistence)
+    result["manifest"] = _manifest(cfg, None, time_factor="as recorded by the runs")
+    typer.echo(f"G10 runs {len(g10_dirs)}, N1 runs {len(n1_dirs)}")
+    for p, row in result["patterns_g10"].items():
+        typer.echo(
+            f"{p:<4} {row['messages']:>7} msgs  payload {row['payload_mean']:>7} B (p95 "
+            f"{row['payload_p95']})  wire {row['wire_mean']:>7} B  nl {row['nl_share']:.1%}"
+        )
+    typer.echo(f"results: {write(result, out)}")
+    typer.echo(f"table: {write_csv(result, csv_out)}")
 
 
 @bench_app.command("retrieval")

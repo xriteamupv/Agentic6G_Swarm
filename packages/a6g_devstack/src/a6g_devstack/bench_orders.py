@@ -19,6 +19,7 @@ from typing import Any
 import yaml
 from a6g_common.config import A6GConfig
 
+from a6g_devstack import model_calls
 from a6g_devstack.stack import SimStack
 
 CASES = Path(__file__).resolve().parents[4] / "bench" / "orders" / "unseen.yaml"
@@ -120,6 +121,7 @@ async def run_case(cfg: A6GConfig, case: dict[str, Any], model: Any) -> dict[str
             state = await stack.coordinator.state("m1")
         finally:
             await stack.stop()
+            calls = model_calls.read(Path(tmp) / "comms.jsonl")
     failed = check(case, state["tasks"], guard)
     reply = next(
         (m.text for m in reversed(state.get("messages") or []) if getattr(m, "text", "")), ""
@@ -136,6 +138,7 @@ async def run_case(cfg: A6GConfig, case: dict[str, Any], model: Any) -> dict[str
             if t["status"] in OPEN
         ),
         "reply": reply[:400],
+        "model_calls": calls,
     }
 
 

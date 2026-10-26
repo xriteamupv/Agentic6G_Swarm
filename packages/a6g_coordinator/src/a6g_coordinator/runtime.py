@@ -15,8 +15,10 @@ from collections import defaultdict
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from a6g_common.models import MODEL_CALLER, set_call_recorder
 from a6g_common.schemas import Posture, Report, ReportKind
 from a6g_memory import StoreSharedMemory
+from a6g_observability.checkpoint_meter import CHECKPOINT_EVENT, event_kind
 from a6g_transport.messaging import TelemetryBus
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.base import BaseCheckpointSaver
@@ -27,6 +29,36 @@ from a6g_coordinator.graph import CoordinatorDeps, build_graph
 from a6g_coordinator.telemetry import CoordinatorTelemetry
 
 log = logging.getLogger(__name__)
+
+
+def _record_model_call(caller: str, function: str, trace: Any) -> None:
+    """Rule 23 / SPEC A4 N2: tokens and latency of the coordinator's model calls, next to
+    the robots' in the message log (pattern ``model``)."""
+    from a6g_observability.comms import comms_log
+
+    comms_log().record(
+        {
+            "ts": time.time(),
+            "direction": "model",
+            "agent": caller,
+            "msg_id": None,
+            "mission_id": None,
+            "sender": caller,
+            "receivers": [],
+            "pattern": "model",
+            "performative": function,
+            "schema": function,
+            "binding": "coordinator_llm",
+            "attempt": 1,
+            "inference_ms": round(trace.latency_s * 1000.0, 1),
+            "input_tokens": trace.input_tokens or 0,
+            "output_tokens": trace.output_tokens or 0,
+            "outcome": "fallback" if trace.used_fallback else "ok",
+        }
+    )
+
+
+set_call_recorder(_record_model_call)
 
 
 class Coordinator:
@@ -101,9 +133,13 @@ class Coordinator:
     async def _run(self, mission_id: str, payload: Any) -> dict[str, Any]:
         async with self._gate():
             started = time.perf_counter()
+            token = MODEL_CALLER.set("coordinator")
+            event = CHECKPOINT_EVENT.set(event_kind(payload))
             try:
                 return await self.graph.ainvoke(payload, self._config(mission_id))
             finally:
+                CHECKPOINT_EVENT.reset(event)
+                MODEL_CALLER.reset(token)
                 self.run_wall_s.append(time.perf_counter() - started)
 
     async def _worker(self, mission_id: str) -> None:

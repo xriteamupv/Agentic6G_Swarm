@@ -7,6 +7,7 @@ not ``HEAD`` as possibly stale.
 """
 
 import hashlib
+import json
 import os
 import platform
 import subprocess
@@ -31,6 +32,15 @@ def _git(*args: str) -> str:
 
 
 def git_state() -> dict[str, Any]:
+    """The state when the run STARTED (``A6G_RUN_GIT``, set by the CLI at start-up): a long
+    run imports its code at start, and a commit made meanwhile is not what it ran."""
+    started = os.environ.get("A6G_RUN_GIT")
+    if started:
+        return json.loads(started)
+    return current_git_state()
+
+
+def current_git_state() -> dict[str, Any]:
     commit = _git("rev-parse", "HEAD")
     # results and paper exports are outputs, not inputs: they do not make the tree dirty
     dirty = _git("status", "--porcelain", "--", ".", ":!bench/results", ":!paper")
