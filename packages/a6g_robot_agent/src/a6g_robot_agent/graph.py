@@ -1520,7 +1520,12 @@ def build_graph(deps: AgentDeps) -> StateGraph:
             if handled is not None:
                 return handled
 
-        if ev["type"] == "skill_result" and ev.get("task_id") == current and current not in tasks:
+        if (
+            ev["type"] == "skill_result"
+            and ev.get("task_id") == current
+            and current not in tasks
+            and current not in PSEUDO_TASKS  # the recovery drive and return home are not tasks
+        ):
             current = None  # preempted by a new envelope version: its result is moot
         elif ev["type"] == "skill_result" and ev.get("task_id") == current:
             result = SkillResult.model_validate(ev["result"])

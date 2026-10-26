@@ -160,7 +160,7 @@ def test_a_lap_starts_where_the_sector_was_patrolled_longest_ago(cfg) -> None:
 
     campus = cfg.campus
     wps = campus.sector("sec_south").survey_waypoints
-    gate = next(p.pose for p in campus.link_recovery_points if p.point_id == "lrp_east_gate")
+    gate = Pose2D(x=81.918, y=5.507)  # where the East gate was (removed 2026-10-26)
     lap = survey("sec_south")
     assert task_path(lap, campus, gate)[0] == wps[-1]  # nearer end: back into the shadow
     stale = lap.model_copy(

@@ -2275,6 +2275,8 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 return "publish"  # another robot keeps it; the awardee drops it
             if award:
                 moved = _apply_award(tasks, award, dirty)
+                if moved and moved[1] == moved[2]:
+                    return "audit"  # it already had it ("took over ... from itself")
                 if moved:
                     run.note(
                         "🔁 While I was unreachable, the robots reassigned work among "
@@ -3876,6 +3878,8 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             if poi is not None:
                 xy = (poi.pose.x, poi.pose.y)
                 out["risk"] = 1 if getattr(poi, "exposed", False) else 0
+            if target.viewpoint is not None:  # relocated for coverage: it streams from there
+                xy = (target.viewpoint.x, target.viewpoint.y)
         elif isinstance(target, SectorTarget):
             sec = next((s for s in cfg.campus.sectors if s.sector_id == target.sector_id), None)
             if sec is not None and sec.polygon:
@@ -3889,6 +3893,48 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             out["x"], out["y"] = xy
         return out
 
+    def _viewpoint(poi_id: str, flow_class: str) -> dict[str, Any] | None:
+        """SPEC A4.7 relocate_for_coverage: a footpath spot within ``relocate_radius_m`` of
+        the POI, better than the POI's own level, where the flow's rate fits the robot's
+        uplink (what admission checks for coverage; "at least medium" alone did not carry
+        4 Mbps video), with no building between it and the POI; the best level, then the
+        shortest distance."""
+        from a6g_common.coverage import Footprints
+        from a6g_common.netconfig import LEVELS
+
+        cmap = getattr(deps.network, "coverage", None)
+        poi = next((p for p in cfg.campus.pois if p.poi_id == poi_id), None)
+        if cmap is None or poi is None:
+            return None
+        px, py = poi.pose.x, poi.pose.y
+        here = cmap.nearest(px, py)
+        rank = LEVELS.index(here["level"]) if here else len(LEVELS)
+        radius = cfg.network.reconcile.relocate_radius_m * (cfg.campus.scale or 1.0)
+        walls = Footprints(cfg.campus.obstacles, [1e9] * len(cfg.campus.obstacles))
+        req = cfg.network.capacity.flow_requirements.get(flow_class)
+        need = req.ul_mbps if req else 0.0
+        best = None
+        for s in cmap.path_samples:
+            d = math.hypot(s["x"] - px, s["y"] - py)
+            r = LEVELS.index(s["level"])
+            if d > radius or r >= rank or cfg.network.uplink_rate.rate_mbps(s["sinr"]) < need:
+                continue
+            if walls.blocked((s["x"], s["y"]), (px, py), h_a=0.5, h_b=0.5):
+                continue
+            key = (r, d)
+            if best is None or key < best[0]:
+                best = (key, s, d)
+        if best is None:
+            return None
+        _, s, d = best
+        yaw = math.atan2(py - s["y"], px - s["x"])  # facing the POI
+        return {
+            "pose": {"x": round(s["x"], 3), "y": round(s["y"], 3), "yaw": round(yaw, 6)},
+            "level": s["level"],
+            "from_level": here["level"] if here else None,
+            "distance_m": round(d, 1),
+        }
+
     async def reconcile(state: CoordState) -> dict[str, Any]:
         """SPEC A3.7 (D-02): the flows the envelopes imply, requested from the network
         branch, and the invariants I1 (no live task without a flow) and I2 (no flow without
@@ -3900,6 +3946,7 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
         requested: list[str] = []
         released: list[str] = []
         switched: list[str] = []
+        relocated: list[dict[str, Any]] = []
         answers_all: list[dict[str, Any]] = []  # every answer, in order (a post's video
         # and telemetry flows share a flow id: a dict would keep only the last)
         problems: dict[str, list] = {"i1": [], "i2": []}
@@ -3936,6 +3983,44 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                         }
                     )
                 requested += [a["flow_id"] for a in asks]
+            if degrade and net_cfg.reconcile.mode == "relocate":
+                # SPEC A4.7 variant: a video post rejected for coverage first moves to a
+                # nearby viewpoint with better coverage; the flow is asked again from there.
+                moved = []
+                for f in flows.values():
+                    t = tasks.get(f["task_id"])
+                    if (
+                        t is None
+                        or f["flow_class"] != "video_control"
+                        or f["state"] != "rejected"
+                        or not str(f.get("reason", "")).startswith("coverage")
+                        or t["spec"]["kind"] != TaskKind.HOLD_POST.value
+                        or t["spec"]["target"].get("type") != "poi"
+                        or t["spec"]["target"].get("viewpoint")
+                    ):
+                        continue
+                    spot = _viewpoint(t["spec"]["target"]["poi_id"], f["flow_class"])
+                    if spot is None:
+                        continue
+                    t["spec"]["target"]["viewpoint"] = spot["pose"]
+                    f.update(state="released", reason=f"relocated ({f['reason']})")
+                    relocated.append({"task_id": f["task_id"], **spot})
+                    moved.append(f["flow_id"])
+                    run.decide(
+                        DecisionKind.RECONCILE,
+                        {"task_id": f["task_id"], **spot},
+                        policy={
+                            "rule": "relocate_for_coverage",
+                            "relocate_radius_m": net_cfg.reconcile.relocate_radius_m,
+                        },
+                        justification=f"{t['spec']['target']['poi_id']}: video rejected for "
+                        f"coverage; held from {spot['distance_m']} m away ({spot['level']}), "
+                        "in sight of the POI",
+                        inputs_ref=f"flow:{f['flow_id']}",
+                    )
+                if moved:
+                    await deps.network.release_flows(state["mission_id"], moved)
+                    continue
             if degrade:
                 # A rejected or degraded video flow: the post switches to telemetry sensing,
                 # lowest priority (risk) first; the new telemetry_plus flow is requested on
@@ -4018,6 +4103,7 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                     "released": released,
                     "answers": answers_all,
                     "switched_to_telemetry": switched,
+                    "relocated": relocated,
                     "escalated_without_flow": escalated,
                     "achievable": report,
                     "tasks_without_flow": problems["i1"],

@@ -46,6 +46,8 @@ class CoordinatorTelemetry:
         self._started_at = clock.now()
         self._held: list[dict[str, Any]] = []
         self._tasks: list[asyncio.Task[None]] = []
+        #: set when a heartbeat cannot be published (broker gone): the host reconnects
+        self.failed = asyncio.Event()
 
     def start(self) -> None:
         self._started_at = self.clock.now()
@@ -72,6 +74,7 @@ class CoordinatorTelemetry:
                 await self.bus.publish(TOPIC_HEARTBEAT, payload, qos=1, retain=True)
             except Exception as exc:
                 log.warning("heartbeat publish failed: %s", exc)
+                self.failed.set()
             await self._sleep(period)
 
     async def _watch(self) -> None:

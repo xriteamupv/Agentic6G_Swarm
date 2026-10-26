@@ -26,7 +26,7 @@ def test_a_manifest_says_what_produced_a_result() -> None:
     ):
         assert key in m
     assert m["models"]["coordinator_llm"] == {"model": "fake", "fidelity": "offline"}
-    assert m["mode"] == "always_grant" and m["coverage_source"] == "model"
+    assert m["mode"] == "always_grant" and m["coverage_source"] == "radio_dt"
     assert "network.yaml" in m["config_sha256"]
 
 

@@ -32,12 +32,6 @@
  ],
  "recovery": [
   {
-   "id": "lrp_east_gate",
-   "name": "east gate",
-   "x": 5.2,
-   "y": 1.2
-  },
-  {
    "id": "lrp_staging",
    "name": "staging",
    "x": 0.0,

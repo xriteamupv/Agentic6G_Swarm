@@ -128,7 +128,7 @@ def test_copies_groups_order_and_exclusions_become_allocator_constraints() -> No
                 {
                     "kind": "go_to",
                     "target_type": "place",
-                    "target_id": "lrp_east_gate",
+                    "target_id": "lrp_staging",
                     "robot_ids": ["go2_02"],
                 },
             ]
@@ -163,7 +163,7 @@ def _set_model(stack: SimStack, responses: list[str]) -> None:
 
 GUARD_AND_PATROL = _plan(
     tasks=[
-        {"kind": "hold_post", "target_type": "place", "target_id": "lrp_east_gate"},
+        {"kind": "hold_post", "target_type": "poi", "target_id": "poi_bus_stop"},
         {
             "kind": "survey_sector",
             "target_type": "sector",
@@ -193,7 +193,7 @@ async def test_one_guards_and_the_others_share_the_patrol(tmp_path: Path) -> Non
     stack = await _stack(tmp_path, [GOAL, GUARD_AND_PATROL, OK])
     try:
         state = await stack.coordinator.chat(
-            "m1", "Send one robot to guard the east gate, the others to patrol"
+            "m1", "Send one robot to guard the bus stop, the others to patrol"
         )
     finally:
         await stack.stop()
@@ -213,7 +213,7 @@ async def test_one_guards_and_the_others_share_the_patrol(tmp_path: Path) -> Non
 
 
 async def test_the_model_ends_a_post_and_gives_that_robot_a_sector(tmp_path: Path) -> None:
-    """ "Stop holding the east gate and send that robot to patrol also"."""
+    """ "Stop holding the bus stop and send that robot to patrol also"."""
     stack = await _stack(tmp_path, [GOAL, GUARD_AND_PATROL, OK])
     try:
         await stack.coordinator.chat("m1", "Guard the gate, the others patrol")
@@ -233,7 +233,7 @@ async def test_the_model_ends_a_post_and_gives_that_robot_a_sector(tmp_path: Pat
             [GOAL, _plan(end=[post_id], reassign=[{"task_id": east, "robot_id": guard}]), OK],
         )
         state = await stack.coordinator.chat(
-            "m1", "Stop holding the east gate and send that robot to patrol also"
+            "m1", "Stop holding the bus stop and send that robot to patrol also"
         )
     finally:
         await stack.stop()
@@ -318,7 +318,7 @@ async def test_the_check_adds_work_the_plan_missed_after_the_robots_start(
     tmp_path: Path,
 ) -> None:
     """User report (2026-10-22): "Send two robots to patrol the campus and the rest to guard
-    the east gate" planned two sectors (no East corridor), and the check, run before the
+    the bus stop" planned two sectors (no East corridor), and the check, run before the
     envelopes, held the robots 18 s and could not add the missing patrol."""
     plan = _plan(
         tasks=[
@@ -334,7 +334,7 @@ async def test_the_check_adds_work_the_plan_missed_after_the_robots_start(
                 "target_id": "sec_south",
                 "continuous": True,
             },
-            {"kind": "hold_post", "target_type": "place", "target_id": "lrp_east_gate"},
+            {"kind": "hold_post", "target_type": "poi", "target_id": "poi_bus_stop"},
         ]
     )
     check = json.dumps(
@@ -354,7 +354,7 @@ async def test_the_check_adds_work_the_plan_missed_after_the_robots_start(
     stack = await _stack(tmp_path, [GOAL, plan, check])
     try:
         first = await stack.coordinator.chat(
-            "m1", "Send two robots to patrol the campus and the rest to guard east gate"
+            "m1", "Send two robots to patrol the campus and the rest to guard the bus stop"
         )
         published = {t["spec"]["target"].get("sector_id") for t in first["tasks"].values()}
         await stack.coordinator.drain()

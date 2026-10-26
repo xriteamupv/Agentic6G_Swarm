@@ -194,6 +194,7 @@ Three terminals (from `a6g-swarm/` unless noted):
 
 ```bash
 # 1. simulated fleet: 3 robots + embedded MQTT broker + control API on :8300
+#    (--robots N, up to 8: go2_03, go2_04, go2_05, summit_02, summit_03 join from staging)
 uv run a6g-sim-stack --speed 10
 
 # 2. the coordinator on the LangGraph Agent Server (:2024); copy your .env for the LLM,
@@ -217,7 +218,9 @@ showed 17–35 s in the chat (the server was busy writing when the answer arrive
 server with `LANGGRAPH_DISABLE_FILE_PERSISTENCE=true` (nothing written during the session;
 `--keep-state` keeps the last session's threads; extra arguments go to `langgraph dev`).
 Each restart of terminal 2 starts with no old conversations; restart terminal 1 too (a
-fresh simulator ends the missions of a coordinator that kept running).
+fresh simulator ends the missions of a coordinator that kept running). The coordinator reconnects to
+the MQTT broker on its own (the 2D stack's embedded broker goes away with terminal 1), so
+robots keep hearing its heartbeat whichever terminal restarts first.
 
 **Is OpenAI slow, or is it us?** `uv run python bench/probe_openai.py` (repository root,
 while the stack runs) sends short requests straight to the OpenAI API and prints, per
@@ -738,9 +741,22 @@ the n40 gNB of 5G_UPV (Nodo2) on Building 8G, NRCELL-9, 2380 MHz, 20 MHz TDD (UL
 the measured single-device uplink, 22 Mbps (velodrome, TCP), is the anchor of the uplink
 rate model and the default cell capacity.
 
-**Coverage levels (N3).** Coverage is fully emulated (2026-10-26: the hand-drawn shadow
-polygons are gone; `coverage.source: model` is the default). `a6g network calibrate` builds
-the map from the 3GPP 38.901 UMa path loss of the gNB, which stands on the roof of Building 8G
+**Coverage levels (N3).** Coverage comes from UPV's radio digital twin (2026-10-26:
+`coverage.source: radio_dt`, the default): the n40 RSRP export
+`sim_gazebo/data/network/n40_centroides_rsrp.csv` (ray tracing, a plane 0.3 m above ground,
+the robots' height). Only its points inside the pilot area are used, points without an
+estimated power are no data; each 2 m cell of the outdoor pilot area and each 2 m footpath
+sample takes the median RSRP of the points within 1.5 m (3 m if none). A spatial median over
+`smoothing_radius_m` (6 m) then softens the steps between neighbouring cells, so levels form
+consistent zones (level changes along the footpaths: 8.0 per 100 m unsmoothed, 2.2 at 6 m) and
+a robot does not switch back and forth on a ragged boundary (the per-robot hysteresis and dwell
+still apply). Levels by RSRP
+(`thresholds_rsrp_dbm`, trial of 2026-10-26): **good** > -90 dBm, **medium** -100..-90,
+**low** -110..-100, **lost** < -110 (UPV first proposed -80 / -100 / -120). SINR
+is derived from RSRP (+101 dB, read from UPV's velodrome plots) and labelled so. The map is
+built on first use (or with `a6g network import-coverage`) and cached per source.
+The 38.901 emulation remains as `A6G_COVERAGE_SOURCE=model`: `a6g network calibrate` builds
+it from the 3GPP 38.901 UMa path loss of the gNB, which stands on the roof of Building 8G
 (its height: the building's, from OSM or the 10 m default, plus a 3 m mast; TODO(UPV)) set
 back 5 m from the roof edge, so the ground close to the building is hidden by the roof
 (NLOS) while further points may be in LOS. LOS is decided in 3D against the building heights
@@ -749,11 +765,9 @@ campus centre), with the 38.901 element pattern (65 degree beams, 30 dB front-to
 behind it the levels fall to low and lost. Trees (`vegetation_areas` in the campus file: the
 north-west walk, widened 6 m) add foliage loss along the ray and under the canopy. One RSRP
 offset is fitted to the minimum, median and maximum of UPV's velodrome plots (OSM way
-23389345); SINR = RSRP + 101 dB (read from the plots). Levels: **good, medium, low, lost**
-(SINR 13 / 5 / -5 dB). The map covers the whole outdoor pilot area (2 m cells) and the
+23389345). The map covers the whole outdoor pilot area (2 m cells) and the
 footpaths (2 m samples, used by robots on paths). `a6g network coverage --preview cov.html`
-summarises and draws it (hover for RSRP and SINR); `a6g network import-coverage --rsrp <csv>`
-takes the radio DT export instead. Robots report `link_level`, `cell_id`, `rsrp_dbm` and
+summarises and draws the configured source (hover for RSRP and SINR). Robots report `link_level`, `cell_id`, `rsrp_dbm` and
 `sinr_db` (the live view shows them next to the battery), with hysteresis and minimum dwell;
 `link_quality` derives from the level. G10's link loss is an injected outage zone (the former
 placeholder shadow), labelled so in its results.
@@ -767,7 +781,11 @@ a refused video post switches to telemetry, lowest priority first, and a video p
 way when telemetry is refused for capacity; envelopes carry the grants and robots open a
 stream only when granted (I3, `direction: budget` records). `a6g bench scarcity` runs
 scenario G13 (a weather alert, every exposed POI held with video) over the cell capacity
-(2-44 Mbps), `reconcile` against `reconcile_off` (no admission, fair share), fleets 3 and 5.
+(2-44 Mbps), `reconcile` against `reconcile_off` (no admission, fair share) and
+`reconcile_relocate`, fleets 3 and 5. `reconcile_relocate` (run because the exposed POIs lie
+below `good` on the radio DT map) first moves a post whose video is rejected for coverage to
+a footpath viewpoint within 20 m, in sight of the POI, where the video rate fits the uplink
+(best level, then shortest distance; the post keeps its POI and its robot), and asks again.
 
 **Benches.**
 
@@ -780,6 +798,10 @@ uv run a6g bench overhead                  # N2: traffic per posture/fleet, patt
 uv run a6g bench protocols [--reduced]     # N5: protocols over emulated radio links (real time)
 uv run a6g paper export                    # N6: paper/RESULTS.md + CSV files
 ```
+
+`bench/run_final.sh [A] [B] [C]` runs them all, one after another (A offline, B cloud models,
+C protocols on a quiet machine, then the export), with a log per step and a status line in
+`var/logs/final/status.txt`; a failed step does not stop the chain.
 
 **Protocols over emulated radio links (N5)** run on real sockets in rootless Linux network
 namespaces (`unshare --user --map-root-user --net --mount`: no sudo): `edge` and `r1..rN`

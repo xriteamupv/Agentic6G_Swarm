@@ -17,3 +17,8 @@ sim_gazebo/log/
 # Local dev server state and stray logs
 .langgraph_api/
 *.log
+
+# UPV radio DT export (114 MB, UPV data) and its reference picture: kept out of git; the
+# derived maps sim_gazebo/src/a6g_gz_worlds/sim/*_coverage_radio_dt.json are committed
+sim_gazebo/data/network/*.csv
+sim_gazebo/data/network/*.png

@@ -23,7 +23,7 @@ def test_the_robots_an_order_names() -> None:
     swap = "Swap areas: go2_01 patrols the south plaza and go2_02 the north-west walk"
     assert order_robots(swap, ROBOTS) == {"go2_01", "go2_02"}
     assert order_robots("send the summit home and the two Go2 to patrol", ROBOTS) == set(ROBOTS)
-    assert order_robots("Stop holding the east gate and send that robot to patrol", ROBOTS) is None
+    assert order_robots("Stop holding the bus stop and send that robot to patrol", ROBOTS) is None
     assert order_robots("Patrol the south plaza", ROBOTS) is None  # places only: no rule
     assert TAKEOVER.search("go2_01 takes over the east corridor patrol")
 

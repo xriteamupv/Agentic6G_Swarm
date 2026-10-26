@@ -236,11 +236,11 @@ How to express the order:
   campus, split into one group per patrolling robot (neighbouring sectors together), so
   each sector is patrolled once. Never one copy of every sector per robot, never fewer
   sectors than the campus has. Example, 3 robots, "send two robots to patrol the campus
-  and the rest to guard the east gate": sec_north and sec_south in group "a", sec_east in
-  group "b", and a hold_post at the east gate.
+  and the rest to guard the bus stop": sec_north and sec_south in group "a", sec_east in
+  group "b", and a hold_post at the bus stop.
 - after: indices of tasks in this plan that must be done first ("inspect the kiosk, then
   patrol the north-west walk"); those tasks share a robot unless named otherwise.
-- end: ids of open tasks the order stops ("stop guarding the east gate", "stop the south
+- end: ids of open tasks the order stops ("stop guarding the bus stop", "stop the south
   plaza patrol": only that one; "stop everything": all of them). Never end what the order
   does not mention. Emergency tasks end only with
   the all clear, never here.

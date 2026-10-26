@@ -802,8 +802,6 @@ def _network_env(network: str | None, coverage: str | None) -> None:
     """``--network capacity`` (and ``--coverage``) for this run, via the config's env."""
     if network:
         os.environ["A6G_NETWORK_MODE"] = network
-        if network == "capacity":
-            os.environ.setdefault("A6G_COVERAGE_SOURCE", "model")
     if coverage:
         os.environ["A6G_COVERAGE_SOURCE"] = coverage
 

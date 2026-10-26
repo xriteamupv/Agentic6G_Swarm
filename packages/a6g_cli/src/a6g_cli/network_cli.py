@@ -71,7 +71,8 @@ def preview_html(cfg, cmap, calibration: dict | None) -> str:
                 f'stroke="#000" stroke-width="0.4"><title>velodrome: RSRP {rsrp:.1f} dBm, SINR '
                 f"{sinr:.1f} dB ({'LOS' if los else 'NLOS'})</title></rect>"
             )
-    for v in getattr(c, "vegetation_areas", None) or []:  # tree-lined walks: dashed line
+    emulated = cmap.meta.get("source") == "model"
+    for v in (getattr(c, "vegetation_areas", None) or []) if emulated else []:  # dashed walks
         hw = float(v.get("half_width_m") or 0)
         for path in v.get("paths") or []:
             d = " ".join(f"{sx(x)},{sy(y)}" for x, y in path)
@@ -109,14 +110,25 @@ def preview_html(cfg, cmap, calibration: dict | None) -> str:
         for lvl, col in LEVEL_COLOUR.items()
     )
     meta = json.dumps(cmap.meta, indent=1, default=str)
+    if emulated:
+        title = "Coverage levels (model): emulated, not measured"
+        notes = (
+            "black-edged squares on the velodrome loop: predicted levels to compare with UPV's "
+            "plots; dark green dashed line: tree-lined walk (foliage loss)"
+        )
+    else:
+        t = cfg.network.coverage.thresholds_rsrp_dbm
+        title = f"Coverage levels ({cmap.meta.get('source')}): {cmap.meta.get('label', '')}"
+        notes = (
+            f"levels by RSRP: good &gt; {t['good']:g}, medium {t['medium']:g}..{t['good']:g}, "
+            f"low {t['low']:g}..{t['medium']:g}, lost &lt; {t['low']:g} dBm"
+        )
     return (
         "<!doctype html><html><head><meta charset='utf-8'><title>Coverage preview</title></head>"
         "<body style='font-family:sans-serif;margin:16px'>"
-        f"<h3>Coverage levels ({cmap.meta.get('source')}): emulated, not measured</h3>"
+        f"<h3>{title}</h3>"
         f"<p>{legend} &nbsp; shaded: the pilot area outdoors (2 m cells; "
-        "hover for RSRP and SINR); black-edged squares on the velodrome loop: predicted "
-        "levels to compare with UPV's plots; dark green dashed line: tree-lined walk "
-        "(foliage loss)</p>" + "".join(out) + f"<pre>{meta}</pre></body></html>"
+        f"hover for RSRP and SINR); {notes}</p>" + "".join(out) + f"<pre>{meta}</pre></body></html>"
     )
 
 
@@ -145,14 +157,15 @@ def import_cmd(
     rsrp: Annotated[
         Path | None,
         typer.Option(
-            "--rsrp", help="CSV lat,lon,cell_id,rsrp_dbm[,sinr_db] (default: radio_dt_file)"
+            "--rsrp",
+            help="UPV export CSV (latitude_wgs84_deg, longitude_wgs84_deg, rsrp_dbm, "
+            "has_estimated_power) or lat,lon,rsrp_dbm (default: radio_dt_file)",
         ),
     ] = None,
     config_dir: Annotated[Path | None, typer.Option("--config-dir")] = None,
 ) -> None:
-    """Import the RSRP map of UPV's ray-tracing radio twin, interpolated to the footpaths."""
+    """Import the RSRP map of UPV's ray-tracing radio twin onto the pilot area and footpaths."""
     from a6g_common import coverage as cv
-    from a6g_common.geo import Datum
 
     cfg = _cfg(config_dir, "radio_dt")
     if rsrp is None:
@@ -161,16 +174,9 @@ def import_cmd(
                 "give --rsrp or set coverage.radio_dt_file", param_hint="--rsrp"
             )
         rsrp = (Path(cfg.config_dir) / cfg.network.coverage.radio_dt_file).resolve()
-    d = cfg.campus.datum or {}
-    datum = Datum(d["lat_deg"], d["lon_deg"], d.get("alt_m", 0.0), d.get("heading_deg", 0.0))
-    scale = cfg.campus.scale or 1.0
-
-    def geo(lat: float, lon: float) -> tuple[float, float]:
-        x, y, _ = datum.to_enu(lat, lon)
-        return x * scale, y * scale
-
-    cmap = cv.build_radio_dt_map(cfg.campus, cfg.network, rsrp, geo)
+    cmap = cv.build_radio_dt_map(cfg.campus, cfg.network, rsrp, cv.campus_geo(cfg.campus))
     path = cv.map_path(cfg)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(cmap.to_json(), separators=(",", ":")))
     typer.echo(f"map: {path} ({len(cmap.samples)} samples, cells {cmap.meta['cells']})")
     typer.echo(json.dumps(cmap.summary(cfg.campus)["share_by_level"]))
@@ -179,14 +185,14 @@ def import_cmd(
 @network_app.command("coverage")
 def coverage_cmd(
     preview: Annotated[Path | None, typer.Option("--preview", help="write an HTML preview")] = None,
-    source: Annotated[str | None, typer.Option("--source", help="model | radio_dt")] = None,
+    source: Annotated[str | None, typer.Option("--source", help="radio_dt | model")] = None,
     config_dir: Annotated[Path | None, typer.Option("--config-dir")] = None,
 ) -> None:
     """Share of footpath length per level and sector; the level at each POI, the staging
     area and each link-recovery point; overlap with the old shadows."""
     from a6g_common import coverage as cv
 
-    cfg = _cfg(config_dir, source or "model")
+    cfg = _cfg(config_dir, source)
     cmap = cv.load_or_build(cfg)
     summary = cmap.summary(cfg.campus)
     typer.echo(f"source: {cmap.meta.get('label') or cmap.meta.get('source')}")

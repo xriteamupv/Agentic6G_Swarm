@@ -158,7 +158,6 @@ PLACES = [
     ("9B", "poi_library_door"),
     ("bike parking", "poi_bike_rack"),
     ("the bike rack", "poi_bike_rack"),
-    ("the east gate", "lrp_east_gate"),
     ("north-west walk", "sec_north"),
     ("south plaza", "sec_south"),
     ("east corridor", "sec_east"),
@@ -173,7 +172,6 @@ PLACES = [
     ("marquesina del 9B", "poi_shelter_9b"),
     ("soportales de la plaza sur", "poi_shelter_south"),
     ("paseo noroeste", "sec_north"),
-    ("puerta este", "lrp_east_gate"),
     # Valencian
     ("parada d'autobús", "poi_bus_stop"),
     ("porta'm al punt d'informació", "poi_kiosk"),

@@ -17,10 +17,12 @@ def _cfg(source: str = "model"):
     return load_config("config", env={"A6G_COVERAGE_SOURCE": source}, fleet_file="sim/fleet.yaml")
 
 
-def test_coverage_is_emulated_by_default_and_the_network_grants() -> None:
-    """2026-10-26: the shadow polygons are gone; coverage comes from the model."""
+def test_coverage_comes_from_the_radio_dt_by_default_and_the_network_grants() -> None:
+    """2026-10-26: the shadow polygons are gone; coverage comes from UPV's radio DT export,
+    levels by RSRP."""
     cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
-    assert cfg.network.mode == "always_grant" and cfg.network.coverage.source == "model"
+    assert cfg.network.mode == "always_grant" and cfg.network.coverage.source == "radio_dt"
+    assert cfg.network.coverage.levels_by == "rsrp"
     assert cfg.campus.link_shadows == []
 
 
@@ -78,35 +80,68 @@ def test_trees_lower_the_level_under_them() -> None:
     assert model.foliage_db(site["x"] - 10, site["y"]) == 0.0  # by Building 8G: no trees
 
 
-def test_levels_from_sinr_and_rsrp() -> None:
+def test_levels_from_rsrp() -> None:
+    """UPV, 2026-10-26: > -80 good, -100..-80 medium, -120..-100 low, < -120 lost."""
     net = NetworkConfig()
+    assert cv.level_of(net, 0, rsrp=-79) == "good"
+    assert cv.level_of(net, 0, rsrp=-80) == "medium"
+    assert cv.level_of(net, 0, rsrp=-100) == "medium"
+    assert cv.level_of(net, 0, rsrp=-101) == "low"
+    assert cv.level_of(net, 0, rsrp=-120) == "low"
+    assert cv.level_of(net, 0, rsrp=-120.5) == "lost"
+
+
+def test_levels_from_sinr() -> None:
+    net = NetworkConfig()
+    net.coverage.levels_by = "sinr"
     assert cv.level_of(net, 20) == "good"
     assert cv.level_of(net, 8) == "medium"
     assert cv.level_of(net, 0) == "low"
     assert cv.level_of(net, -8) == "lost"
-    assert cv.level_of(net, 20, rsrp=-120) == "lost"
+    assert cv.level_of(net, 20, rsrp=-125) == "lost"
 
 
-def test_radio_dt_import_interpolates_and_picks_the_strongest_cell(tmp_path: Path) -> None:
+def test_radio_dt_import_keeps_the_pilot_area_and_skips_points_without_power(
+    tmp_path: Path,
+) -> None:
+    """UPV's export: points outside the pilot area and without an estimated power are
+    ignored; each sample takes the median RSRP nearby; levels by RSRP."""
     cfg = _cfg("radio_dt")
-    rows = ["lat,lon,cell_id,rsrp_dbm"]
-    # cell A strong everywhere, cell B weaker: A serves; values constant -> exact
-    for lat in (39.4776, 39.4790, 39.4802):
-        for lon in (-0.3372, -0.3350, -0.3328):
-            rows.append(f"{lat},{lon},A,-80")
-            rows.append(f"{lat},{lon},B,-100")
-    csv = tmp_path / "rsrp.csv"
-    csv.write_text("\n".join(rows) + "\n")
-    from a6g_common.geo import Datum
-
+    geo = cv.campus_geo(cfg.campus)
+    area = cfg.campus.pilot_area
+    cx = sum(p[0] for p in area) / len(area)
+    cy = sum(p[1] for p in area) / len(area)
     d = cfg.campus.datum
-    datum = Datum(d["lat_deg"], d["lon_deg"], d.get("alt_m", 0.0), d.get("heading_deg", 0.0))
-    m = cv.build_radio_dt_map(
-        cfg.campus, cfg.network, csv, lambda lat, lon: datum.to_enu(lat, lon)[:2]
-    )
-    assert m.samples and {s["cell"] for s in m.samples} == {"A"}
-    assert all(s["rsrp"] == pytest.approx(-80.0) for s in m.samples)
-    assert all(s["sinr"] == pytest.approx(21.0) for s in m.samples if not s["injected"])
+    lat0, lon0 = d["lat_deg"], d["lon_deg"]
+    # a dense lattice of WGS84 points around the pilot area centre, constant -90 dBm
+    rows = ["latitude_wgs84_deg,longitude_wgs84_deg,rsrp_dbm,has_estimated_power"]
+    x0, y0 = geo(lat0, lon0)
+    dlat = 1 / 111_000
+    dlon = 1 / (111_000 * 0.771)
+    for i in range(-150, 151):
+        for j in range(-150, 151):
+            lat = lat0 + (cy - y0 + i) * dlat
+            lon = lon0 + (cx - x0 + j) * dlon
+            if (i + j) % 2 == 0:
+                rows.append(f"{lat:.7f},{lon:.7f},-90,1")
+            else:
+                rows.append(f"{lat:.7f},{lon:.7f},,0")  # no estimated power: no data
+    csv_file = tmp_path / "rsrp.csv"
+    csv_file.write_text("\n".join(rows) + "\n")
+    m = cv.build_radio_dt_map(cfg.campus, cfg.network, csv_file, geo)
+    assert m.samples and m.meta["source"] == "radio_dt"
+    assert m.meta["export_points_in_pilot_area"] < (len(rows) - 1) // 2
+    assert all(s["rsrp"] == pytest.approx(-90.0) and s["level"] == "medium" for s in m.samples)
+    assert {s["cell"] for s in m.samples} == {cfg.network.cells[0].id}
+
+
+def test_the_campus_radio_dt_map() -> None:
+    """The UPV export on the campus: the whole pilot area outdoors has data."""
+    cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
+    m = cv.load_or_build(cfg)
+    assert m.meta["source"] == "radio_dt" and m.meta["samples_without_data"] < 200
+    assert len(m.area_samples) > 8000
+    assert set(m.summary(cfg.campus)["area"]["share_by_level"]) == set(cv.LEVELS)
 
 
 def test_nearest_sample_lookup() -> None:
@@ -121,7 +156,8 @@ def test_nearest_sample_lookup() -> None:
 
 
 def test_hysteresis_and_minimum_dwell() -> None:
-    net = NetworkConfig()  # good >= 13 dB, hysteresis 3 dB, dwell 2 s
+    net = NetworkConfig()  # levels by SINR: good >= 13 dB, hysteresis 3 dB, dwell 2 s
+    net.coverage.levels_by = "sinr"
 
     def s(sinr: float, level: str) -> dict:
         return {"sinr": sinr, "level": level, "cell": "c"}
@@ -149,8 +185,8 @@ async def test_the_simulator_reports_level_and_cell(tmp_path: Path) -> None:
         state = stack.world.state("go2_01")
     finally:
         await stack.stop()
-    # the staging area is at the end of the tree-lined north-west walk: medium
-    assert state.link_level in ("good", "medium") and state.cell_id == "n40_nodo2_cell9"
+    # the staging area is at the end of the tree-lined north-west walk
+    assert state.link_level != "lost" and state.cell_id == "n40_nodo2_cell9"
     assert state.link_quality.value == "ok" and state.rsrp_dbm is not None
 
 
@@ -208,3 +244,13 @@ def test_the_gnb_height_is_its_rooftop_plus_the_mast() -> None:
     site = _cfg().campus.network_sites[0]
     assert site["host_building"] is not None and site["height_source"].startswith("rooftop")
     assert site["height_m"] > 3.0
+
+
+def test_smoothing_removes_an_island_and_keeps_a_wide_zone() -> None:
+    """2026-10-26: a spatial median over 6 m; a lone cell takes its neighbours' value."""
+    pts = [(x * 2.0, y * 2.0, -80.0 if x < 10 else -105.0) for x in range(20) for y in range(10)]
+    pts[45] = (pts[45][0], pts[45][1], -125.0)  # an island (x=4) inside the -80 zone
+    out = cv.smooth_rsrp(pts, 6.0)
+    assert out[45] == -80.0
+    assert out[0] == -80.0 and out[-1] == -105.0  # far from the boundary: unchanged
+    assert cv.smooth_rsrp(pts, 0.0) == [p[2] for p in pts]

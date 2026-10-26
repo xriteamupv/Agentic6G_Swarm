@@ -211,22 +211,21 @@ PAGE = r"""<!doctype html>
     <div id="robots"></div>
     <div class="legend">
       <div><span style="background:var(--building)"></span>building (OSM)</div>
-      <div><span style="background:rgba(var(--sector),.18);border:1px solid rgb(var(--sector))"></span>patrol zone (its footpaths, one colour each) · dots = survey waypoints</div>
-      <div><span style="background:transparent;border:1px dashed #1b5e20"></span>tree-lined walk (foliage loss)</div>
+      <div id="zones-legend"></div>
       <div><span style="background:var(--poi)"></span>point of interest · <span style="background:var(--exposed)"></span>exposed</div>
-      <div><span style="background:var(--recovery)"></span>link recovery point · staging square</div>
-      <div><span style="background:#e41a1c"></span>n40 gNB site · emulated coverage (shaded area): <span style="background:#1b9e77"></span>good <span style="background:#e6ab02"></span>medium <span style="background:#d95f02"></span>low <span style="background:#7570b3"></span>lost</div>
+      <div><span style="background:var(--recovery)"></span>link recovery point (staging) · staging square</div>
+      <div><span style="background:#e41a1c"></span>n40 gNB site · coverage by RSRP (shaded area): <span style="background:#1b9e77"></span>good <span style="background:#e6ab02"></span>medium <span style="background:#d95f02"></span>low <span style="background:#7570b3"></span>lost</div>
       <div><span style="background:transparent;border:2px solid var(--pilot)"></span>pilot area</div>
-      <div><label><input type="checkbox" id="paths" checked> <span style="background:var(--path)"></span>footpath (OSM) · dashed: open space · <span style="background:#c24141"></span>stairs</label></div>
-      <div><span style="background:#e02424"></span>restricted (closed, obstructed, flooded…)</div>
-      <div><span style="background:transparent;border:2px solid var(--ink)"></span>person's route (robot colour) · dotted: to meet them</div>
+      <div><label><input type="checkbox" id="paths" checked> <span style="background:var(--path)"></span>footpath (OSM) · dashed: open space</label></div>
     </div>
     <div class="err" id="err"></div>
   </aside>
 </div>
 <script>
 const COLORS = ["#2f6fb0", "#d9711c", "#8a4fbf", "#2f9a5b", "#c24141", "#1b9aa0", "#9c7a1a"];
-const ZONES = ["46,125,180", "150,80,190", "27,154,160", "200,120,30", "90,140,60"];
+// Patrol zones are told apart by line pattern, not colour (the coverage map uses colour):
+// dark ink over a light casing, one dash pattern per zone, waypoints as hollow rings.
+const ZONE_DASH = [[], [14, 6], [3, 5], [14, 5, 3, 5], [8, 8]];
 const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const canvas = document.getElementById("c"), ctx = canvas.getContext("2d");
 let campus = null, state = null, view = null, trails = {}, colors = {}, frames = 0, last = performance.now();
@@ -270,35 +269,19 @@ function draw() {
   ctx.fillStyle = css("--bg"); ctx.fillRect(0, 0, W(), H());
   if (campus && view) {
     poly(campus.pilot_area, css("--ground"), null);
-    const sector = css("--sector"), shadow = css("--shadow"), staging = css("--staging");
-    campus.sectors.forEach((s, i) => {
-      if (s.paths && s.paths.length) {  // a footpath zone: its paths, in its own colour
-        const col = ZONES[i % ZONES.length];
-        poly(s.polygon, `rgba(${col},.05)`, null);
-        for (const p of s.paths) line(p, `rgb(${col})`, 7, null, 0.35);
-        ctx.fillStyle = `rgb(${col})`;
-        for (const [x, y] of s.waypoints) { const [u, v] = toPx(x, y); ctx.beginPath(); ctx.arc(u, v, 2.5, 0, 7); ctx.fill(); }
-        const m = s.paths[Math.floor(s.paths.length / 2)], q = m[Math.floor(m.length / 2)];
-        label(s.name || s.id, q[0], q[1], `rgb(${col})`, -10);
-        return;
-      }
-      poly(s.polygon, `rgba(${sector},.13)`, `rgb(${sector})`);
-      ctx.fillStyle = `rgb(${sector})`;
-      for (const [x, y] of s.waypoints) { const [u, v] = toPx(x, y); ctx.beginPath(); ctx.arc(u, v, 2.5, 0, 7); ctx.fill(); }
-      const c = s.polygon.reduce((a, p) => [a[0] + p[0] / s.polygon.length, a[1] + p[1] / s.polygon.length], [0, 0]);
-      label(s.name || s.id, c[0], c[1], `rgb(${sector})`, 4);
-    });
-    for (const sh of campus.shadows) poly(sh, `rgba(${shadow},.15)`, `rgb(${shadow})`, [5, 4]);
-    for (const sh of campus.degraded || []) poly(sh, "rgba(217,113,28,.12)", "rgb(217,113,28)", [5, 4]);
-    ctx.lineWidth = 1;
-    for (const b of campus.buildings) poly(b, css("--building"), css("--building-edge"));
-    if (document.getElementById("paths").checked) drawPaths();
+    const shadow = css("--shadow"), staging = css("--staging");
     const lvl = {good: "#1b9e77", medium: "#e6ab02", low: "#d95f02", lost: "#7570b3"};
     for (const [x, y, l, cell] of campus.coverage || []) {
       const [u, v] = toPx(x, y); ctx.fillStyle = lvl[l] || "#999";
       const [u2, v2] = toPx(x + cell, y + cell), w = Math.max(1, u2 - u + 0.5), h = Math.max(1, v - v2 + 0.5);
       ctx.globalAlpha = 0.28; ctx.fillRect(u - w / 2, v - h / 2, w, h); ctx.globalAlpha = 1;
     }
+    for (const sh of campus.shadows) poly(sh, `rgba(${shadow},.15)`, `rgb(${shadow})`, [5, 4]);
+    for (const sh of campus.degraded || []) poly(sh, "rgba(217,113,28,.12)", "rgb(217,113,28)", [5, 4]);
+    ctx.lineWidth = 1;
+    for (const b of campus.buildings) poly(b, css("--building"), css("--building-edge"));
+    if (document.getElementById("paths").checked) drawPaths();
+    drawZones();
     for (const st of campus.sites || []) {
       const [u, v] = toPx(st.x, st.y); ctx.fillStyle = "#e41a1c";
       ctx.beginPath(); ctx.moveTo(u, v - 10); ctx.lineTo(u - 8, v + 7); ctx.lineTo(u + 8, v + 7); ctx.closePath(); ctx.fill();
@@ -326,6 +309,62 @@ function line(points, color, width, dash, alpha = 1) {
   ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []);
   ctx.beginPath(); points.forEach((p, i) => { const [u, v] = toPx(p[0], p[1]); i ? ctx.lineTo(u, v) : ctx.moveTo(u, v); });
   ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.globalAlpha = 1;
+}
+
+function drawZones() {
+  const ink = css("--ink"), bg = css("--bg");
+  campus.sectors.forEach((s, i) => {
+    const dash = ZONE_DASH[i % ZONE_DASH.length];
+    if (s.paths && s.paths.length) {  // a footpath zone: its paths, in its own line pattern
+      for (const p of s.paths) line(p, bg, 7, null, 0.85);
+      for (const p of s.paths) line(p, ink, 2.5, dash, 0.9);
+    } else {
+      ctx.lineWidth = 2; poly(s.polygon, null, ink, dash); ctx.lineWidth = 1;
+    }
+    for (const [x, y] of s.waypoints) {
+      const [u, v] = toPx(x, y);
+      ctx.beginPath(); ctx.arc(u, v, 3.5, 0, 7); ctx.fillStyle = bg; ctx.fill();
+      ctx.lineWidth = 1.5; ctx.strokeStyle = ink; ctx.stroke(); ctx.lineWidth = 1;
+    }
+  });
+  for (const s of campus.sectors) {  // tags last: above every zone's lines and rings
+    const q = s.paths && s.paths.length ? along(s.paths, 0.4)  // clear of the POIs at the ends
+      : s.polygon.reduce((a, p) => [a[0] + p[0] / s.polygon.length, a[1] + p[1] / s.polygon.length], [0, 0]);
+    tag(s.name || s.id, q[0], q[1], ink, bg);
+  }
+}
+
+function along(paths, f) {  // the point at fraction f of the paths' total length
+  const segs = paths.flatMap(p => p.slice(1).map((b, i) => [p[i], b]));
+  const len = ([a, b]) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+  let rest = f * segs.reduce((t, sg) => t + len(sg), 0);
+  for (const sg of segs) {
+    const l = len(sg);
+    if (rest <= l && l > 0) return [sg[0][0] + (sg[1][0] - sg[0][0]) * rest / l, sg[0][1] + (sg[1][1] - sg[0][1]) * rest / l];
+    rest -= l;
+  }
+  return segs.length ? segs[segs.length - 1][1] : paths[0][0];
+}
+
+function tag(text, x, y, ink, bg) {  // a boxed label, readable over any coverage colour
+  const [u, v] = toPx(x, y);
+  ctx.font = "600 11px system-ui, sans-serif"; ctx.textAlign = "center";
+  const w = ctx.measureText(text).width + 10;
+  ctx.fillStyle = bg; ctx.strokeStyle = ink; ctx.lineWidth = 1;
+  ctx.fillRect(u - w / 2, v - 22, w, 16); ctx.strokeRect(u - w / 2, v - 22, w, 16);
+  ctx.fillStyle = ink; ctx.fillText(text, u, v - 10);
+}
+
+function zonesLegend() {
+  const ink = css("--ink"), bg = css("--bg");
+  document.getElementById("zones-legend").innerHTML = campus.sectors.map((s, i) => {
+    const dash = ZONE_DASH[i % ZONE_DASH.length].join(" ");
+    return `<div style="display:flex;align-items:center;gap:6px"><svg width="34" height="10" aria-hidden="true">` +
+      `<line x1="0" y1="5" x2="34" y2="5" stroke="${bg}" stroke-width="7"/>` +
+      `<line x1="0" y1="5" x2="34" y2="5" stroke="${ink}" stroke-width="2.5" stroke-dasharray="${dash}"/></svg>` +
+      `patrol zone: ${s.name || s.id}</div>`;
+  }).join("") + `<div style="display:flex;align-items:center;gap:6px"><svg width="34" height="10" aria-hidden="true">` +
+    `<circle cx="17" cy="5" r="3.5" fill="${bg}" stroke="${ink}" stroke-width="1.5"/></svg>survey waypoint</div>`;
 }
 
 function drawPaths() {
@@ -471,13 +510,13 @@ window.addEventListener("resize", fit);
 
 /*__SNAPSHOT__*/
 if (window.__SNAPSHOT__) {  // ?static=1: one frame from inline data (screenshots, reports)
-  campus = window.__SNAPSHOT__.campus; state = window.__SNAPSHOT__.state;
+  campus = window.__SNAPSHOT__.campus; state = window.__SNAPSHOT__.state; zonesLegend();
   for (const rid of Object.keys(state.robots)) colors[rid] = COLORS[Object.keys(colors).length % COLORS.length];
   document.getElementById("t").textContent = state.sim_time_label || "–";
   document.getElementById("sub").textContent = `${campus.campus_id}${campus.scale !== 1 ? ` · scale ${campus.scale}` : ""} · snapshot`;
   panel(); fit(); draw();
 } else {
-  fetch("/sim/view/campus").then(r => r.json()).then(c => { campus = c; fit(); poll(); requestAnimationFrame(draw); })
+  fetch("/sim/view/campus").then(r => r.json()).then(c => { campus = c; zonesLegend(); fit(); poll(); requestAnimationFrame(draw); })
     .catch(e => { document.getElementById("err").textContent = "cannot load campus: " + e; });
 }
 </script>

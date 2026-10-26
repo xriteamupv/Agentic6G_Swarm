@@ -24,8 +24,9 @@
 - {text: "Escort the visitor to the bike rack", posture: interactive, expect: [[escort, poi_bike_rack]]}
 - {text: "Escort the visitor to the bicycle rack", posture: interactive, expect: [[escort, poi_bike_rack]]}
 - {text: "Escort the visitor to the aparcabicis", posture: interactive, expect: [[escort, poi_bike_rack]]}
-- {text: "Escort the visitor to the east gate", posture: interactive, expect: [[escort, lrp_east_gate]]}
-- {text: "Escort the visitor to the eastern gate", posture: interactive, expect: [[escort, lrp_east_gate]]}
+# 2026-10-26: these four replace the four East-gate goals (gate removed)
+- {text: "Escort the visitor to the punt d'informació", posture: interactive, expect: [[escort, poi_kiosk]]}
+- {text: "Escort the visitor to the porxo del 9B", posture: interactive, expect: [[escort, poi_shelter_9b]]}
 - {text: "Escort the visitor to the cafeteria", posture: interactive, expect: []}
 - {text: "Escort the visitor to the gym", posture: interactive, expect: []}
 - {text: "Escort the visitor to car park P3", posture: interactive, expect: []}
@@ -39,7 +40,7 @@
 - {text: "Send a robot to the library entrance", posture: routine, expect: [[go_to, poi_library_door]]}
 - {text: "Send a robot to the canopy at 9B", posture: routine, expect: [[go_to, poi_shelter_9b]]}
 - {text: "Send a robot to the south plaza arcade", posture: routine, expect: [[go_to, poi_shelter_south]]}
-- {text: "Send a robot to the east gate", posture: routine, expect: [[go_to, lrp_east_gate]]}
-- {text: "Send a robot to the puerta este", posture: routine, expect: [[go_to, lrp_east_gate]]}
+- {text: "Send a robot to the aparcabicis", posture: routine, expect: [[go_to, poi_bike_rack]]}
+- {text: "Send a robot to the parada d'autobús", posture: routine, expect: [[go_to, poi_bus_stop]]}
 - {text: "Send a robot to the swimming pool", posture: routine, expect: []}
 - {text: "Send a robot to building 1A", posture: routine, expect: []}

@@ -47,7 +47,7 @@ import yaml
 from a6g_common.config import A6GConfig
 from a6g_common.schemas import DecisionKind
 
-from a6g_devstack.stack import SimStack
+from a6g_devstack.stack import EXTRA_ROBOTS, SimStack
 
 ARMS = ("none", "central_twin", "central_memory", "independent")
 LABEL = {"none": "P", "central_twin": "B2", "central_memory": "B1", "independent": "B0"}
@@ -55,8 +55,6 @@ GOAL = (
     "Inspect the info kiosk, the building 9B door, the bike rack, the bus stop, the 9B east "
     "entrance canopy and the south plaza arcade"
 )
-# robots added for the fleets of 5 and 8 (simulation-only manifests mix Go2 and Summit-XL)
-EXTRA = ("go2_03", "go2_04", "go2_05", "summit_02", "summit_03")
 OUTAGE_KIND = "coordinator_crash"
 DETECTION = {
     "coordinator_loss": "MQTT heartbeat timeout and last-will, through the edge broker",
@@ -162,7 +160,7 @@ async def run_one(
     coord_runs: list[float] = []
     try:
         if fleet > 3:
-            for rid in EXTRA[: fleet - 3]:
+            for rid in EXTRA_ROBOTS[: fleet - 3]:
                 await stack.add_robot(robot_id=rid)
         start = stack.world.clock.now()
 

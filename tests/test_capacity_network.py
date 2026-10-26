@@ -178,3 +178,19 @@ async def test_g13_with_spare_capacity_reconcile_and_off_agree(tmp_path: Path) -
         cfg = G.g13_config("config", 200.0, variant)
         out[variant] = await G.run(cfg, tmp_path / variant, fleet=3, seed=1, variant=variant)
     assert out["reconcile"]["posts_video_usable"] == out["reconcile_off"]["posts_video_usable"]
+
+
+@pytest.mark.scenario
+async def test_g13_relocate_moves_a_post_rejected_for_coverage(tmp_path: Path) -> None:
+    """SPEC A4.7 variant (run because exposed POIs lie below `good` on the radio DT map):
+    a post whose video is rejected for coverage is held from a nearby viewpoint with better
+    coverage, in sight of the POI, and the invariants still hold."""
+    from a6g_devstack import scenario_g13 as G
+
+    cfg = G.g13_config("config", 44.0, "reconcile_relocate")
+    r = await G.run(cfg, tmp_path / "run", fleet=3, seed=0, variant="reconcile_relocate")
+    assert "error" not in r, r.get("error")
+    assert r["relocations"] >= 1
+    assert 0 < r["relocation_distance_m"] <= 20.0 * r["relocations"]
+    assert r["i1_violations"] == 0 and r["i2_violations"] == 0 and r["i3_violations"] == 0
+    assert r["posts_held"] == r["exposed_pois"]

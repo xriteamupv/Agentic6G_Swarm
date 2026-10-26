@@ -119,6 +119,8 @@ def task_path(task: TaskSpec, campus: CampusConfig, start: Pose2D | None = None)
         xs, ys = zip(*sector.polygon, strict=True)
         return [Pose2D(x=sum(xs) / len(xs), y=sum(ys) / len(ys))]
     if isinstance(target, PoiTarget):
+        if target.viewpoint is not None:  # relocated for coverage (SPEC A4.7)
+            return [target.viewpoint]
         return [campus.poi_slot(target.poi_id, target.slot)]
     if isinstance(target, PoseTarget):
         return [target.pose]

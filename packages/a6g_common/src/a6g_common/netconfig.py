@@ -103,7 +103,7 @@ class PathlossModel(_M):
 
 
 class CoverageConfig(_M):
-    source: Literal["shadows", "model", "radio_dt"] = "shadows"
+    source: Literal["shadows", "model", "radio_dt"] = "radio_dt"
     radio_dt_file: str | None = None
     model: PathlossModel = Field(default_factory=PathlossModel)
     calibration: str = "plots"
@@ -112,11 +112,28 @@ class CoverageConfig(_M):
     sample_step_m: float = Field(2.0, gt=0.0)
     #: a grid over the whole pilot area, outdoors (0: footpaths only)
     grid_step_m: float = Field(4.0, ge=0.0)
-    levels_by: Literal["sinr"] = "sinr"
+    #: radio DT: each sample's RSRP becomes the median of the samples within this radius
+    #: (0: off), so levels form consistent zones without single-cell islands (2026-10-26)
+    smoothing_radius_m: float = Field(0.0, ge=0.0)
+    #: rsrp (UPV, 2026-10-26: > -80 good, -100..-80 medium, -120..-100 low, < -120 lost)
+    levels_by: Literal["sinr", "rsrp"] = "rsrp"
     thresholds_sinr_db: dict[str, float] = Field(
         default_factory=lambda: {"good": 13.0, "medium": 5.0, "low": -5.0}
     )
-    lost_rsrp_dbm: float = -115.0
+    thresholds_rsrp_dbm: dict[str, float] = Field(
+        default_factory=lambda: {"good": -80.0, "medium": -100.0, "low": -120.0}
+    )
+    lost_rsrp_dbm: float = -120.0
+
+    def edge_sinr(self, level: str) -> float:
+        """The SINR at the lower edge of a level (from the RSRP threshold when levels are
+        by RSRP: SINR derived as in ``sinr_from_rsrp``)."""
+        if self.levels_by == "rsrp":
+            rsrp = self.thresholds_rsrp_dbm.get(level, -120.0)
+            lo, hi = self.sinr_from_rsrp.clip_db
+            return min(max(rsrp + self.sinr_from_rsrp.offset_db, lo), hi)
+        return self.thresholds_sinr_db.get(level, -5.0)
+
     hysteresis_db: float = 3.0
     #: foliage (campus ``vegetation_areas``): excess loss along the part of the ray inside
     #: the canopy (in leaf, ~2.4 GHz), capped (ITU-R P.833 order of magnitude)
@@ -132,7 +149,7 @@ class CoverageConfig(_M):
     min_dwell_s: float = 2.0
     shadows_override: bool = True
     #: the map file (``a6g network coverage --build`` / ``calibrate``), relative to config/
-    map_file: str = "../sim_gazebo/src/a6g_gz_worlds/sim/{campus}_coverage.json"
+    map_file: str = "../sim_gazebo/src/a6g_gz_worlds/sim/{campus}_coverage_{source}.json"
 
 
 class UplinkRate(_M):
@@ -252,7 +269,7 @@ class NetworkConfig(_M):
         if p.outage or level == "lost":
             out["ul_mbps"] = 0.0
         elif p.ul_mbps == "derived" or p.ul_mbps is None:
-            edge = self.coverage.thresholds_sinr_db.get(level, -5.0)
+            edge = self.coverage.edge_sinr(level)
             out["ul_mbps"] = round(self.uplink_rate.rate_mbps(edge), 2)
         else:
             out["ul_mbps"] = float(p.ul_mbps)

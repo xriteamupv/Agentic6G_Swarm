@@ -1,6 +1,6 @@
 # Orders the rules were not written for (2026-10-22): rules_first vs model_first.
 # setup: the mission before the order (planned by the rules, no model): none | patrol
-#   ("Patrol the campus") | guard_patrol ("Send one robot to guard the east gate, the others
+#   ("Patrol the campus") | guard_patrol ("Send one robot to guard the bus stop, the others
 #   to patrol").
 # expect: checks on the open tasks AFTER allocation (who does what), all must hold:
 #   - {kind, target, count}            open tasks of that kind at that target (0: none)
@@ -12,7 +12,7 @@
 #   - {other_robot: [[kind, target], [kind, target]]}
 #   - {total: n}                       open tasks in all
 #   - {kinds_absent: [kind, ...]}      no open task of these kinds
-#   - {guard_patrols: true}            the robot that held the east gate post patrols a sector
+#   - {guard_patrols: true}            the robot that held the bus stop post patrols a sector
 # target "*" in count/not_robots/robots_in: any target of that kind.
 - id: two_on_one_sector
   text: "Two robots patrol the east corridor"
@@ -47,9 +47,9 @@
     - {kind: survey_sector, target: "*", count: 3}
 - id: stop_guard_join
   setup: guard_patrol
-  text: "Stop holding the east gate and send that robot to patrol also"
+  text: "Stop holding the bus stop and send that robot to patrol also"
   expect:
-    - {kind: hold_post, target: lrp_east_gate, count: 0}
+    - {kind: hold_post, target: poi_bus_stop, count: 0}
     - {guard_patrols: true}
 - id: stop_one_patrol
   setup: patrol
@@ -78,9 +78,9 @@
   expect:
     - {kind: hold_post, target: poi_bus_stop, count: 1}
 - id: va_go
-  text: "Porta un robot a la porta est"
+  text: "Porta un robot a la parada de l'autobús"
   expect:
-    - {kind: go_to, target: lrp_east_gate, count: 1}
+    - {kind: go_to, target: poi_bus_stop, count: 1}
 - id: guard_two
   text: "Guard the bike rack and the bus stop"
   expect:

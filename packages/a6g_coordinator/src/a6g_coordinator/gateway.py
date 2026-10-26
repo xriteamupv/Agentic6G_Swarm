@@ -13,6 +13,7 @@
   pin is removed unless the request opts in with ``x-a6g-allow-fork: 1``.
 """
 
+import asyncio
 import contextlib
 import json
 import logging
@@ -219,34 +220,65 @@ async def lifespan(app: Starlette) -> AsyncIterator[None]:
 @contextlib.asynccontextmanager
 async def _telemetry(app: Starlette) -> AsyncIterator[None]:
     configure_messaging(CFG.comms)  # routing + per-message metrics (SPEC A2.5)
-    mqtt = CFG.fleet.edge.mqtt
-    bus = mqtt_bus(
-        mqtt.host,
-        mqtt.port,
-        agent_id="coordinator",
-        client_id="a6g-coordinator",
-        will=(TOPIC_HEARTBEAT, b"offline", 1, True),
-    )
-    try:
-        await bus.__aenter__()
-    except Exception as exc:
-        log.warning(
-            "MQTT broker unavailable at %s:%s (%s): coordinator heartbeat and robot liveness "
-            "monitoring are disabled. Start one (a6g-sim-stack --embedded-broker, mosquitto).",
-            mqtt.host,
-            mqtt.port,
-            exc,
-        )
-        yield
-        return
-    telemetry = CoordinatorTelemetry(CFG, bus, SystemClock(), broadcast)
-    telemetry.start()
-    log.info("coordinator telemetry plane up on mqtt://%s:%s", mqtt.host, mqtt.port)
+    stop = asyncio.Event()
+    task = asyncio.create_task(_telemetry_loop(stop), name="coord-telemetry")
     try:
         yield
     finally:
-        await telemetry.stop(graceful=True)
-        await bus.__aexit__(None, None, None)
+        stop.set()
+        with contextlib.suppress(asyncio.CancelledError, Exception):
+            await asyncio.wait_for(task, 5.0)
+
+
+async def _telemetry_loop(stop: asyncio.Event, retry_s: float = 2.0) -> None:
+    """The heartbeat and robot-liveness plane, kept up for the coordinator's whole life.
+
+    The broker may start after the coordinator, or go away and come back (the 2D stack's
+    embedded broker restarts with terminal 1): connect when it is there, and on a failed
+    heartbeat reconnect. Without this the robots stopped hearing heartbeats after a
+    simulator restart and reported the coordinator unreachable (2026-10-26)."""
+    mqtt = CFG.fleet.edge.mqtt
+    warned = False
+    while not stop.is_set():
+        bus = mqtt_bus(
+            mqtt.host,
+            mqtt.port,
+            agent_id="coordinator",
+            client_id="a6g-coordinator",
+            will=(TOPIC_HEARTBEAT, b"offline", 1, True),
+        )
+        try:
+            await bus.__aenter__()
+        except Exception as exc:
+            if not warned:
+                log.warning(
+                    "MQTT broker unavailable at %s:%s (%s): coordinator heartbeat and robot "
+                    "liveness monitoring wait for it (a6g-sim-stack --embedded-broker, "
+                    "mosquitto); retrying every %g s.",
+                    mqtt.host,
+                    mqtt.port,
+                    exc,
+                    retry_s,
+                )
+                warned = True
+            with contextlib.suppress(TimeoutError):
+                await asyncio.wait_for(stop.wait(), retry_s)
+            continue
+        warned = False
+        telemetry = CoordinatorTelemetry(CFG, bus, SystemClock(), broadcast)
+        telemetry.start()
+        log.info("coordinator telemetry plane up on mqtt://%s:%s", mqtt.host, mqtt.port)
+        waits = [asyncio.create_task(stop.wait()), asyncio.create_task(telemetry.failed.wait())]
+        try:
+            await asyncio.wait(waits, return_when=asyncio.FIRST_COMPLETED)
+        finally:
+            for w in waits:
+                w.cancel()
+            await telemetry.stop(graceful=stop.is_set())
+            with contextlib.suppress(Exception):
+                await bus.__aexit__(None, None, None)
+        if not stop.is_set():
+            log.warning("MQTT connection lost: reconnecting the coordinator telemetry plane")
 
 
 CARD = build_agent_card(

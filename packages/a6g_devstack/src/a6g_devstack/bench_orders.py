@@ -25,7 +25,7 @@ from a6g_devstack.stack import SimStack
 CASES = Path(__file__).resolve().parents[4] / "bench" / "orders" / "unseen.yaml"
 SETUPS = {
     "patrol": "Patrol the campus",
-    "guard_patrol": "Send one robot to guard the east gate, the others to patrol",
+    "guard_patrol": "Send one robot to guard the bus stop, the others to patrol",
 }
 OPEN = ("pending", "assigned", "in_progress")
 

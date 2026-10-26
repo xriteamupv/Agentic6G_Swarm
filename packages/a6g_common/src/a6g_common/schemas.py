@@ -14,8 +14,10 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    SerializerFunctionWrapHandler,
     StringConstraints,
     field_validator,
+    model_serializer,
     model_validator,
 )
 
@@ -231,6 +233,19 @@ class PoiTarget(A6GModel):
         description="0: the POI viewpoint; k > 0: the k-th spot beside it, so several robots "
         "sent to one POI do not converge on the same point",
     )
+    viewpoint: Pose2D | None = Field(
+        None,
+        description="the post is held from here instead of the POI (SPEC A4.7 "
+        "relocate_for_coverage: a nearby spot with better coverage, in sight of the POI)",
+    )
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_viewpoint(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
+        """Left out when unset: messages and checkpoints stay as before the variant."""
+        out = handler(self)
+        if out.get("viewpoint") is None:
+            out.pop("viewpoint", None)
+        return out
 
 
 class PoseTarget(A6GModel):

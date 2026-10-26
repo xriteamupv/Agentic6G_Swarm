@@ -121,7 +121,7 @@ class TaskDraft(BaseModel):
 
 class Plan(BaseModel):
     tasks: list[TaskDraft]
-    #: Open tasks the goal ends ("stop holding the east gate", "stop patrolling the south
+    #: Open tasks the goal ends ("stop holding the bus stop", "stop patrolling the south
     #: plaza"), by id from the "Open tasks" list (added 2026-10-22: the plan could only add
     #: work, so "stop holding X" was answered "already under way").
     end: list[str] = Field(default_factory=list, description="ids of open tasks to end")

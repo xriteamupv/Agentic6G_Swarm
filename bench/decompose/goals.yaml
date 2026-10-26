@@ -16,8 +16,6 @@
    expect: [[inspect_poi, poi_bike_rack, telemetry]]}
 - {text: "Check the info kiosk", posture: routine, group: plain,
    expect: [[inspect_poi, poi_kiosk, telemetry]]}
-- {text: "Send a robot to the east gate", posture: routine, group: plain,
-   expect: [[go_to, lrp_east_gate, telemetry]]}
 - {text: "Inspect the bus stop and the bike rack", posture: routine, group: plain,
    expect: [[inspect_poi, poi_bus_stop, telemetry], [inspect_poi, poi_bike_rack, telemetry]]}
 - {text: "Do a security round of the whole campus", posture: routine, group: paraphrase,
@@ -35,8 +33,8 @@
                 [[inspect_poi, poi_library_door, telemetry], [inspect_poi, poi_shelter_9b, telemetry]]]}
 - {text: "Have a look around the south", posture: routine, group: ambiguous,
    expect_any: [[[survey_sector, sec_south, survey_uplink]], [[inspect_poi, poi_shelter_south, telemetry]]]}
-- {text: "Patrol the east", posture: routine, group: ambiguous,
-   expect_any: [[[survey_sector, sec_east, survey_uplink]], [[go_to, lrp_east_gate, telemetry]]]}
+- {text: "Patrol the east", posture: routine, group: paraphrase,
+   expect: [[survey_sector, sec_east, survey_uplink]]}   # ambiguous until the East gate was removed (2026-10-26)
 - {text: "Inspect the parking garage", posture: routine, group: out_of_map, expect: []}
 - {text: "Patrol the sports hall", posture: routine, group: out_of_map, expect: []}
 - {text: "Send a robot to the cafeteria", posture: routine, group: out_of_map, expect: []}
@@ -50,8 +48,6 @@
    expect: [[escort, poi_bus_stop, conversational]]}
 - {text: "Escort the visitor to the info kiosk", posture: interactive, group: plain,
    expect: [[escort, poi_kiosk, conversational]]}
-- {text: "Escort the visitor to the east gate", posture: interactive, group: plain,
-   expect: [[escort, lrp_east_gate, conversational]]}
 - {text: "Escort the visitor to the south plaza arcade", posture: interactive, group: plain,
    expect: [[escort, poi_shelter_south, conversational]]}
 - {text: "Escort the visitor to the library door", posture: interactive, group: plain,
@@ -100,8 +96,8 @@
 # ---------------------------------------------------------------- named robots
 - {text: "go2_01 patrol the south plaza and summit_01 patrol the east corridor", posture: routine, group: plain,
    expect: [[survey_sector, sec_south, survey_uplink], [survey_sector, sec_east, survey_uplink]]}
-- {text: "Send go2_02 to the east gate", posture: routine, group: plain,
-   expect: [[go_to, lrp_east_gate, telemetry]]}
+- {text: "Send go2_02 to the bus stop", posture: routine, group: plain,
+   expect: [[go_to, poi_bus_stop, telemetry]]}
 - {text: "Two robots inspect the bike rack", posture: routine, group: paraphrase,
    expect: [[inspect_poi, poi_bike_rack, telemetry], [inspect_poi, poi_bike_rack, telemetry]]}
 - {text: "All robots return to base", posture: routine, group: plain,

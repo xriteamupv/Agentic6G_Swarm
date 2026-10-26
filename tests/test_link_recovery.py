@@ -105,19 +105,19 @@ async def test_robot_leaves_shadow_for_recovery_point_after_hold(stack: SimStack
     seek = next(d for d in fallbacks(stack) if d.output["step"] == "seek_coverage")
     held_for = (seek.stamp - hold.stamp).total_seconds()
     assert 30.0 <= held_for < 35.0, held_for
-    assert seek.output["recovery_point"] == "lrp_east_gate"
+    assert seek.output["recovery_point"] == "lrp_staging"  # the only one
 
     # 3. It leaves the shadow, reconnects and flushes the queued reports.
     async def reconnected() -> bool:
         s = await agent.state("env_lr")
         return (
-            s.get("link_quality") == "ok"
+            s.get("link_quality") in ("ok", "degraded")  # staging: low coverage (radio DT)
             and not s.get("outbox")
             and s.get("current_task_id") is None
         )
 
     await wait_for(reconnected, timeout=60)
-    assert stack.world.link_quality("go2_01") is LinkQuality.OK
+    assert stack.world.link_quality("go2_01") is not LinkQuality.LOST
     shadow = stack.world.outage_zones[0]
     assert not point_in_polygon((robot.x, robot.y), shadow)  # out of the coverage shadow
     delivered = [r for r in stack.delivered if r.robot_id == "go2_01"]
@@ -127,7 +127,56 @@ async def test_robot_leaves_shadow_for_recovery_point_after_hold(stack: SimStack
     restored = [
         d
         for d in stack.log.read("m_lr")
-        if d.kind is DecisionKind.FALLBACK and d.output.get("link_quality") == "ok"
+        if d.kind is DecisionKind.FALLBACK and d.output.get("link_quality") in ("ok", "degraded")
     ]
     assert restored, "link restoration is a logged decision"
     assert not any(d.output.get("step") == "return_home" for d in fallbacks(stack))
+
+
+async def test_still_lost_at_the_recovery_point_the_robot_returns_home(stack: SimStack) -> None:
+    """User report (2026-10-26): a robot reached a recovery point that was out of coverage
+    and stayed there; the navigation result was dropped as if a new envelope had preempted
+    it (the recovery drive is not an envelope task), so "return home" never came."""
+    now = stack.world.clock.now()
+    task = TaskSpec(
+        task_id=SHADOW_TASK,
+        kind=TaskKind.HOLD_POST,
+        target=PoseTarget(pose=_inside_shadow(stack)),
+        required_capabilities=["hold_post"],
+        est_duration_s=5,
+    )
+    envelope = Envelope(
+        envelope_id="env_lr",
+        robot_id="go2_01",
+        mission_id="m_lr",
+        tasks=[task],
+        region=WHOLE_CAMPUS,
+        valid_from=now,
+        valid_until=now + timedelta(hours=2),
+        budgets=EnvelopeBudgets(battery_floor_pct=20, uplink_mbps=3),
+        swappable=True,
+    )
+    agent = stack.robots["go2_01"].agent
+    assert (await agent.handle_envelope(envelope)).decision == "accept"
+
+    def steps() -> list[str]:
+        return [d.output["step"] for d in fallbacks(stack)]
+
+    await wait_for(lambda: "hold" in steps(), timeout=60)
+    xs = [p[0] for p in stack.cfg.campus.pilot_area]
+    ys = [p[1] for p in stack.cfg.campus.pilot_area]
+    m = 50.0
+    # after the hold starts, no coverage anywhere: the recovery point is lost too
+    stack.outage_zone(
+        [
+            (min(xs) - m, min(ys) - m),
+            (max(xs) + m, min(ys) - m),
+            (max(xs) + m, max(ys) + m),
+            (min(xs) - m, max(ys) + m),
+        ]
+    )
+
+    await wait_for(lambda: "seek_coverage" in steps(), timeout=120)
+    await wait_for(lambda: "return_home" in steps(), timeout=180)
+    back = next(d for d in fallbacks(stack) if d.output["step"] == "return_home")
+    assert back.output["reason"] == "still no link at the recovery point"

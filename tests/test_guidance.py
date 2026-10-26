@@ -18,7 +18,7 @@ from a6g_common.config import load_config
 from a6g_common.geometry import point_in_polygon
 from a6g_common.models import fake_model
 from a6g_common.routegraph import DEFAULT_PROFILES, GraphEdge
-from a6g_common.schemas import DecisionKind, Pose2D, SectorTarget, TaskKind, TaskSpec
+from a6g_common.schemas import DecisionKind, LinkQuality, Pose2D, SectorTarget, TaskKind, TaskSpec
 from a6g_devstack import SimStack
 from a6g_interactions import (
     InteractionClient,
@@ -38,8 +38,8 @@ PATROLS = (
 )
 
 
-def _cfg(**interactions):
-    cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
+def _cfg(env: dict[str, str] | None = None, **interactions):
+    cfg = load_config("config", env=env or {}, fleet_file="sim/fleet.yaml")
     interactions.setdefault("arrival_confirm_s", 1.0)  # wall clock: no one answers in tests
     if interactions:
         icfg = cfg.interactions.model_copy(update=interactions)
@@ -266,7 +266,10 @@ def test_a_remainder_survey_starts_where_the_robot_left_off() -> None:
 async def test_g11_guidance_avoids_a_reported_obstruction_and_stairs_and_survives_a_handover(
     tmp_path: Path,
 ) -> None:
-    cfg, steps = _with_steps(_cfg())
+    # G11 is about guidance, not coverage: no coverage gaps (no shadow polygons). On the radio
+    # DT map (2026-10-26) most of the east corridor is lost, and robot B finished its lap
+    # and was recovering before the person could meet it on a covered stretch.
+    cfg, steps = _with_steps(_cfg({"A6G_COVERAGE_SOURCE": "shadows"}))
     stack = SimStack(cfg, tmp_path / "s")
     seen = _spy_compliance(stack)
     east = cfg.campus.sector("sec_east")
@@ -296,12 +299,12 @@ async def test_g11_guidance_avoids_a_reported_obstruction_and_stairs_and_survive
         # Robot B (go2_02) surveys the east corridor; the person meets it on its route
         # (time stops while they talk and the coordinator assigns the trip).
         polygon = [tuple(p) for p in east.polygon]
-        shadows = [list(map(tuple, sh)) for sh in cfg.campus.link_shadows]
 
-        def on_east_in_coverage(w) -> bool:  # before it walks into the 5G shadow
+        def on_east_in_coverage(w) -> bool:  # before it walks into the lost area
             xy = (w.robot("go2_02").x, w.robot("go2_02").y)
-            return point_in_polygon(xy, polygon) and not any(
-                point_in_polygon(xy, sh) for sh in shadows
+            # the radio DT map (2026-10-26): most of the corridor is lost; its start is not
+            return point_in_polygon(xy, polygon) and w.link_quality("go2_02") is not (
+                LinkQuality.LOST
             )
 
         in_east = stack.world.pause_when(on_east_in_coverage)

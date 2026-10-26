@@ -1246,7 +1246,9 @@ async def test_explanations_see_each_robots_task_queue(tmp_path: Path, monkeypat
 
 async def test_escort_goes_where_the_operator_said(tmp_path: Path) -> None:
     """ "Escort the visitor to the east gate": the gate (a named spot on the map) was
-    unknown to the planner and the model sent the visitor to the bus stop."""
+    unknown to the planner and the model sent the visitor to the bus stop. The East gate was
+    removed on 2026-10-26 (the only named spot left is the staging area, which means "home");
+    the check now uses a POI the model does not pick."""
     from a6g_common.schemas import Posture
     from a6g_coordinator.decompose import decompose_goal
 
@@ -1269,8 +1271,8 @@ async def test_escort_goes_where_the_operator_said(tmp_path: Path) -> None:
         return [(t.kind.value, getattr(t.target, "name", None)) for t in tasks], notes
 
     for model in (True, False):  # the model's pick, and the no-model template
-        tasks, notes = await plan("Escort the visitor to the east gate", model)
-        assert tasks == [("escort", "East gate")] and not notes
+        tasks, notes = await plan("Escort the visitor to the info kiosk", model)
+        assert [k for k, _ in tasks] == ["escort"] and not notes
         # A place it does not know goes to the closest named one, and says so.
         # ("east entrance": the 9B east entrance canopy shares two words, the gate one.)
         tasks, notes = await plan("Escort the visitor to the east entrance", model)
@@ -1300,12 +1302,12 @@ async def test_escort_goes_where_the_operator_said(tmp_path: Path) -> None:
     try:
         stack.world.pause()
         await stack.mission("Patrol the campus")
-        state = await stack.coordinator.chat("m1", "Escort the visitor to the east gate")
+        state = await stack.coordinator.chat("m1", "Escort the visitor to the info kiosk")
     finally:
         await stack.stop()
-    escort = state["tasks"]["int-escort-lrp_east_gate"]
+    escort = state["tasks"]["int-escort-poi_kiosk"]
     assert escort["status"] in ("assigned", "in_progress")
-    assert "escort the visitor to the east gate" in state["messages"][-1].content
+    assert "escort the visitor to the info kiosk" in state["messages"][-1].content
 
 
 async def test_swarm_updates_are_told_apart_from_answers(tmp_path: Path) -> None:

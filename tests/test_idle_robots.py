@@ -281,7 +281,7 @@ async def test_a_guard_post_is_held_until_the_robot_gets_another_order(tmp_path:
             and t["spec"]["kind"] != "hold_post"
         ]
         assert others == []  # nothing queued behind the post
-        state = await stack.coordinator.chat("m1", "Send go2_02 to the east gate")
+        state = await stack.coordinator.chat("m1", "Send go2_02 to the bus stop")
     finally:
         await stack.stop()
     post = next(t for t in state["tasks"].values() if t["spec"]["kind"] == "hold_post")
@@ -292,7 +292,7 @@ async def test_a_guard_post_is_held_until_the_robot_gets_another_order(tmp_path:
 async def test_the_others_share_the_patrol_instead_of_each_doing_all_of_it(
     tmp_path: Path, cfg
 ) -> None:
-    """User report (2026-10-21): "Send one robot to guard the east gate, the others to
+    """User report (2026-10-21): "Send one robot to guard the bus stop, the others to
     patrol" gave each of the other two robots the whole campus (both on the same sectors at
     the same time), and the guard became a plain trip to the gate."""
     stack = SimStack(cfg, tmp_path / "s")
@@ -300,7 +300,7 @@ async def test_the_others_share_the_patrol_instead_of_each_doing_all_of_it(
     try:
         stack.world.pause()
         state = await stack.coordinator.chat(
-            "m1", "Send one robot to guard the east gate, the others to patrol"
+            "m1", "Send one robot to guard the bus stop, the others to patrol"
         )
     finally:
         await stack.stop()
@@ -318,20 +318,20 @@ async def test_the_others_share_the_patrol_instead_of_each_doing_all_of_it(
 async def test_stop_holding_ends_the_post_and_the_robot_joins_the_patrol(
     tmp_path: Path, cfg
 ) -> None:
-    """User report (2026-10-22): "Stop holding the east gate and send that robot to patrol
+    """User report (2026-10-22): "Stop holding the bus stop and send that robot to patrol
     also" was answered "already under way": a plan could only add work."""
     stack = SimStack(cfg, tmp_path / "s")
     await stack.start()
     try:
         await stack.coordinator.chat(
-            "m1", "Send one robot to guard the east gate, the others to patrol"
+            "m1", "Send one robot to guard the bus stop, the others to patrol"
         )
         state = await stack.coordinator.state("m1")
         guard = next(
             t["robot_id"] for t in state["tasks"].values() if t["spec"]["kind"] == "hold_post"
         )
         state = await stack.coordinator.chat(
-            "m1", "Stop holding the east gate and send that robot to patrol also"
+            "m1", "Stop holding the bus stop and send that robot to patrol also"
         )
 
         async def guard_patrols() -> bool:

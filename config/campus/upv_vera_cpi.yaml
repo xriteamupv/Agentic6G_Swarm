@@ -74,10 +74,9 @@ pois:
   - {id: poi_shelter_south, name: South plaza arcade, lat: 39.4782048, lon: -0.3334278, kind: [shelter], exposed: false,
      aliases: [soportales de la plaza sur, porxos de la plaça sud, south arcade]}
 coverage_shadows: []           # none: coverage is emulated from the network twin (SPEC A4.6, 2026-10-26)
-link_recovery_points:            # reachable spots with known good 5G coverage (TODO(UPV))
-  - {id: lrp_east_gate, lat: 39.4789324, lon: -0.3339984, note: west edge of the east-corridor shadow,
-     aliases: [puerta este, porta est, east entrance gate]}
-  - {id: lrp_staging, lat: 39.4785533, lon: -0.3346788, note: staging area}
+link_recovery_points:            # reachable spots with 5G coverage, where a robot that lost the link drives
+  # (the East gate was removed on 2026-10-26: it lies in the lost area of the radio DT map)
+  - {id: lrp_staging, lat: 39.4785533, lon: -0.3346788, note: "staging area: the recovery point"}
 network_sites:                   # SPEC A4.6.1: the n40 gNB of 5G_UPV Nodo2 (radio: config/network.yaml)
   - {id: site_8g, name: "n40 gNB (Building 8G)", lat: 39.4784439, lon: -0.3338678, mast_m: 3}   # rooftop: Building 8G's height + mast (TODO(UPV): mast)
 vegetation_areas:                # SPEC A4.6: trees that attenuate the radio (not in OSM)

@@ -2,15 +2,14 @@
 # or the operator says it, and the campus place it means (null: not on the campus map, the
 # right answer is "I don't know that place"). Groups: name (the place's name), alias (an
 # alias the campus file lists), paraphrase (not in the campus file), typo, unknown.
-# Ambiguous phrases (e.g. "the east entrance": East gate or the 9B east entrance canopy)
-# are left out: their ground truth is not defensible.
+# Ambiguous phrases are left out: their ground truth is not defensible. (The East gate was
+# removed from the campus on 2026-10-26, with its items.)
 - {text: "Bus stop", lang: en, group: name, expect: poi_bus_stop}
 - {text: "Info kiosk", lang: en, group: name, expect: poi_kiosk}
 - {text: "Bike rack", lang: en, group: name, expect: poi_bike_rack}
 - {text: "Building 9B door", lang: en, group: name, expect: poi_library_door}
 - {text: "South plaza arcade", lang: en, group: name, expect: poi_shelter_south}
 - {text: "9B east entrance canopy", lang: en, group: name, expect: poi_shelter_9b}
-- {text: "East gate", lang: en, group: name, expect: lrp_east_gate}
 - {text: "North-west walk", lang: en, group: name, expect: sec_north}
 - {text: "South plaza", lang: en, group: name, expect: sec_south}
 - {text: "East corridor", lang: en, group: name, expect: sec_east}
@@ -32,8 +31,6 @@
 - {text: "soportales de la plaza sur", lang: es, group: alias, expect: poi_shelter_south}
 - {text: "porxos de la plaça sud", lang: ca, group: alias, expect: poi_shelter_south}
 - {text: "south arcade", lang: en, group: alias, expect: poi_shelter_south}
-- {text: "puerta este", lang: es, group: alias, expect: lrp_east_gate}
-- {text: "porta est", lang: ca, group: alias, expect: lrp_east_gate}
 - {text: "paseo noroeste", lang: es, group: alias, expect: sec_north}
 - {text: "plaça sud", lang: ca, group: alias, expect: sec_south}
 - {text: "pasillo este", lang: es, group: alias, expect: sec_east}
@@ -52,9 +49,12 @@
 - {text: "la marquesina", lang: es, group: paraphrase, expect: poi_shelter_9b}
 - {text: "the arcade in the south plaza", lang: en, group: paraphrase, expect: poi_shelter_south}
 - {text: "los soportales", lang: es, group: paraphrase, expect: poi_shelter_south}
-- {text: "the eastern gate", lang: en, group: paraphrase, expect: lrp_east_gate}
 - {text: "la plaza del sur", lang: es, group: paraphrase, expect: sec_south}
 - {text: "the northwest path", lang: en, group: paraphrase, expect: sec_north}
+# 2026-10-26: four East-corridor items replace the four East-gate items (gate removed)
+- {text: "the eastern corridor", lang: en, group: paraphrase, expect: sec_east}
+- {text: "el corredor este", lang: es, group: paraphrase, expect: sec_east}
+- {text: "the corridor on the east side", lang: en, group: paraphrase, expect: sec_east}
 
 - {text: "bus stpo", lang: en, group: typo, expect: poi_bus_stop}
 - {text: "bike rak", lang: en, group: typo, expect: poi_bike_rack}
@@ -62,6 +62,7 @@
 - {text: "aparcabicics", lang: es, group: typo, expect: poi_bike_rack}
 - {text: "marquesina del 9b", lang: es, group: typo, expect: poi_shelter_9b}
 - {text: "souht plaza arcade", lang: en, group: typo, expect: poi_shelter_south}
+- {text: "east coridor", lang: en, group: typo, expect: sec_east}
 
 - {text: "the cafeteria", lang: en, group: unknown, expect: null}
 - {text: "la cafetería", lang: es, group: unknown, expect: null}

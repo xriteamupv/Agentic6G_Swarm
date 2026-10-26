@@ -21,8 +21,8 @@ network:
                 v_beamwidth_deg: 65, front_back_db: 30, setback_m: 5}   # gain, tilt, setback TODO(UPV)
       dl_mimo: "4x4 or 4x2 closed-loop spatial multiplexing"
   coverage:
-    source: ${A6G_COVERAGE_SOURCE:-model}     # model (default, 2026-10-26) | radio_dt | shadows (legacy polygons)
-    radio_dt_file: ../sim_gazebo/data/network/upv_vera_cpi_n40_rsrp.csv   # UPV radio DT export (relative to config/)
+    source: ${A6G_COVERAGE_SOURCE:-radio_dt}  # radio_dt (default, 2026-10-26) | model (38.901 emulation) | shadows (legacy)
+    radio_dt_file: ../sim_gazebo/data/network/n40_centroides_rsrp.csv   # UPV radio DT export, 0.3 m above ground (relative to config/)
     model: {pathloss: 3gpp_38901_uma, h_ut_m: 1.5, los_from_footprints: true, shadow_fading: false}
     calibration: plots          # no measurement CSV: values read from UPV's velodrome plots
     calibration_targets:
@@ -32,14 +32,16 @@ network:
     sinr_from_rsrp: {offset_db: 101, clip_db: [-10, 26]}   # read from the plots
     sample_step_m: 2            # along the footpaths, where the robots work
     grid_step_m: 2              # and over the rest of the pilot area, outdoors (any point)
-    levels_by: sinr
-    thresholds_sinr_db: {good: 13, medium: 5, low: -5}   # below low: lost
-    lost_rsrp_dbm: -115
-    hysteresis_db: 3
+    smoothing_radius_m: 6       # radio DT: median of the samples within 6 m (consistent zones, less ping-pong)
+    levels_by: rsrp             # 2026-10-26
+    thresholds_rsrp_dbm: {good: -90, medium: -100, low: -110}   # trial: > -90 good, -100..-90 medium, -110..-100 low, below: lost (UPV first proposed -80/-100/-120)
+    thresholds_sinr_db: {good: 13, medium: 5, low: -5}   # used when levels_by: sinr
+    lost_rsrp_dbm: -110         # = thresholds_rsrp_dbm.low
+    hysteresis_db: 3            # dB on the levels_by quantity
     vegetation: {loss_db_per_m: 0.4, max_loss_db: 15, canopy_height_m: 8, under_canopy_db: 8}   # campus vegetation_areas; model assumptions
     min_dwell_s: 2              # simulated seconds before a level change takes effect
     shadows_override: true      # campus coverage_shadows, if any, stay `lost` (none since 2026-10-26)
-    map_file: ../sim_gazebo/src/a6g_gz_worlds/sim/{campus}_coverage.json   # next to the route graph
+    map_file: ../sim_gazebo/src/a6g_gz_worlds/sim/{campus}_coverage_{source}.json   # next to the route graph
   uplink_rate:                  # maximum uplink rate of one robot at a location
     anchor: {ul_mbps: 22, sinr_db: 25}   # measured single-UE TCP goodput, velodrome, 20 MHz
     spectral_efficiency: {alpha: 0.6, se_max_bps_hz: 5.55}

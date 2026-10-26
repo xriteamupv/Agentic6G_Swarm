@@ -72,6 +72,9 @@ from langgraph.store.memory import InMemoryStore
 from a6g_devstack.inproc import InProcessNet
 
 log = logging.getLogger(__name__)
+# Simulation-only robots beyond the 3 of config/sim/fleet.yaml, in the order fleets grow
+# (to 8: Go2 and Summit-XL mixed); used by `a6g-sim-stack --robots`, N1 and G13.
+EXTRA_ROBOTS = ("go2_03", "go2_04", "go2_05", "summit_02", "summit_03")
 
 T = TypeVar("T")
 

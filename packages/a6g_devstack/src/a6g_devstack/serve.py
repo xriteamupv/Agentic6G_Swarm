@@ -43,7 +43,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from a6g_devstack.stack import SimStack
+from a6g_devstack.stack import EXTRA_ROBOTS, SimStack
 from a6g_devstack.view import robot_activity, status_overlay, view_routes
 
 log = logging.getLogger("a6g-sim-stack")
@@ -164,6 +164,14 @@ def _parse(argv: list[str] | None) -> argparse.Namespace:
         default="auto",
         help="start an in-process MQTT broker (auto: only if none is reachable)",
     )
+    p.add_argument(
+        "--robots",
+        type=int,
+        default=None,
+        help="fleet size, up to 8 (default: the 3 robots of --fleet-file). Above 3, "
+        "simulation-only robots join from the staging area in this order: "
+        + ", ".join(EXTRA_ROBOTS),
+    )
     p.add_argument("--no-arm", action="store_true", help="leave robots disarmed")
     p.add_argument(
         "--recharge-advisor",
@@ -195,6 +203,12 @@ def _parse(argv: list[str] | None) -> argparse.Namespace:
 
 async def _amain(args: argparse.Namespace) -> None:
     cfg = load_config(args.config_dir, fleet_file=args.fleet_file)
+    if args.robots is not None and not (
+        len(cfg.fleet.robots) <= args.robots <= len(cfg.fleet.robots) + len(EXTRA_ROBOTS)
+    ):
+        raise SystemExit(
+            f"--robots: {len(cfg.fleet.robots)} to {len(cfg.fleet.robots) + len(EXTRA_ROBOTS)}"
+        )
     if args.recharge_advisor is not None:
         cfg = with_agent(cfg, recharge_advisor=args.recharge_advisor)
     mqtt = cfg.fleet.edge.mqtt
@@ -247,8 +261,16 @@ async def _amain(args: argparse.Namespace) -> None:
             servers[robot_id] = server
             tasks.append(asyncio.create_task(server.serve(), name=f"a2a-{robot_id}"))
 
+        async def hot_add(manifest: Any) -> None:
+            port = 8101 + len(stack.a2a_urls)
+            stack.a2a_urls[manifest.robot_id] = f"http://127.0.0.1:{port}"
+            await stack.start_robot(manifest.robot_id, manifest)
+            serve_robot(manifest.robot_id)
+
         for robot_id in stack.robots:
             serve_robot(robot_id)
+        for rid in EXTRA_ROBOTS[: max(0, (args.robots or 0) - len(stack.robots))]:
+            await hot_add(load_manifest(cfg.config_dir / "robots" / f"{rid}.yaml"))
         serve_kb(stack, cfg, servers, tasks, _QuietServer)
         serve_interactions(stack, cfg, servers, tasks, _QuietServer)
         stack.echo_speech = True  # the robots' speech output: this console
@@ -298,10 +320,7 @@ async def _amain(args: argparse.Namespace) -> None:
 
         async def add_robot(request: Request) -> JSONResponse:
             manifest = load_manifest(Path((await body(request))["manifest"]))
-            port = 8101 + len(stack.a2a_urls)
-            stack.a2a_urls[manifest.robot_id] = f"http://127.0.0.1:{port}"
-            await stack.start_robot(manifest.robot_id, manifest)
-            serve_robot(manifest.robot_id)
+            await hot_add(manifest)
             return JSONResponse(
                 {
                     "ok": True,

@@ -214,9 +214,18 @@ def sinr_from_rsrp(net: NetworkConfig, rsrp: float) -> float:
 
 
 def level_of(net: NetworkConfig, sinr: float, rsrp: float | None = None) -> str:
-    t = net.coverage.thresholds_sinr_db
     if rsrp is not None and rsrp < net.coverage.lost_rsrp_dbm:
         return "lost"
+    if net.coverage.levels_by == "rsrp" and rsrp is not None:
+        tr = net.coverage.thresholds_rsrp_dbm
+        if rsrp > tr["good"]:
+            return "good"
+        if rsrp >= tr["medium"]:
+            return "medium"
+        if rsrp >= tr["low"]:
+            return "low"
+        return "lost"
+    t = net.coverage.thresholds_sinr_db
     if sinr >= t["good"]:
         return "good"
     if sinr >= t["medium"]:
@@ -597,36 +606,133 @@ def build_model_map(campus: Any, net: NetworkConfig, calibration: dict[str, Any]
     )
 
 
-def build_radio_dt_map(campus: Any, net: NetworkConfig, csv_path: Path, geo: Any) -> CoverageMap:
-    """Interpolate the radio twin's RSRP export (lat, lon, cell_id, rsrp_dbm[, sinr_db]) to
-    the footpath samples: inverse-distance weighting of the 4 nearest points per cell; the
-    serving cell is the strongest."""
-    rows: dict[str, list[tuple[float, float, float, float | None]]] = {}
+def _levels_key(net: NetworkConfig) -> dict[str, Any]:
+    cov = net.coverage
+    t = cov.thresholds_rsrp_dbm if cov.levels_by == "rsrp" else cov.thresholds_sinr_db
+    return {
+        "by": cov.levels_by,
+        "thresholds": dict(t),
+        "lost_rsrp_dbm": cov.lost_rsrp_dbm,
+        "smoothing_radius_m": cov.smoothing_radius_m,
+    }
+
+
+def smooth_rsrp(points: list[tuple[float, float, float]], radius: float) -> list[float]:
+    """Spatial median filter: each point's RSRP becomes the median of the points within
+    ``radius`` (itself included). Removes single-cell islands and softens the steps between
+    neighbouring cells; a robot crossing a ragged boundary would otherwise switch levels
+    back and forth."""
+    if radius <= 0:
+        return [p[2] for p in points]
+    bins: dict[tuple[int, int], list[tuple[float, float, float]]] = {}
+    for p in points:
+        bins.setdefault((math.floor(p[0] / radius), math.floor(p[1] / radius)), []).append(p)
+    out = []
+    r2 = radius * radius
+    for x, y, _ in points:
+        bx, by = math.floor(x / radius), math.floor(y / radius)
+        near = [
+            q[2]
+            for dx in (-1, 0, 1)
+            for dy in (-1, 0, 1)
+            for q in bins.get((bx + dx, by + dy), ())
+            if (q[0] - x) ** 2 + (q[1] - y) ** 2 <= r2
+        ]
+        out.append(statistics.median(near))
+    return out
+
+
+def campus_geo(campus: Any) -> Any:
+    """WGS84 -> campus_map (x, y) with the campus scale."""
+    from a6g_common.geo import Datum
+
+    d = campus.datum or {}
+    datum = Datum(d["lat_deg"], d["lon_deg"], d.get("alt_m", 0.0), d.get("heading_deg", 0.0))
+    scale = campus.scale or 1.0
+
+    def geo(lat: float, lon: float) -> tuple[float, float]:
+        x, y, _ = datum.to_enu(lat, lon)
+        return x * scale, y * scale
+
+    return geo
+
+
+def _radio_dt_rows(csv_path: Path, campus: Any, geo: Any) -> list[tuple[float, float, float]]:
+    """(x, y, RSRP dBm) of the export's points inside the pilot area that carry a power.
+
+    Columns: UPV's export (``latitude_wgs84_deg, longitude_wgs84_deg, rsrp_dbm,
+    has_estimated_power``; a plane 0.3 m above ground, the robots' height) or the generic
+    ``lat, lon, rsrp_dbm``. Points without an estimated power are no data, not lost."""
+    area = [tuple(p) for p in getattr(campus, "pilot_area", None) or []]
+    box = (
+        (
+            min(p[0] for p in area),
+            min(p[1] for p in area),
+            max(p[0] for p in area),
+            max(p[1] for p in area),
+        )
+        if area
+        else None
+    )
+    out = []
     with csv_path.open() as fh:
         for r in csv.DictReader(fh):
-            x, y = geo(float(r["lat"]), float(r["lon"]))
-            sinr = float(r["sinr_db"]) if r.get("sinr_db") not in (None, "") else None
-            rows.setdefault(r.get("cell_id") or "cell", []).append(
-                (x, y, float(r["rsrp_dbm"]), sinr)
-            )
-    samples = []
-    points = [("path", e, x, y) for e, x, y in footpath_samples(campus, net.coverage.sample_step_m)]
+            if r.get("has_estimated_power", "1") in ("0", "false", "False"):
+                continue
+            raw = r.get("rsrp_dbm")
+            if raw in (None, "", "nan", "NaN"):
+                continue
+            lat = float(r.get("latitude_wgs84_deg") or r["lat"])
+            lon = float(r.get("longitude_wgs84_deg") or r["lon"])
+            x, y = geo(lat, lon)
+            if box and not (box[0] <= x <= box[2] and box[1] <= y <= box[3]):
+                continue
+            if area and not point_in_polygon((x, y), area):
+                continue
+            out.append((x, y, float(raw)))
+    return out
+
+
+def build_radio_dt_map(campus: Any, net: NetworkConfig, csv_path: Path, geo: Any) -> CoverageMap:
+    """The radio DT's RSRP export (UPV ray tracing) on the area grid and the footpath
+    samples: the median RSRP of the export's points within 1.5 m (3 m if none); a sample with
+    no point within 3 m is left out (no data). The export carries one cell; SINR is derived
+    from RSRP (``sinr_from_rsrp``), labelled so; levels follow ``levels_by``."""
+    pts = _radio_dt_rows(csv_path, campus, geo)
+    bins: dict[tuple[int, int], list[tuple[float, float, float]]] = {}
+    for p in pts:
+        bins.setdefault((math.floor(p[0]), math.floor(p[1])), []).append(p)
+
+    def rsrp_at(x: float, y: float) -> float | None:
+        for radius in (1.5, 3.0):
+            r = math.ceil(radius)
+            bx, by = math.floor(x), math.floor(y)
+            near = [
+                p[2]
+                for dx in range(-r, r + 1)
+                for dy in range(-r, r + 1)
+                for p in bins.get((bx + dx, by + dy), ())
+                if (p[0] - x) ** 2 + (p[1] - y) ** 2 <= radius * radius
+            ]
+            if near:
+                return statistics.median(near)
+        return None
+
+    cell = net.cells[0].id if net.cells else "cell"
     step = net.coverage.grid_step_m * (campus.scale or 1.0)
+    points: list[tuple[str, str | None, float, float]] = [
+        ("path", e, x, y) for e, x, y in footpath_samples(campus, net.coverage.sample_step_m)
+    ]
     points += [("area", None, x, y) for x, y in area_points(campus, step)]
-    for kind, edge, x, y in points:
-        best: tuple[str, float, float | None] | None = None
-        for cell, pts in rows.items():
-            near = sorted(pts, key=lambda p: (p[0] - x) ** 2 + (p[1] - y) ** 2)[:4]
-            w = [1.0 / max((p[0] - x) ** 2 + (p[1] - y) ** 2, 1e-6) for p in near]
-            rsrp = sum(wi * p[2] for wi, p in zip(w, near, strict=True)) / sum(w)
-            sinrs = [(wi, p[3]) for wi, p in zip(w, near, strict=True) if p[3] is not None]
-            sinr = sum(wi * s for wi, s in sinrs) / sum(wi for wi, _ in sinrs) if sinrs else None
-            if best is None or rsrp > best[1]:
-                best = (cell, rsrp, sinr)
-        if best is None:
-            continue
-        cell, rsrp, sinr = best
-        sinr = sinr if sinr is not None else sinr_from_rsrp(net, rsrp)
+    raw = [(kind, edge, x, y, rsrp_at(x, y)) for kind, edge, x, y in points]
+    missing = sum(1 for r in raw if r[4] is None)
+    raw = [r for r in raw if r[4] is not None]
+    # footpath and area samples are smoothed together (the same ground, 2 m apart)
+    radius = net.coverage.smoothing_radius_m * (campus.scale or 1.0)
+    smoothed = smooth_rsrp([(r[2], r[3], r[4]) for r in raw], radius)
+    samples = []
+    for (kind, edge, x, y, rsrp_raw), rsrp in zip(raw, smoothed, strict=True):
+        sinr = sinr_from_rsrp(net, rsrp)
         samples.append(
             {
                 "kind": kind,
@@ -635,6 +741,7 @@ def build_radio_dt_map(campus: Any, net: NetworkConfig, csv_path: Path, geo: Any
                 "y": y,
                 "cell": cell,
                 "rsrp": round(rsrp, 1),
+                "rsrp_raw": round(rsrp_raw, 1),
                 "sinr": round(sinr, 1),
                 "los": None,
                 **_classify(net, campus, x, y, rsrp, sinr),
@@ -644,10 +751,14 @@ def build_radio_dt_map(campus: Any, net: NetworkConfig, csv_path: Path, geo: Any
         samples=samples,
         meta={
             "source": "radio_dt",
-            "label": f"radio DT export {csv_path.name} (UPV ray tracing, calibrated by campaigns)",
+            "label": f"radio DT export {csv_path.name} (UPV ray tracing, 0.3 m above ground; "
+            f"median-smoothed over {net.coverage.smoothing_radius_m:g} m; SINR derived from RSRP)",
+            "export_points_in_pilot_area": len(pts),
+            "samples_without_data": missing,
             "sample_step_m": net.coverage.sample_step_m,
             "grid_step_m": net.coverage.grid_step_m,
-            "cells": sorted(rows),
+            "cells": [cell],
+            "levels": _levels_key(net),
             "shadows_override": net.coverage.shadows_override,
         },
     )
@@ -655,7 +766,7 @@ def build_radio_dt_map(campus: Any, net: NetworkConfig, csv_path: Path, geo: Any
 
 def map_path(cfg: Any) -> Path:
     name = cfg.network.coverage.map_file.format(
-        campus=cfg.campus.world_name or cfg.campus.campus_id
+        campus=cfg.campus.world_name or cfg.campus.campus_id, source=cfg.network.coverage.source
     )
     return (Path(cfg.config_dir) / name).resolve()
 
@@ -666,8 +777,10 @@ def load_or_build(cfg: Any) -> CoverageMap:
     source = cfg.network.coverage.source
     if path.exists():
         cmap = CoverageMap.load(path)
-        if cmap.meta.get("source") == source and (
-            source != "model" or cmap.meta.get("model_version") == MODEL_VERSION
+        if (
+            cmap.meta.get("source") == source
+            and (source != "model" or cmap.meta.get("model_version") == MODEL_VERSION)
+            and cmap.meta.get("levels") in (None, _levels_key(cfg.network))
         ):
             return cmap
     if source == "model":
@@ -675,6 +788,13 @@ def load_or_build(cfg: Any) -> CoverageMap:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(cmap.to_json(), separators=(",", ":")))
         return cmap
+    if source == "radio_dt" and cfg.network.coverage.radio_dt_file:
+        csv_path = (Path(cfg.config_dir) / cfg.network.coverage.radio_dt_file).resolve()
+        if csv_path.exists():
+            cmap = build_radio_dt_map(cfg.campus, cfg.network, csv_path, campus_geo(cfg.campus))
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(cmap.to_json(), separators=(",", ":")))
+            return cmap
     raise FileNotFoundError(f"coverage map {path} missing: run `a6g network import-coverage`")
 
 
@@ -700,12 +820,13 @@ class LevelTracker:
         if raw != self.level and not sample.get("injected") and sample["level"] != "lost":
             # hysteresis: a better level needs the SINR beyond its threshold by the margin
             better = LEVELS.index(raw) < LEVELS.index(self.level)
-            t = self.net.coverage.thresholds_sinr_db
+            cov = self.net.coverage
+            by_rsrp = cov.levels_by == "rsrp" and sample.get("rsrp") is not None
+            t = cov.thresholds_rsrp_dbm if by_rsrp else cov.thresholds_sinr_db
+            value = sample["rsrp"] if by_rsrp else sample["sinr"]
             edge = t.get(raw if better else self.level, -5.0)
-            margin = self.net.coverage.hysteresis_db / 2
-            if (better and sample["sinr"] < edge + margin) or (
-                not better and sample["sinr"] > edge - margin
-            ):
+            margin = cov.hysteresis_db / 2
+            if (better and value < edge + margin) or (not better and value > edge - margin):
                 raw = self.level
         if raw == self.level:
             self._pending, self._since = None, None

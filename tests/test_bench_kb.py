@@ -34,7 +34,7 @@ def test_the_ablation_reports_every_measure_and_is_deterministic() -> None:
 def test_word_overlap_is_the_coordinators_fallback() -> None:
     campus = _cfg().campus
     assert overlap_place("the bus stop", campus) == ("poi", "poi_bus_stop", True)
-    assert overlap_place("east gate", campus) == ("place", "lrp_east_gate", True)
+    assert overlap_place("staging", campus) == ("place", "lrp_staging", True)
     assert overlap_place("the bus station", campus)[2] is False  # its closest name
     assert overlap_place("the gym", campus) is None
 
@@ -50,7 +50,7 @@ def test_an_order_to_an_unnamed_place_is_a_trip_not_a_patrol() -> None:
 
     assert plan("Send a robot to the swimming pool") == []  # unknown: nothing planned
     assert plan("Send a robot to the bus station") == [("go_to", "poi_bus_stop")]
-    assert plan("Go to the east gate") == [("go_to", "lrp_east_gate")]
+    assert plan("Go to the staging") == [("go_to", "lrp_staging")]
     assert plan("Escort the visitor to the punto de información", Posture.INTERACTIVE) != [
         ("escort", "")
     ]

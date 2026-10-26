@@ -27,10 +27,9 @@ from typing import Any
 from a6g_common.config import A6GConfig, load_config
 from a6g_common.schemas import DecisionKind
 
-from a6g_devstack.stack import SimStack
+from a6g_devstack.stack import EXTRA_ROBOTS, SimStack
 
 VARIANTS = {"reconcile": "on", "reconcile_off": "off", "reconcile_relocate": "relocate"}
-EXTRA = ("go2_03", "go2_04", "go2_05", "summit_02", "summit_03")
 
 
 def g13_config(config_dir: str, capacity_mbps: float, variant: str) -> A6GConfig:
@@ -39,7 +38,7 @@ def g13_config(config_dir: str, capacity_mbps: float, variant: str) -> A6GConfig
     env = dict(os.environ)
     env.update(
         A6G_NETWORK_MODE="capacity",
-        A6G_COVERAGE_SOURCE=env.get("A6G_COVERAGE_SOURCE_G13", "model"),
+        A6G_COVERAGE_SOURCE=env.get("A6G_COVERAGE_SOURCE_G13", "radio_dt"),  # definitive map
         A6G_POST_SENSING="video",
         A6G_UL_CAPACITY_MBPS=str(capacity_mbps),
         A6G_RECONCILE_MODE=VARIANTS[variant],
@@ -90,7 +89,7 @@ async def run(
         "exposed_pois": len(exposed),
     }
     try:
-        for rid in EXTRA[: max(0, fleet - 3)]:
+        for rid in EXTRA_ROBOTS[: max(0, fleet - 3)]:
             await stack.add_robot(robot_id=rid)
         await stack.mission("Patrol the campus")
         await _sim_wait(stack, rng.uniform(30, 120))
@@ -146,7 +145,8 @@ async def run(
         recs = [
             d for d in decisions if d.actor == "coordinator" and d.kind is DecisionKind.RECONCILE
         ]
-        flow_recs = [d for d in recs if "kpi" not in d.output]
+        moves = [d for d in recs if d.policy.get("rule") == "relocate_for_coverage"]
+        flow_recs = [d for d in recs if "kpi" not in d.output and d not in moves]
         kpi = next((d.output for d in recs if d.output.get("kpi") == "UC2-KPI-11"), {})
         budget = [m for m in _comms(workdir / "comms.jsonl") if m.get("direction") == "budget"]
         i3 = [
@@ -180,12 +180,9 @@ async def run(
                 for a in d.output.get("answers") or []
                 if a.get("state") == "rejected"
             ),
-            relocations=0,
-            relocate_note=(
-                "relocate_for_coverage skipped: no exposed POI below `good` on the coverage map"
-                if variant == "reconcile_relocate"
-                else None
-            ),
+            relocations=len(moves),
+            # distance from the POI to the viewpoint it is held from (SPEC A4.7)
+            relocation_distance_m=round(sum(d.output["distance_m"] for d in moves), 1),
             kpi3_share=_kpi3(stack.log.read()),
         )
     except Exception as exc:  # reported, not hidden
