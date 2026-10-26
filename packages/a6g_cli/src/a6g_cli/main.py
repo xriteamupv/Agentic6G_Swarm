@@ -10,7 +10,7 @@ import getpass
 import json
 import os
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import httpx
 import typer
@@ -729,6 +729,21 @@ bench_app = typer.Typer(help="Benches for the KPIs (SPEC A3.8).", no_args_is_hel
 app.add_typer(bench_app, name="bench")
 
 
+def _manifest(cfg: Any, seeds: Any, time_factor: Any = None, **roles: Any) -> dict[str, Any]:
+    """Rule 31: what produced a result (commit, command, config hashes, models, network)."""
+    from a6g_devstack import manifest
+
+    return manifest.build(
+        cfg, seeds=seeds, models=manifest.models_of(cfg, **roles), time_factor=time_factor
+    )
+
+
+def _sim_factor() -> str:
+    import os
+
+    return f"up to {float(os.environ.get('A6G_SIM_REALTIME_FACTOR', '50')):g}x"
+
+
 @bench_app.command("kpi11")
 def bench_kpi11(
     seeds: Annotated[int, typer.Option("--seeds", help="seeded runs")] = 20,
@@ -767,6 +782,9 @@ def bench_kpi11(
         result = asyncio.run(
             run(cfg, seeds, model=llm, robot_model=robots, label=label.replace(":", "_"))
         )
+    result["manifest"] = _manifest(
+        cfg, seeds, coordinator_llm=llm, onboard_vlm=robots, time_factor=_sim_factor()
+    )
     path = write(result, out)
     verdict = "meets" if result["meets_target"] else "misses"
     typer.echo(
@@ -818,6 +836,7 @@ def bench_kb(
         result = asyncio.run(
             run(cfg, seeds, model=llm, embedder=emb, label=label.replace(":", "_"))
         )
+    result["manifest"] = _manifest(cfg, seeds, coordinator_llm=llm, embedder=emb)
     typer.echo(summary(result))
     typer.echo(f"results: {write(result, out)}")
 
@@ -859,6 +878,7 @@ def bench_decompose(
 
     with tracing_context(enabled=False):
         result = asyncio.run(run(cfg, model=llm, embedder=emb, label=label.replace(":", "_")))
+    result["manifest"] = _manifest(cfg, None, coordinator_llm=llm, embedder=emb)
     typer.echo(summary(result))
     typer.echo(f"results: {write(result, out)}")
 
@@ -885,7 +905,9 @@ def bench_g10(
         failed += not good
         typer.echo(f"seed {seed}: {'ok' if good else 'FAILED'} {result['error'] or oks}")
         if result["error"] is None:
-            kpi_report.write(kpi_report.report(run_dir, cfg), run_dir)
+            rep = kpi_report.report(run_dir, cfg)
+            rep["manifest"] = _manifest(cfg, seed, time_factor=_sim_factor())
+            kpi_report.write(rep, run_dir)
     typer.echo(f"runs and KPI reports in {out}")
     if failed:
         raise typer.Exit(code=1)
@@ -933,6 +955,7 @@ def bench_baselines(
     cfg = load_config(config_dir, fleet_file="sim/fleet.yaml")
     sizes = tuple(int(x) for x in fleets.split(","))
     result = asyncio.run(run(cfg, runs, seeds=seeds, fleets=sizes))
+    result["manifest"] = _manifest(cfg, seeds, time_factor="up to 200x")
     typer.echo(summary(result))
     typer.echo(f"results: {write(result, out)}")
 
@@ -954,6 +977,7 @@ def kpi_report_cmd(
 
     cfg = load_config(config_dir, fleet_file="sim/fleet.yaml")
     rep = kpi_report.report(run, cfg, results)
+    rep["manifest"] = _manifest(cfg, None, time_factor=_sim_factor())
     kpi_report.write(rep, run)
     typer.echo(kpi_report.markdown(rep))
 
@@ -980,6 +1004,9 @@ def bench_orders(
     label = cfg.models.roles[ModelRole.COORDINATOR_LLM].model.replace(":", "_")
     with tracing_context(enabled=False):
         result = asyncio.run(run(cfg, llm, label, tuple(modes.split(","))))
+    result["manifest"] = _manifest(
+        cfg, None, coordinator_llm=llm, time_factor="world paused (who-does-what)"
+    )
     typer.echo(summary(result))
     typer.echo(f"results: {write(result, out)}")
 
@@ -1008,6 +1035,7 @@ def bench_retrieval(
 
         emb, label = make_embedder(cfg), "embedder"
     result = asyncio.run(run(cfg, seeds, embedder=emb, label=label))
+    result["manifest"] = _manifest(cfg, seeds, embedder=emb)
     typer.echo(summary(result))
     typer.echo(f"results: {write(result, out)}")
 
