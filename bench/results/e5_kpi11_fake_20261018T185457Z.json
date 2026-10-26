@@ -1,0 +1,259 @@
+{
+  "kpi": "UC2-KPI-11",
+  "definition": "posture change to emergency written to the twin -> reconciled envelopes published (wall clock); acknowledged_*: until every robot has answered",
+  "simulator": "2D",
+  "model": "fake",
+  "decompose_mode": {
+    "routine": "model",
+    "interactive": "model",
+    "emergency": "template_then_model"
+  },
+  "seeds": 20,
+  "failed_runs": 0,
+  "p50_s": 0.041,
+  "p95_s": 0.044,
+  "max_s": 0.045,
+  "mean_s": 0.04,
+  "acknowledged_p50_s": 0.188,
+  "acknowledged_p95_s": 0.211,
+  "target_p95_s": 3.0,
+  "meets_target": true,
+  "runs": [
+    {
+      "seed": 0,
+      "alert_after_s_sim": 511.3,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 0.141,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 1,
+      "alert_after_s_sim": 106.6,
+      "kpi11_s": 0.042,
+      "acknowledged_s": 0.191,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 2,
+      "alert_after_s_sim": 574.9,
+      "kpi11_s": 0.032,
+      "acknowledged_s": 0.142,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 3,
+      "alert_after_s_sim": 165.6,
+      "kpi11_s": 0.044,
+      "acknowledged_s": 0.192,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 4,
+      "alert_after_s_sim": 164.5,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 0.185,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 5,
+      "alert_after_s_sim": 385.1,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 0.188,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 6,
+      "alert_after_s_sim": 482.2,
+      "kpi11_s": 0.03,
+      "acknowledged_s": 0.141,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 7,
+      "alert_after_s_sim": 214.6,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 0.195,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 8,
+      "alert_after_s_sim": 159.2,
+      "kpi11_s": 0.044,
+      "acknowledged_s": 0.188,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 9,
+      "alert_after_s_sim": 293.9,
+      "kpi11_s": 0.044,
+      "acknowledged_s": 0.196,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 10,
+      "alert_after_s_sim": 355.7,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 0.186,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 11,
+      "alert_after_s_sim": 287.9,
+      "kpi11_s": 0.045,
+      "acknowledged_s": 0.197,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 12,
+      "alert_after_s_sim": 300.5,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 0.183,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 13,
+      "alert_after_s_sim": 177.6,
+      "kpi11_s": 0.043,
+      "acknowledged_s": 0.192,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 14,
+      "alert_after_s_sim": 90.9,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 0.186,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 15,
+      "alert_after_s_sim": 580.2,
+      "kpi11_s": 0.033,
+      "acknowledged_s": 0.153,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 16,
+      "alert_after_s_sim": 236.1,
+      "kpi11_s": 0.044,
+      "acknowledged_s": 0.205,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 17,
+      "alert_after_s_sim": 327.5,
+      "kpi11_s": 0.042,
+      "acknowledged_s": 0.327,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 18,
+      "alert_after_s_sim": 133.3,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 0.193,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 19,
+      "alert_after_s_sim": 416.0,
+      "kpi11_s": 0.033,
+      "acknowledged_s": 0.15,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": null
+    }
+  ],
+  "stamp": "2026-10-18T18:54:57.779164+00:00"
+}

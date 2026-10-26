@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>a6g_gz_robots</name>
+  <version>0.1.0</version>
+  <description>
+    Gazebo robot models for Agentic6G UC2 (SPEC A1 7): go2_proxy, a kinematic Unitree Go2
+    stand-in (no legged dynamics, Rule 15), and an adapter that loads Robotnik's own rbsummit
+    description with Gazebo's DiffDrive system in place of robotnik_controllers.
+  </description>
+  <maintainer email="robotic_ai@iteam.upv.es">UPV iTEAM</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>robotnik_description</exec_depend>
+  <exec_depend>robotnik_sensors</exec_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

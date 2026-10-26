@@ -1,0 +1,23 @@
+[project]
+name = "a6g-kb"
+version = "0.1.0"
+description = "Campus knowledge server (SPEC A3.3): retrieval, place resolution, status layer, routes."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-common",
+    "a6g-observability",
+    "mcp>=2.3,<3",
+    "numpy>=2.0,<3",
+    "uvicorn>=0.54,<1",
+]
+
+[project.scripts]
+a6g-kb = "a6g_kb.serve:main"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-common = { workspace = true }
+a6g-observability = { workspace = true }

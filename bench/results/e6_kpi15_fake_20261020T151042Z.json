@@ -1,0 +1,103 @@
+{
+  "kpi": "UC2-KPI-15",
+  "definition": "precision of three retrievals against simulator ground truth: observations near a pose (P@k), statuses and notices relevant to a route (precision, recall), interaction context at a hand-over (precision@1, leaks)",
+  "model": "fake",
+  "embedder": "HashingEmbedder",
+  "fidelity": "offline, deterministic",
+  "seeds": 50,
+  "observations": {
+    "queries": 756,
+    "observations_per_seed": 80,
+    "radius_m": 25.0,
+    "retention_min": 240.0,
+    "p_at_k": {
+      "query": {
+        "1": 0.7116,
+        "3": 0.4802,
+        "5": 0.3653
+      },
+      "distance_only": {
+        "1": 0.4286,
+        "3": 0.3757,
+        "5": 0.3254
+      }
+    },
+    "r_normalised_p_at_k": {
+      "query": {
+        "1": 0.7116,
+        "3": 0.7454,
+        "5": 0.8332
+      },
+      "distance_only": {
+        "1": 0.4286,
+        "3": 0.6155,
+        "5": 0.7805
+      }
+    },
+    "by_kind": {
+      "hazard": {
+        "1": 0.6455,
+        "3": 0.7027,
+        "5": 0.8389
+      },
+      "security": {
+        "1": 0.7658,
+        "3": 0.7664,
+        "5": 0.8141
+      },
+      "maintenance": {
+        "1": 0.726,
+        "3": 0.7717,
+        "5": 0.8495
+      }
+    }
+  },
+  "route_context": {
+    "routes": 367,
+    "definition": "relevant: on the route, or on the shortest route with nothing blocked (what it went around); notices only on the ids they name",
+    "relevant_mean": 0.53,
+    "router": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "reported_mean": 0.53
+    },
+    "all_in_force": {
+      "precision": 0.1418,
+      "recall": 0.9736,
+      "reported_mean": 3.56
+    }
+  },
+  "handover": {
+    "store_kept": {
+      "handovers": 2000,
+      "store_loss": 0.0,
+      "loss_when": null,
+      "precision_at_1": 1.0,
+      "field_precision": 1.0,
+      "lost": 0.0,
+      "leaks": 0,
+      "probes": 3002
+    },
+    "store_lost_10pct_during_escort": {
+      "handovers": 2000,
+      "store_loss": 0.1,
+      "loss_when": "during",
+      "precision_at_1": 1.0,
+      "field_precision": 1.0,
+      "lost": 0.0,
+      "leaks": 0,
+      "probes": 2984
+    },
+    "store_lost_10pct_after_leaving": {
+      "handovers": 2000,
+      "store_loss": 0.1,
+      "loss_when": "after",
+      "precision_at_1": 0.9,
+      "field_precision": 1.0,
+      "lost": 0.1,
+      "leaks": 0,
+      "probes": 2650
+    }
+  },
+  "stamp": "2026-10-20T15:10:42.738555+00:00"
+}

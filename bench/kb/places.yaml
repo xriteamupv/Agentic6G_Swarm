@@ -1,0 +1,73 @@
+# UC2-KPI-10 / KVI-07 place-resolution set (SPEC A3.8): a destination phrase as a person
+# or the operator says it, and the campus place it means (null: not on the campus map, the
+# right answer is "I don't know that place"). Groups: name (the place's name), alias (an
+# alias the campus file lists), paraphrase (not in the campus file), typo, unknown.
+# Ambiguous phrases (e.g. "the east entrance": East gate or the 9B east entrance canopy)
+# are left out: their ground truth is not defensible.
+- {text: "Bus stop", lang: en, group: name, expect: poi_bus_stop}
+- {text: "Info kiosk", lang: en, group: name, expect: poi_kiosk}
+- {text: "Bike rack", lang: en, group: name, expect: poi_bike_rack}
+- {text: "Building 9B door", lang: en, group: name, expect: poi_library_door}
+- {text: "South plaza arcade", lang: en, group: name, expect: poi_shelter_south}
+- {text: "9B east entrance canopy", lang: en, group: name, expect: poi_shelter_9b}
+- {text: "East gate", lang: en, group: name, expect: lrp_east_gate}
+- {text: "North-west walk", lang: en, group: name, expect: sec_north}
+- {text: "South plaza", lang: en, group: name, expect: sec_south}
+- {text: "East corridor", lang: en, group: name, expect: sec_east}
+
+- {text: "parada de autobús", lang: es, group: alias, expect: poi_bus_stop}
+- {text: "parada del bus", lang: es, group: alias, expect: poi_bus_stop}
+- {text: "parada d'autobús", lang: ca, group: alias, expect: poi_bus_stop}
+- {text: "punto de información", lang: es, group: alias, expect: poi_kiosk}
+- {text: "punt d'informació", lang: ca, group: alias, expect: poi_kiosk}
+- {text: "information point", lang: en, group: alias, expect: poi_kiosk}
+- {text: "aparcabicis", lang: es, group: alias, expect: poi_bike_rack}
+- {text: "aparcament de bicicletes", lang: ca, group: alias, expect: poi_bike_rack}
+- {text: "bike parking", lang: en, group: alias, expect: poi_bike_rack}
+- {text: "puerta del edificio 9B", lang: es, group: alias, expect: poi_library_door}
+- {text: "porta de l'edifici 9B", lang: ca, group: alias, expect: poi_library_door}
+- {text: "library door", lang: en, group: alias, expect: poi_library_door}
+- {text: "marquesina del 9B", lang: es, group: alias, expect: poi_shelter_9b}
+- {text: "porxo del 9B", lang: ca, group: alias, expect: poi_shelter_9b}
+- {text: "soportales de la plaza sur", lang: es, group: alias, expect: poi_shelter_south}
+- {text: "porxos de la plaça sud", lang: ca, group: alias, expect: poi_shelter_south}
+- {text: "south arcade", lang: en, group: alias, expect: poi_shelter_south}
+- {text: "puerta este", lang: es, group: alias, expect: lrp_east_gate}
+- {text: "porta est", lang: ca, group: alias, expect: lrp_east_gate}
+- {text: "paseo noroeste", lang: es, group: alias, expect: sec_north}
+- {text: "plaça sud", lang: ca, group: alias, expect: sec_south}
+- {text: "pasillo este", lang: es, group: alias, expect: sec_east}
+
+- {text: "la parada del autobús", lang: es, group: paraphrase, expect: poi_bus_stop}
+- {text: "the bus station", lang: en, group: paraphrase, expect: poi_bus_stop}
+- {text: "where the buses stop", lang: en, group: paraphrase, expect: poi_bus_stop}
+- {text: "the information desk", lang: en, group: paraphrase, expect: poi_kiosk}
+- {text: "el quiosco de información", lang: es, group: paraphrase, expect: poi_kiosk}
+- {text: "the bicycle rack", lang: en, group: paraphrase, expect: poi_bike_rack}
+- {text: "el aparcamiento de bicis", lang: es, group: paraphrase, expect: poi_bike_rack}
+- {text: "the door of building 9B", lang: en, group: paraphrase, expect: poi_library_door}
+- {text: "la puerta de la biblioteca", lang: es, group: paraphrase, expect: poi_library_door}
+- {text: "the library entrance", lang: en, group: paraphrase, expect: poi_library_door}
+- {text: "the canopy at 9B", lang: en, group: paraphrase, expect: poi_shelter_9b}
+- {text: "la marquesina", lang: es, group: paraphrase, expect: poi_shelter_9b}
+- {text: "the arcade in the south plaza", lang: en, group: paraphrase, expect: poi_shelter_south}
+- {text: "los soportales", lang: es, group: paraphrase, expect: poi_shelter_south}
+- {text: "the eastern gate", lang: en, group: paraphrase, expect: lrp_east_gate}
+- {text: "la plaza del sur", lang: es, group: paraphrase, expect: sec_south}
+- {text: "the northwest path", lang: en, group: paraphrase, expect: sec_north}
+
+- {text: "bus stpo", lang: en, group: typo, expect: poi_bus_stop}
+- {text: "bike rak", lang: en, group: typo, expect: poi_bike_rack}
+- {text: "info kiosck", lang: en, group: typo, expect: poi_kiosk}
+- {text: "aparcabicics", lang: es, group: typo, expect: poi_bike_rack}
+- {text: "marquesina del 9b", lang: es, group: typo, expect: poi_shelter_9b}
+- {text: "souht plaza arcade", lang: en, group: typo, expect: poi_shelter_south}
+
+- {text: "the cafeteria", lang: en, group: unknown, expect: null}
+- {text: "la cafetería", lang: es, group: unknown, expect: null}
+- {text: "the gym", lang: en, group: unknown, expect: null}
+- {text: "the swimming pool", lang: en, group: unknown, expect: null}
+- {text: "el rectorado", lang: es, group: unknown, expect: null}
+- {text: "car park P3", lang: en, group: unknown, expect: null}
+- {text: "building 1A", lang: en, group: unknown, expect: null}
+- {text: "la capella", lang: ca, group: unknown, expect: null}

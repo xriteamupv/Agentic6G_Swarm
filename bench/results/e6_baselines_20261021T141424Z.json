@@ -1,0 +1,1034 @@
+{
+  "kpis": "UC2-KPI-2, -5, -6, -8 (SPEC A3.8)",
+  "design": "six inspections; coordinator crash, a robot failure during the outage, coordinator restart 60 s later; outcomes from the skill servers' records",
+  "fidelity": "functional (2D simulator, fake models)",
+  "seeds": 5,
+  "cap_s": 1500,
+  "table": {
+    "P_f3": {
+      "runs": 5,
+      "errors": 0,
+      "completed": 5,
+      "completion_s_median": 1195.5,
+      "task_ratio_mean": 1.0,
+      "unrecovered_failures_per_mission": 0.0,
+      "operator_person_hours": 0.0167
+    },
+    "B2_f3": {
+      "runs": 5,
+      "errors": 0,
+      "completed": 5,
+      "completion_s_median": 1178.0,
+      "task_ratio_mean": 1.0,
+      "unrecovered_failures_per_mission": 0.0,
+      "operator_person_hours": 0.0167
+    },
+    "B1_f3": {
+      "runs": 5,
+      "errors": 0,
+      "completed": 0,
+      "completion_s_median": null,
+      "task_ratio_mean": 0.7333,
+      "unrecovered_failures_per_mission": 1.0,
+      "operator_person_hours": 0.0433
+    },
+    "B0_f3": {
+      "runs": 5,
+      "errors": 0,
+      "completed": 0,
+      "completion_s_median": null,
+      "task_ratio_mean": 0.7333,
+      "unrecovered_failures_per_mission": 1.0,
+      "operator_person_hours": 0.0433
+    },
+    "P_f5": {
+      "runs": 5,
+      "errors": 0,
+      "completed": 5,
+      "completion_s_median": 1017.7,
+      "task_ratio_mean": 1.0,
+      "unrecovered_failures_per_mission": 0.0,
+      "operator_person_hours": 0.0167
+    },
+    "B2_f5": {
+      "runs": 5,
+      "errors": 0,
+      "completed": 5,
+      "completion_s_median": 1013.3,
+      "task_ratio_mean": 1.0,
+      "unrecovered_failures_per_mission": 0.0,
+      "operator_person_hours": 0.0167
+    },
+    "B1_f5": {
+      "runs": 5,
+      "errors": 0,
+      "completed": 0,
+      "completion_s_median": null,
+      "task_ratio_mean": 0.6667,
+      "unrecovered_failures_per_mission": 1.0,
+      "operator_person_hours": 0.05
+    },
+    "B0_f5": {
+      "runs": 5,
+      "errors": 0,
+      "completed": 0,
+      "completion_s_median": null,
+      "task_ratio_mean": 0.7333,
+      "unrecovered_failures_per_mission": 1.0,
+      "operator_person_hours": 0.0433
+    }
+  },
+  "rows": [
+    {
+      "arm": "P",
+      "fleet": 3,
+      "seed": 0,
+      "coordinator_kill_s": 511.3,
+      "robot_fail_s": 523.9,
+      "coordinator_restart_s": 571.3,
+      "victim": "go2_01",
+      "affected": [
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1195.5,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "P",
+      "fleet": 3,
+      "seed": 1,
+      "coordinator_kill_s": 106.6,
+      "robot_fail_s": 120.1,
+      "coordinator_restart_s": 166.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1450.0,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "P",
+      "fleet": 3,
+      "seed": 2,
+      "coordinator_kill_s": 574.9,
+      "robot_fail_s": 589.4,
+      "coordinator_restart_s": 634.9,
+      "victim": "go2_01",
+      "affected": [
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1258.1,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "P",
+      "fleet": 3,
+      "seed": 3,
+      "coordinator_kill_s": 165.6,
+      "robot_fail_s": 176.0,
+      "coordinator_restart_s": 225.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1177.3,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "P",
+      "fleet": 3,
+      "seed": 4,
+      "coordinator_kill_s": 164.5,
+      "robot_fail_s": 170.5,
+      "coordinator_restart_s": 224.5,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1177.4,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 3,
+      "seed": 0,
+      "coordinator_kill_s": 511.3,
+      "robot_fail_s": 523.9,
+      "coordinator_restart_s": 571.3,
+      "victim": "go2_01",
+      "affected": [
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1196.4,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 3,
+      "seed": 1,
+      "coordinator_kill_s": 106.6,
+      "robot_fail_s": 120.1,
+      "coordinator_restart_s": 166.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1177.9,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 3,
+      "seed": 2,
+      "coordinator_kill_s": 574.9,
+      "robot_fail_s": 589.4,
+      "coordinator_restart_s": 634.9,
+      "victim": "go2_01",
+      "affected": [
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1260.8,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 3,
+      "seed": 3,
+      "coordinator_kill_s": 165.6,
+      "robot_fail_s": 176.0,
+      "coordinator_restart_s": 225.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1178.0,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 3,
+      "seed": 4,
+      "coordinator_kill_s": 164.5,
+      "robot_fail_s": 170.5,
+      "coordinator_restart_s": 224.5,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1177.5,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B1",
+      "fleet": 3,
+      "seed": 0,
+      "coordinator_kill_s": 511.3,
+      "robot_fail_s": 523.9,
+      "coordinator_restart_s": 571.3,
+      "victim": "go2_01",
+      "affected": [
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.8333,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 1
+    },
+    {
+      "arm": "B1",
+      "fleet": 3,
+      "seed": 1,
+      "coordinator_kill_s": 106.6,
+      "robot_fail_s": 120.1,
+      "coordinator_restart_s": 166.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "B1",
+      "fleet": 3,
+      "seed": 2,
+      "coordinator_kill_s": 574.9,
+      "robot_fail_s": 589.4,
+      "coordinator_restart_s": 634.9,
+      "victim": "go2_01",
+      "affected": [
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.8333,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 1
+    },
+    {
+      "arm": "B1",
+      "fleet": 3,
+      "seed": 3,
+      "coordinator_kill_s": 165.6,
+      "robot_fail_s": 176.0,
+      "coordinator_restart_s": 225.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "B1",
+      "fleet": 3,
+      "seed": 4,
+      "coordinator_kill_s": 164.5,
+      "robot_fail_s": 170.5,
+      "coordinator_restart_s": 224.5,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "B0",
+      "fleet": 3,
+      "seed": 0,
+      "coordinator_kill_s": 511.3,
+      "robot_fail_s": 523.9,
+      "coordinator_restart_s": 571.3,
+      "victim": "go2_01",
+      "affected": [
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.8333,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 1
+    },
+    {
+      "arm": "B0",
+      "fleet": 3,
+      "seed": 1,
+      "coordinator_kill_s": 106.6,
+      "robot_fail_s": 120.1,
+      "coordinator_restart_s": 166.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "B0",
+      "fleet": 3,
+      "seed": 2,
+      "coordinator_kill_s": 574.9,
+      "robot_fail_s": 589.4,
+      "coordinator_restart_s": 634.9,
+      "victim": "go2_01",
+      "affected": [
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.8333,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 1
+    },
+    {
+      "arm": "B0",
+      "fleet": 3,
+      "seed": 3,
+      "coordinator_kill_s": 165.6,
+      "robot_fail_s": 176.0,
+      "coordinator_restart_s": 225.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "B0",
+      "fleet": 3,
+      "seed": 4,
+      "coordinator_kill_s": 164.5,
+      "robot_fail_s": 170.5,
+      "coordinator_restart_s": 224.5,
+      "victim": "go2_01",
+      "affected": [
+        "poi_bus_stop",
+        "poi_shelter_south"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "P",
+      "fleet": 5,
+      "seed": 0,
+      "coordinator_kill_s": 511.3,
+      "robot_fail_s": 523.9,
+      "coordinator_restart_s": 571.3,
+      "victim": "go2_03",
+      "affected": [
+        "poi_kiosk"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 993.3,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "P",
+      "fleet": 5,
+      "seed": 1,
+      "coordinator_kill_s": 106.6,
+      "robot_fail_s": 120.1,
+      "coordinator_restart_s": 166.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1076.5,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "P",
+      "fleet": 5,
+      "seed": 2,
+      "coordinator_kill_s": 574.9,
+      "robot_fail_s": 589.4,
+      "coordinator_restart_s": 634.9,
+      "victim": "go2_03",
+      "affected": [
+        "poi_kiosk"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1054.0,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "P",
+      "fleet": 5,
+      "seed": 3,
+      "coordinator_kill_s": 165.6,
+      "robot_fail_s": 176.0,
+      "coordinator_restart_s": 225.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1017.6,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "P",
+      "fleet": 5,
+      "seed": 4,
+      "coordinator_kill_s": 164.5,
+      "robot_fail_s": 170.5,
+      "coordinator_restart_s": 224.5,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1017.7,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 5,
+      "seed": 0,
+      "coordinator_kill_s": 511.3,
+      "robot_fail_s": 523.9,
+      "coordinator_restart_s": 571.3,
+      "victim": "go2_03",
+      "affected": [
+        "poi_kiosk"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 993.2,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 5,
+      "seed": 1,
+      "coordinator_kill_s": 106.6,
+      "robot_fail_s": 120.1,
+      "coordinator_restart_s": 166.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 979.7,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 5,
+      "seed": 2,
+      "coordinator_kill_s": 574.9,
+      "robot_fail_s": 589.4,
+      "coordinator_restart_s": 634.9,
+      "victim": "go2_03",
+      "affected": [
+        "poi_kiosk"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1053.9,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 5,
+      "seed": 3,
+      "coordinator_kill_s": 165.6,
+      "robot_fail_s": 176.0,
+      "coordinator_restart_s": 225.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1096.4,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B2",
+      "fleet": 5,
+      "seed": 4,
+      "coordinator_kill_s": 164.5,
+      "robot_fail_s": 170.5,
+      "coordinator_restart_s": 224.5,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_kiosk",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 1.0,
+      "completion_s": 1013.3,
+      "unrecovered_failures": 0,
+      "manual_reassignments": 0
+    },
+    {
+      "arm": "B1",
+      "fleet": 5,
+      "seed": 0,
+      "coordinator_kill_s": 511.3,
+      "robot_fail_s": 523.9,
+      "coordinator_restart_s": 571.3,
+      "victim": "go2_03",
+      "affected": [
+        "poi_kiosk"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.8333,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 1
+    },
+    {
+      "arm": "B1",
+      "fleet": 5,
+      "seed": 1,
+      "coordinator_kill_s": 106.6,
+      "robot_fail_s": 120.1,
+      "coordinator_restart_s": 166.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.3333,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 4
+    },
+    {
+      "arm": "B1",
+      "fleet": 5,
+      "seed": 2,
+      "coordinator_kill_s": 574.9,
+      "robot_fail_s": 589.4,
+      "coordinator_restart_s": 634.9,
+      "victim": "go2_03",
+      "affected": [
+        "poi_kiosk"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.8333,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 1
+    },
+    {
+      "arm": "B1",
+      "fleet": 5,
+      "seed": 3,
+      "coordinator_kill_s": 165.6,
+      "robot_fail_s": 176.0,
+      "coordinator_restart_s": 225.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bus_stop",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "B1",
+      "fleet": 5,
+      "seed": 4,
+      "coordinator_kill_s": 164.5,
+      "robot_fail_s": 170.5,
+      "coordinator_restart_s": 224.5,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bus_stop",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "B0",
+      "fleet": 5,
+      "seed": 0,
+      "coordinator_kill_s": 511.3,
+      "robot_fail_s": 523.9,
+      "coordinator_restart_s": 571.3,
+      "victim": "go2_03",
+      "affected": [
+        "poi_kiosk"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.8333,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 1
+    },
+    {
+      "arm": "B0",
+      "fleet": 5,
+      "seed": 1,
+      "coordinator_kill_s": 106.6,
+      "robot_fail_s": 120.1,
+      "coordinator_restart_s": 166.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bus_stop",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "B0",
+      "fleet": 5,
+      "seed": 2,
+      "coordinator_kill_s": 574.9,
+      "robot_fail_s": 589.4,
+      "coordinator_restart_s": 634.9,
+      "victim": "go2_03",
+      "affected": [
+        "poi_kiosk"
+      ],
+      "inspected": [
+        "poi_bike_rack",
+        "poi_bus_stop",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.8333,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 1
+    },
+    {
+      "arm": "B0",
+      "fleet": 5,
+      "seed": 3,
+      "coordinator_kill_s": 165.6,
+      "robot_fail_s": 176.0,
+      "coordinator_restart_s": 225.6,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bus_stop",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    },
+    {
+      "arm": "B0",
+      "fleet": 5,
+      "seed": 4,
+      "coordinator_kill_s": 164.5,
+      "robot_fail_s": 170.5,
+      "coordinator_restart_s": 224.5,
+      "victim": "go2_01",
+      "affected": [
+        "poi_kiosk",
+        "poi_bike_rack"
+      ],
+      "inspected": [
+        "poi_bus_stop",
+        "poi_library_door",
+        "poi_shelter_9b",
+        "poi_shelter_south"
+      ],
+      "task_ratio": 0.6667,
+      "completion_s": null,
+      "unrecovered_failures": 1,
+      "manual_reassignments": 2
+    }
+  ],
+  "stamp": "2026-10-21T14:14:24.041294+00:00"
+}

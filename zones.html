@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>upv_vera_cpi: patrol zones</title>
+<style>
+  :root {
+    --bg: #f6f7f5; --panel: #ffffff; --ink: #1d2320; --muted: #66706b; --line: #d8ddd9;
+    --ground: #eceee9; --building: #b9b3a8; --building-edge: #8f887c; --pilot: #d9a400;
+    --sector: 46,125,180; --shadow: 200,60,60; --poi: #2f6fb0; --exposed: #d9711c;
+    --recovery: #2f9a5b; --staging: 47,154,91; --path: #9b7b52;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141816; --panel: #1c211f; --ink: #e6ebe8; --muted: #9aa5a0; --line: #2d3431;
+      --ground: #1a1f1d; --building: #4a4741; --building-edge: #6b665d; --pilot: #e0b021;
+      --sector: 90,160,220; --shadow: 230,90,90; --poi: #6aa5e6; --exposed: #f0954a;
+      --recovery: #4cc282; --staging: 76,194,130; --path: #b8946a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .app { display: grid; grid-template-columns: 1fr 320px; height: 100%; }
+  @media (max-width: 800px) { .app { grid-template-columns: 1fr; grid-template-rows: 60vh auto; } }
+  .map { position: relative; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  canvas:active { cursor: grabbing; }
+  .hud { position: absolute; left: 12px; top: 10px; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12px; }
+  .hud b { font-variant-numeric: tabular-nums; }
+  aside { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto;
+    padding: 14px 16px; }
+  h1 { font-size: 15px; margin: 0 0 2px; }
+  .sub { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+  .robot { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+  .robot .top { display: flex; align-items: center; gap: 8px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .id { font-weight: 600; }
+  .tag { margin-left: auto; font-size: 11px; padding: 1px 7px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted); }
+  .tag.lost { color: #c24141; border-color: #c24141; }
+  .tag.failed { background: #c24141; color: #fff; border-color: #c24141; }
+  .tag.moving { color: var(--recovery); border-color: var(--recovery); }
+  .line { color: var(--muted); font-size: 12px; margin-top: 3px; overflow-wrap: anywhere; }
+  .legend { margin-top: 14px; font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+  .legend span { display: inline-block; width: 14px; height: 10px; margin-right: 6px;
+    vertical-align: -1px; border-radius: 2px; }
+  .err { color: #c24141; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="map">
+    <canvas id="c" aria-label="Campus map with live robot positions"></canvas>
+    <div class="hud">sim time <b id="t">–</b> · <span id="fps">–</span> · drag to pan, wheel to zoom, double-click to fit</div>
+  </div>
+  <aside>
+    <h1>upv_vera_cpi: patrol zones</h1>
+    <div class="sub" id="sub">connecting…</div>
+    <div id="robots"></div>
+    <div class="legend">
+      <div><span style="background:var(--building)"></span>building (OSM)</div>
+      <div><span style="background:rgba(var(--sector),.18);border:1px solid rgb(var(--sector))"></span>patrol zone (its footpaths, one colour each) · dots = survey waypoints</div>
+      <div><span style="background:rgba(var(--shadow),.18);border:1px dashed rgb(var(--shadow))"></span>5G coverage shadow</div>
+      <div><span style="background:var(--poi)"></span>point of interest · <span style="background:var(--exposed)"></span>exposed</div>
+      <div><span style="background:var(--recovery)"></span>link recovery point · staging square</div>
+      <div><span style="background:transparent;border:2px solid var(--pilot)"></span>pilot area</div>
+      <div><label><input type="checkbox" id="paths" checked> <span style="background:var(--path)"></span>footpath (OSM) · dashed: open space · <span style="background:#c24141"></span>stairs</label></div>
+      <div><span style="background:#e02424"></span>restricted (closed, obstructed, flooded…)</div>
+      <div><span style="background:transparent;border:2px solid var(--ink)"></span>person's route (robot colour) · dotted: to meet them</div>
+    </div>
+    <div class="err" id="err"></div>
+  </aside>
+</div>
+<script>
+const COLORS = ["#2f6fb0", "#d9711c", "#8a4fbf", "#2f9a5b", "#c24141", "#1b9aa0", "#9c7a1a"];
+const ZONES = ["46,125,180", "150,80,190", "27,154,160", "200,120,30", "90,140,60"];
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const canvas = document.getElementById("c"), ctx = canvas.getContext("2d");
+let campus = null, state = null, view = null, trails = {}, colors = {}, frames = 0, last = performance.now();
+
+function fit() {
+  if (!campus) return;
+  const pts = [...campus.pilot_area, ...campus.sectors.flatMap(s => s.polygon)];
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const w = canvas.clientWidth, h = canvas.clientHeight, pad = 30;
+  const sx = (w - 2 * pad) / (Math.max(...xs) - Math.min(...xs) || 1);
+  const sy = (h - 2 * pad) / (Math.max(...ys) - Math.min(...ys) || 1);
+  const k = Math.min(sx, sy);
+  view = { k, cx: (Math.max(...xs) + Math.min(...xs)) / 2, cy: (Math.max(...ys) + Math.min(...ys)) / 2 };
+}
+const W = () => canvas.clientWidth, H = () => canvas.clientHeight;
+const toPx = (x, y) => [W() / 2 + (x - view.cx) * view.k, H() / 2 - (y - view.cy) * view.k];
+
+function poly(points, fill, stroke, dash) {
+  if (!points || points.length < 2) return;
+  ctx.beginPath();
+  points.forEach((p, i) => { const [u, v] = toPx(p[0], p[1]); i ? ctx.lineTo(u, v) : ctx.moveTo(u, v); });
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.setLineDash(dash || []); ctx.strokeStyle = stroke; ctx.stroke(); ctx.setLineDash([]); }
+}
+
+function label(text, x, y, color, dy = -8) {
+  const [u, v] = toPx(x, y);
+  ctx.font = "11px system-ui, sans-serif"; ctx.textAlign = "center";
+  ctx.lineWidth = 3; ctx.strokeStyle = css("--bg"); ctx.strokeText(text, u, v + dy);
+  ctx.fillStyle = color; ctx.fillText(text, u, v + dy); ctx.lineWidth = 1;
+}
+
+function draw() {
+  frames++;
+  const dpr = window.devicePixelRatio || 1;
+  if (canvas.width !== W() * dpr || canvas.height !== H() * dpr) {
+    canvas.width = W() * dpr; canvas.height = H() * dpr; if (!view) fit();
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = css("--bg"); ctx.fillRect(0, 0, W(), H());
+  if (campus && view) {
+    poly(campus.pilot_area, css("--ground"), null);
+    const sector = css("--sector"), shadow = css("--shadow"), staging = css("--staging");
+    campus.sectors.forEach((s, i) => {
+      if (s.paths && s.paths.length) {  // a footpath zone: its paths, in its own colour
+        const col = ZONES[i % ZONES.length];
+        poly(s.polygon, `rgba(${col},.05)`, null);
+        for (const p of s.paths) line(p, `rgb(${col})`, 7, null, 0.35);
+        ctx.fillStyle = `rgb(${col})`;
+        for (const [x, y] of s.waypoints) { const [u, v] = toPx(x, y); ctx.beginPath(); ctx.arc(u, v, 2.5, 0, 7); ctx.fill(); }
+        const m = s.paths[Math.floor(s.paths.length / 2)], q = m[Math.floor(m.length / 2)];
+        label(s.name || s.id, q[0], q[1], `rgb(${col})`, -10);
+        return;
+      }
+      poly(s.polygon, `rgba(${sector},.13)`, `rgb(${sector})`);
+      ctx.fillStyle = `rgb(${sector})`;
+      for (const [x, y] of s.waypoints) { const [u, v] = toPx(x, y); ctx.beginPath(); ctx.arc(u, v, 2.5, 0, 7); ctx.fill(); }
+      const c = s.polygon.reduce((a, p) => [a[0] + p[0] / s.polygon.length, a[1] + p[1] / s.polygon.length], [0, 0]);
+      label(s.name || s.id, c[0], c[1], `rgb(${sector})`, 4);
+    });
+    for (const sh of campus.shadows) poly(sh, `rgba(${shadow},.15)`, `rgb(${shadow})`, [5, 4]);
+    ctx.lineWidth = 1;
+    for (const b of campus.buildings) poly(b, css("--building"), css("--building-edge"));
+    if (document.getElementById("paths").checked) drawPaths();
+    ctx.lineWidth = 2; poly(campus.pilot_area, null, css("--pilot"), [8, 5]); ctx.lineWidth = 1;
+    if (campus.staging.area) poly(campus.staging.area, `rgba(${staging},.10)`, `rgb(${staging})`, [3, 3]);
+    for (const r of campus.recovery) {
+      const [u, v] = toPx(r.x, r.y); ctx.fillStyle = css("--recovery");
+      ctx.beginPath(); ctx.moveTo(u, v - 7); ctx.lineTo(u - 6, v + 5); ctx.lineTo(u + 6, v + 5); ctx.closePath(); ctx.fill();
+      label(r.name || r.id.replace("lrp_", ""), r.x, r.y, css("--recovery"), 17);
+    }
+    for (const p of campus.pois) {
+      const [u, v] = toPx(p.x, p.y), col = p.exposed ? css("--exposed") : css("--poi");
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(u, v, 5, 0, 7); ctx.fill();
+      label(p.name || p.id, p.x, p.y, col, -9);
+    }
+    if (state) { drawStatuses(); drawEscorts(); drawRobots(); }
+  }
+  requestAnimationFrame(draw);
+}
+
+function line(points, color, width, dash, alpha = 1) {
+  if (!points || points.length < 2) return;
+  ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []);
+  ctx.beginPath(); points.forEach((p, i) => { const [u, v] = toPx(p[0], p[1]); i ? ctx.lineTo(u, v) : ctx.moveTo(u, v); });
+  ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1; ctx.globalAlpha = 1;
+}
+
+function drawPaths() {
+  const path = css("--path");
+  for (const e of campus.footpaths || []) {
+    if (e.stairs) line(e.pts, "#c24141", 2, [4, 3], 0.9);
+    else if (e.source === "open") line(e.pts, path, 1, [2, 4], 0.45);
+    else if (e.source === "connector") line(e.pts, path, 1, [1, 3], 0.6);
+    else line(e.pts, path, 2, null, 0.85);
+  }
+}
+
+function drawStatuses() {
+  for (const s of state.statuses || []) {
+    if (s.pts) line(s.pts, "#e02424", 5, null, 0.85);
+    let x = s.x, y = s.y;
+    if (s.pts && s.pts.length) { const m = s.pts[Math.floor(s.pts.length / 2)]; x = m[0]; y = m[1]; }
+    if (x === undefined) continue;
+    const [u, v] = toPx(x, y);
+    ctx.strokeStyle = "#e02424"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(u - 7, v - 7); ctx.lineTo(u + 7, v + 7); ctx.moveTo(u + 7, v - 7); ctx.lineTo(u - 7, v + 7); ctx.stroke();
+    ctx.lineWidth = 1;
+    label(s.status.replace(/_/g, " "), x, y, "#e02424", 20);
+  }
+}
+
+function drawEscorts() {
+  for (const [rid, r] of Object.entries(state.robots)) {
+    const e = (r.activity || {}).escort;
+    if (!e) continue;
+    const col = colors[rid];
+    line(e.approach, col, 2, [2, 4], 0.8);
+    line(e.route, col, 4, [10, 5], 0.9);
+    const end = e.route[e.route.length - 1];
+    if (end) {
+      const [u, v] = toPx(end[0], end[1]);
+      ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(u, v, 8, 0, 7); ctx.stroke(); ctx.lineWidth = 1;
+      label("person's destination", end[0], end[1], col, 22);
+    }
+  }
+}
+
+function drawRobots() {
+  for (const [rid, r] of Object.entries(state.robots)) {
+    if (r.x === undefined) continue;
+    const col = colors[rid], geo = campus.robots[rid] || { length: 0.7, width: 0.4 };
+    const t = trails[rid] || [];
+    if (t.length > 1) {
+      ctx.strokeStyle = col; ctx.globalAlpha = 0.45; ctx.lineWidth = 2;
+      ctx.beginPath(); t.forEach((p, i) => { const [u, v] = toPx(p[0], p[1]); i ? ctx.lineTo(u, v) : ctx.moveTo(u, v); });
+      ctx.stroke(); ctx.globalAlpha = 1; ctx.lineWidth = 1;
+    }
+    const [u, v] = toPx(r.x, r.y), yaw = r.yaw || 0;
+    const L = Math.max(geo.length * view.k, 12), Wd = Math.max(geo.width * view.k, 7);
+    ctx.save(); ctx.translate(u, v); ctx.rotate(-yaw);
+    ctx.fillStyle = r.failed ? "#888" : col; ctx.strokeStyle = css("--panel"); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.rect(-L / 2, -Wd / 2, L, Wd); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = css("--panel"); ctx.beginPath();
+    ctx.moveTo(L / 2, 0); ctx.lineTo(L / 2 - Math.min(6, L / 3), -Wd / 3); ctx.lineTo(L / 2 - Math.min(6, L / 3), Wd / 3); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    if (r.link === "lost") { ctx.strokeStyle = "#c24141"; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(u, v, L * 0.8, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+    if (r.failed) { ctx.strokeStyle = "#c24141"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(u - 8, v - 8); ctx.lineTo(u + 8, v + 8); ctx.moveTo(u + 8, v - 8); ctx.lineTo(u - 8, v + 8); ctx.stroke(); ctx.lineWidth = 1; }
+    label(rid, r.x, r.y, col, -L / 2 - 6);
+  }
+}
+
+function shortTask(t) {
+  if (!t) return "idle";
+  if (t === "__link_recovery__") return "seeking coverage";
+  if (t === "__return_home__") return "returning home";
+  return t.replace(/^(rou|int|eme)-/, "$1 · ").replace(/_/g, " ");
+}
+
+function panel() {
+  const box = document.getElementById("robots");
+  box.innerHTML = Object.entries(state.robots).map(([rid, r]) => {
+    const a = r.activity || {}, plat = (campus.robots[rid] || {}).platform || "";
+    let tag = "", cls = "";
+    if (r.failed) { tag = "failed"; cls = "failed"; }
+    else if (r.link === "lost") { tag = "link lost"; cls = "lost"; }
+    else if (r.moving) { tag = "moving"; cls = "moving"; }
+    else tag = "still";
+    const extra = [a.holding ? "holding" : "", a.recovery ? `recovery: ${a.recovery}` : "",
+      a.queued ? `${a.queued} queued report(s)` : "", a.coordinator === false ? "coordinator unreachable" : "",
+      a.escort ? (a.escort.approach.length ? "going to meet a person" : "guiding a person") : "",
+      r.battery_pct !== undefined && r.battery_pct !== null ? `battery ${Math.round(r.battery_pct)}%` : "",
+      r.localization ? r.localization : ""].filter(Boolean).join(" · ");
+    return `<div class="robot"><div class="top"><span class="dot" style="background:${colors[rid]}"></span>
+      <span class="id">${rid}</span><span class="line" style="margin:0">${plat}</span>
+      <span class="tag ${cls}">${tag}</span></div>
+      <div class="line">${shortTask(a.task)}</div>${extra ? `<div class="line">${extra}</div>` : ""}</div>`;
+  }).join("");
+}
+
+async function poll() {
+  try {
+    const r = await fetch("/sim/view/state", { cache: "no-store" });
+    state = await r.json();
+    for (const [rid, rb] of Object.entries(state.robots)) {
+      if (!(rid in colors)) colors[rid] = COLORS[Object.keys(colors).length % COLORS.length];
+      if (rb.x === undefined) continue;
+      const t = trails[rid] || (trails[rid] = []), p = t[t.length - 1];
+      if (!p || Math.hypot(p[0] - rb.x, p[1] - rb.y) > 0.05 * (campus ? campus.scale : 1)) t.push([rb.x, rb.y]);
+      if (t.length > 600) t.shift();
+    }
+    document.getElementById("t").textContent = state.sim_time_label || "–";
+    document.getElementById("sub").textContent =
+      `${campus.campus_id}${campus.scale !== 1 ? ` · scale ${campus.scale}` : ""} · ${Object.keys(state.robots).length} robots`;
+    document.getElementById("err").textContent = "";
+    panel();
+  } catch (e) {
+    document.getElementById("err").textContent = "stack not reachable: " + e;
+  }
+  const now = performance.now();
+  if (now - last > 1000) { document.getElementById("fps").textContent = `${Math.round(frames * 1000 / (now - last))} fps`; frames = 0; last = now; }
+  setTimeout(poll, 300);
+}
+
+let drag = null;
+canvas.addEventListener("mousedown", e => { drag = [e.clientX, e.clientY]; });
+window.addEventListener("mouseup", () => { drag = null; });
+window.addEventListener("mousemove", e => {
+  if (!drag || !view) return;
+  view.cx -= (e.clientX - drag[0]) / view.k; view.cy += (e.clientY - drag[1]) / view.k; drag = [e.clientX, e.clientY];
+});
+canvas.addEventListener("wheel", e => {
+  if (!view) return; e.preventDefault();
+  const rect = canvas.getBoundingClientRect(), mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const wx = view.cx + (mx - W() / 2) / view.k, wy = view.cy - (my - H() / 2) / view.k;
+  view.k *= Math.exp(-e.deltaY * 0.0015);
+  view.cx = wx - (mx - W() / 2) / view.k; view.cy = wy + (my - H() / 2) / view.k;
+}, { passive: false });
+canvas.addEventListener("dblclick", fit);
+window.addEventListener("resize", fit);
+
+window.__SNAPSHOT__ = {"campus": {"campus_id": "upv_vera_cpi", "scale": 1.0, "pilot_area": [[118.349, -128.544], [172.294, 15.901], [-117.313, 131.588], [-173.327, -18.961]], "buildings": [[[77.997, -207.261], [68.532, -203.752], [68.851, -202.931], [66.33, -201.998], [64.084, -201.166], [63.783, -201.976], [41.515, -193.716], [41.808, -192.883], [39.51, -192.028], [37.127, -191.151], [36.834, -191.973], [14.515, -183.691], [14.816, -182.858], [18.017, -174.264], [8.854, -170.845], [9.327, -169.557], [18.499, -172.954], [20.529, -167.514], [26.845, -150.472], [17.707, -147.03], [18.181, -145.753], [27.309, -149.206], [30.846, -139.658], [53.156, -147.94], [52.872, -148.806], [57.536, -150.538], [57.88, -149.706], [73.307, -155.423], [77.385, -142.311], [34.769, -126.346], [40.611, -110.88], [41.257, -111.125], [55.961, -71.911], [54.851, -71.5], [60.744, -55.978], [96.89, -69.59], [103.171, -71.91], [107.129, -61.429], [92.132, -55.867], [92.76, -54.346], [98.989, -39.147], [103.076, -26.878], [98.034, -25.002], [93.921, -37.104], [88.294, -52.559], [87.623, -54.413], [65.02, -45.942], [81.282, -1.898], [145.838, -25.723], [129.422, -69.6], [119.605, -66.17], [121.05, -62.084], [124.448, -52.858], [130.48, -37.059], [125.412, -35.172], [119.415, -51.015], [117.952, -54.979], [116.017, -60.241], [114.631, -64.205], [113.341, -63.794], [109.4, -74.33], [110.82, -74.897], [109.452, -78.571], [107.714, -83.334], [106.208, -87.465], [100.736, -102.187], [105.873, -104.063], [111.104, -89.23], [114.339, -80.337], [115.561, -76.751], [125.516, -80.226], [115.389, -107.527], [109.659, -123.092], [99.171, -151.215], [89.354, -147.662], [90.679, -143.81], [94.112, -134.628], [99.592, -119.429], [94.834, -117.686], [89.293, -132.841], [87.684, -137.115], [85.852, -142.011], [84.484, -145.764], [83.296, -145.331], [80.156, -157.977], [78.659, -162.029], [83.391, -163.783], [84.906, -159.731], [94.336, -163.25]], [[-4.216, -176.74], [5.343, -180.282], [8.854, -170.845], [9.327, -169.557], [17.707, -147.03], [18.181, -145.753], [21.717, -136.25], [12.183, -132.775]], [[16.167, -120.628], [25.554, -124.103], [52.072, -53.17], [42.702, -49.695]], [[46.462, -39.169], [55.935, -42.644], [72.187, 1.277], [62.697, 4.752]], [[-119.27, -132.796], [-39.433, -163.106], [-32.128, -159.298], [-20.125, -126.724], [-22.044, -120.318], [-102.922, -90.174], [-109.177, -92.605], [-121.533, -127.422]], [[-94.326, -28.344], [-100.555, -49.994], [-24.771, -71.722], [-18.808, -50.427]], [[-123.829, -66.103], [-110.657, -70.733], [-112.636, -75.74], [-125.576, -71.033]], [[-127.409, -83.012], [-118.116, -86.51], [-120.405, -92.272], [-129.612, -88.852]], [[93.473, 72.6], [109.321, 66.627], [116.118, 64.195], [112.109, 53.082], [89.265, 61.386]], [[122.58, 66.516], [135.331, 61.931], [141.972, 80.261], [145.964, 91.253], [133.222, 95.838], [130.262, 87.677]], [[158.646, 95.505], [159.257, 96.071], [167.517, 93.085], [168.162, 92.441], [168.55, 91.642], [168.36, 90.576], [167.904, 89.899], [167.328, 89.443], [166.605, 89.255], [165.392, 89.477], [164.282, 89.821], [163.103, 91.22], [158.612, 94.595]], [[101.939, 80.638], [111.893, 77.152], [109.958, 71.645], [99.994, 75.131]], [[29.709, 139.592], [-0.981, 123.038], [-0.37, 121.383], [40.73, 135.317]], [[-154.335, 138.905], [-147.916, 156.08], [-144.828, 154.959], [-146.531, 150.307], [-145.292, 149.863], [-148.046, 142.313], [-149.5, 142.446], [-151.212, 137.75]], [[-162.148, 112.736], [-154.894, 131.955], [-125.762, 121.14], [-127.543, 116.366], [-133.007, 101.866]], [[-94.894, -79.737], [-87.434, -59.931], [-51.263, -73.443], [-14.704, -87.099], [-22.164, -106.906], [-67.654, -89.908], [-79.243, -85.589]], [[-236.542, -65.978], [-234.417, -82.777], [-137.355, -71.443], [-139.093, -54.468]], [[-177.775, -19.094], [-180.46, -38.957], [-123.915, -48.284], [-121.592, -28.033]], [[-194.533, 90.01], [-202.131, 69.471], [-195.842, 67.172], [-200.669, 54.116], [-207.027, 56.448], [-213.911, 37.818], [-165.213, 19.953], [-145.965, 71.99], [-151.781, 74.122], [-157.322, 59.145], [-161.469, 60.677], [-155.808, 75.976], [-166.037, 79.74], [-172.0, 63.63], [-177.791, 65.751], [-171.888, 81.694], [-183.228, 85.847], [-188.941, 70.392], [-193.553, 72.08], [-187.822, 87.556]], [[-140.183, 68.315], [-160.007, 16.8], [-131.683, 6.285], [-112.427, 57.245]], [[79.414, 45.165], [72.187, 26.291], [124.499, 7.029], [124.516, 3.354], [154.252, -1.42], [157.633, 18.287], [139.306, 20.274], [139.926, 23.017]], [[-51.124, 89.353], [-57.302, 72.832], [60.236, 29.255], [66.405, 45.765]], [[-127.543, 116.366], [-133.007, 101.866], [-68.874, 77.973], [-63.944, 90.774], [-69.769, 93.028], [-65.923, 103.72], [-121.933, 124.304], [-125.246, 115.511]], [[-155.039, 200.113], [-157.018, 194.817], [-158.782, 195.494], [-160.847, 189.832], [-178.348, 141.992], [-184.552, 125.016], [-171.861, 120.497], [-164.746, 139.194], [-162.208, 138.394], [-143.64, 188.111], [-145.532, 188.899], [-143.08, 195.716]], [[-10.927, 155.868], [-12.114, 151.749], [-14.532, 145.243], [-17.027, 138.503], [-19.453, 132.375], [-21.819, 125.791], [-22.284, 124.548], [-26.181, 114.2], [-27.859, 109.748], [-109.518, 140.059], [-113.648, 142.324], [-117.235, 145.488], [-119.335, 148.974], [-121.202, 149.862], [-120.72, 151.838], [-121.855, 156.291], [-121.916, 160.221], [-121.064, 164.74], [-116.701, 176.308], [-112.554, 181.404], [-108.407, 184.424], [-107.685, 186.101], [-106.007, 185.49], [-103.495, 186.2], [-99.933, 186.833], [-96.758, 186.866], [-90.537, 185.212]], [[22.68, 89.664], [24.96, 88.809], [29.477, 87.11], [34.028, 85.411], [38.425, 83.768], [43.45, 81.881], [48.423, 80.016], [52.527, 78.484], [57.164, 76.752], [61.535, 75.109], [65.527, 73.621], [70.879, 71.611], [75.275, 69.968], [123.345, 94.683], [119.766, 95.993], [114.973, 97.747], [110.921, 99.235], [105.888, 101.078], [101.62, 102.643], [96.896, 104.375], [91.992, 106.174], [87.742, 107.728], [82.562, 109.637], [78.725, 111.036], [73.004, 113.135], [70.173, 114.356]], [[-234.071, -1.107], [-242.779, -25.265], [-203.958, -39.378], [-195.173, -15.386]], [[-26.939, 106.473], [-17.87, 102.976], [-12.768, 101.01], [-7.64, 99.034], [-2.357, 96.991], [2.504, 95.115], [6.857, 93.438], [71.704, 116.787], [67.136, 118.331], [61.887, 120.273], [56.441, 122.294], [51.115, 124.27], [46.314, 126.047], [40.739, 128.112], [37.246, 129.411]], [[-214.444, 32.034], [-223.333, 9.118], [-191.335, -3.184], [-182.455, 19.731]], [[188.531, -62.127], [188.592, -61.761], [188.024, -61.672], [188.273, -60.073], [188.833, -60.118], [188.919, -59.529], [188.359, -59.451], [188.574, -57.875], [189.151, -57.964], [189.374, -56.465], [188.746, -56.365], [189.194, -53.523], [189.796, -53.634], [190.415, -49.481], [191.956, -49.692], [192.05, -49.104], [194.872, -49.481], [194.786, -50.081], [196.8, -50.347], [196.817, -49.77], [198.761, -50.014], [198.684, -50.603], [199.854, -50.758], [199.94, -50.17], [201.867, -50.436], [201.79, -51.024], [203.777, -51.291], [203.846, -50.713], [206.677, -51.102], [206.6, -51.679], [208.252, -51.901], [207.718, -55.387], [208.338, -55.465], [208.071, -57.43], [207.417, -57.342], [206.841, -61.139], [207.52, -61.25], [207.211, -63.226], [206.54, -63.115], [206.436, -63.759], [206.075, -66.124], [198.056, -65.269], [196.516, -65.114], [192.799, -64.714], [188.222, -64.214], [188.316, -63.571], [187.774, -63.482], [188.007, -62.038]], [[185.968, -79.281], [187.749, -67.345], [186.484, -67.19], [186.742, -65.28], [187.172, -64.892], [188.11, -64.87], [188.222, -64.214], [192.799, -64.714], [196.516, -65.114], [198.056, -65.269], [206.075, -66.124], [205.963, -66.868], [206.858, -67.478], [206.497, -69.887], [205.387, -70.787], [201.042, -74.217], [200.896, -75.083], [203.081, -75.339], [202.952, -76.382], [205.843, -76.793], [210.713, -77.459], [210.808, -76.449], [218.164, -77.392], [218.087, -78.48], [227.56, -79.779], [227.697, -78.735], [235.002, -79.734], [234.89, -80.778], [244.51, -82.11], [244.596, -81.166], [251.952, -82.143], [251.763, -83.098], [256.986, -83.819], [255.928, -90.781], [255.291, -94.944], [255.283, -95.066], [254.259, -101.739], [250.568, -101.217], [250.439, -102.239], [245.612, -101.595], [240.398, -100.896], [240.535, -99.83], [233.6, -98.875], [233.403, -99.997], [227.827, -99.197], [223.379, -98.553], [223.585, -97.477], [216.685, -96.533], [216.478, -97.621], [211.436, -96.955], [206.549, -96.3], [206.67, -95.146], [203.142, -94.635], [197.059, -93.791], [196.913, -94.868], [192.912, -94.335], [190.141, -93.958], [190.313, -92.87], [184.058, -92.004], [185.305, -83.655], [183.963, -83.355], [184.591, -79.147]], [[199.379, 17.089], [200.661, 25.76], [201.358, 25.694], [201.435, 26.371], [210.349, 25.328], [222.463, 23.885], [224.588, 23.629], [229.725, 23.019], [254.358, 20.1], [258.428, 19.611], [258.342, 18.912], [258.97, 18.834], [258.497, 14.626], [257.473, 5.989], [256.863, 0.881], [255.641, 1.015], [255.503, -0.04], [254.075, 0.148], [253.937, -0.829], [247.312, -0.029], [242.735, 0.526], [238.003, 1.103], [219.409, 3.356], [218.231, 2.423], [215.013, -19.604], [194.433, -16.451]], [[17.449, -18.908], [14.326, -27.323], [22.766, -30.432], [25.889, -22.016]], [[-198.915, -157.209], [-198.115, -157.209], [-198.115, -156.409], [-198.915, -156.409]], [[176.348, 157.224], [177.148, 157.224], [177.148, 158.024], [176.348, 158.024]], [[174.997, 147.587], [175.797, 147.587], [175.797, 148.387], [174.997, 148.387]], [[173.388, 138.216], [174.188, 138.216], [174.188, 139.016], [173.388, 139.016]], [[171.504, 129.923], [172.304, 129.923], [172.304, 130.723], [171.504, 130.723]], [[154.838, 136.873], [155.638, 136.873], [155.638, 137.673], [154.838, 137.673]], [[158.873, 164.451], [159.673, 164.451], [159.673, 165.251], [158.873, 165.251]], [[119.089, 148.652], [119.889, 148.652], [119.889, 149.452], [119.089, 149.452]], [[126.885, 145.443], [127.685, 145.443], [127.685, 146.243], [126.885, 146.243]], [[107.268, 153.204], [108.068, 153.204], [108.068, 154.004], [107.268, 154.004]], [[94.904, 157.489], [95.704, 157.489], [95.704, 158.289], [94.904, 158.289]], [[34.428, 150.527], [35.228, 150.527], [35.228, 151.327], [34.428, 151.327]], [[58.889, 141.423], [59.689, 141.423], [59.689, 142.223], [58.889, 142.223]], [[96.78, 127.235], [97.58, 127.235], [97.58, 128.035], [96.78, 128.035]], [[109.686, 122.416], [110.486, 122.416], [110.486, 123.216], [109.686, 123.216]], [[-190.054, 118.077], [-189.254, 118.077], [-189.254, 118.877], [-190.054, 118.877]], [[-178.164, 113.092], [-177.364, 113.092], [-177.364, 113.892], [-178.164, 113.892]], [[-167.074, 109.35], [-166.274, 109.35], [-166.274, 110.15], [-167.074, 110.15]], [[-153.755, 104.187], [-152.955, 104.187], [-152.955, 104.987], [-153.755, 104.987]], [[-142.037, 99.812], [-141.237, 99.812], [-141.237, 100.612], [-142.037, 100.612]], [[-130.774, 95.538], [-129.974, 95.538], [-129.974, 96.338], [-130.774, 96.338]], [[-117.808, 90.819], [-117.008, 90.819], [-117.008, 91.619], [-117.808, 91.619]], [[-105.737, 86.011], [-104.937, 86.011], [-104.937, 86.811], [-105.737, 86.811]], [[-94.027, 81.826], [-93.227, 81.826], [-93.227, 82.626], [-94.027, 82.626]], [[-80.614, 76.485], [-79.814, 76.485], [-79.814, 77.285], [-80.614, 77.285]], [[-48.341, 64.816], [-47.541, 64.816], [-47.541, 65.616], [-48.341, 65.616]], [[-35.822, 60.098], [-35.022, 60.098], [-35.022, 60.898], [-35.822, 60.898]], [[-25.541, 56.001], [-24.741, 56.001], [-24.741, 56.801], [-25.541, 56.801]], [[-12.669, 51.549], [-11.869, 51.549], [-11.869, 52.349], [-12.669, 52.349]], [[-1.665, 47.008], [-0.865, 47.008], [-0.865, 47.808], [-1.665, 47.808]], [[10.759, 42.733], [11.559, 42.733], [11.559, 43.533], [10.759, 43.533]], [[22.383, 38.903], [23.183, 38.903], [23.183, 39.703], [22.383, 39.703]], [[35.702, 33.118], [36.502, 33.118], [36.502, 33.918], [35.702, 33.918]], [[47.059, 28.489], [47.859, 28.489], [47.859, 29.289], [47.059, 29.289]], [[75.315, 18.241], [76.115, 18.241], [76.115, 19.041], [75.315, 19.041]], [[85.149, 15.044], [85.949, 15.044], [85.949, 15.844], [85.149, 15.844]], [[99.543, 9.338], [100.343, 9.338], [100.343, 10.138], [99.543, 10.138]], [[110.006, 5.685], [110.806, 5.685], [110.806, 6.485], [110.006, 6.485]], [[134.415, -4.018], [135.215, -4.018], [135.215, -3.218], [134.415, -3.218]], [[147.734, -6.949], [148.534, -6.949], [148.534, -6.149], [147.734, -6.149]], [[-187.283, 152.406], [-186.483, 152.406], [-186.483, 153.206], [-187.283, 153.206]], [[-182.852, 162.975], [-182.052, 162.975], [-182.052, 163.775], [-182.852, 163.775]]], "staging": {"x": 4.603, "y": -4.763, "area": [[-5.397, -14.763], [14.603, -14.763], [14.603, 5.237], [-5.397, 5.237]]}, "sectors": [{"id": "sec_north", "name": "North-west walk", "polygon": [[-167.153, -2.366], [-115.953, -14.812], [-109.953, -14.812], [-7.609, -13.392], [-1.225, -13.203], [5.986, -9.328], [50.158, 24.024], [50.158, 30.024], [-61.486, 76.155], [-122.031, 94.141], [-128.031, 94.141], [-131.558, 93.301]], "waypoints": [[27.438, 34.396], [22.465, 32.208], [20.606, 29.477], [9.705, 0.178], [2.986, -6.328], [-4.225, -10.203], [-10.609, -10.392], [-17.096, -8.427], [-114.32, 28.223], [-126.822, -6.583], [-155.189, 4.354], [-164.473, 0.712], [-155.189, 4.354], [-160.636, 6.874], [-112.953, -11.812], [-99.823, 22.883], [-17.096, -8.427], [-10.609, -10.392], [-4.225, -10.203], [2.986, -6.328], [9.705, 0.178], [22.465, 32.208], [27.438, 34.396], [47.158, 27.024], [-66.0, 69.191], [-64.486, 73.155], [-66.0, 69.191], [-125.031, 91.141], [-129.738, 90.02]], "paths": [[[-129.738, 90.02], [-125.031, 91.141]], [[-99.823, 22.883], [-114.32, 28.223], [-126.822, -6.583]], [[-164.473, 0.712], [-159.913, 2.944], [-155.189, 4.354]], [[-112.953, -11.812], [-99.823, 22.883]], [[-99.823, 22.883], [-70.707, 11.824], [-56.27, 6.44], [-50.325, 4.141]], [[-50.325, 4.141], [-41.884, 0.877], [-27.412, -4.463], [-17.096, -8.427], [-10.609, -10.392]], [[-155.189, 4.354], [-131.641, -4.74], [-126.822, -6.583]], [[-126.822, -6.583], [-112.953, -11.812]], [[-66.0, 69.191], [-64.486, 73.155]], [[-160.636, 6.874], [-155.189, 4.354]], [[-10.609, -10.392], [-4.225, -10.203], [2.986, -6.328], [4.603, -4.763]], [[4.603, -4.763], [9.705, 0.178], [20.094, 28.102]], [[20.094, 28.102], [20.606, 29.477], [22.465, 32.208], [24.564, 33.53], [27.438, 34.396]], [[-125.031, 91.141], [-66.0, 69.191]], [[-66.0, 69.191], [27.438, 34.396]], [[27.438, 34.396], [47.158, 27.024]]]}, {"id": "sec_south", "name": "South plaza", "polygon": [[-157.398, -16.865], [-24.218, -64.43], [8.564, -70.659], [127.773, -78.895], [133.773, -78.895], [153.836, -25.903], [153.836, -19.903], [84.471, 8.674], [46.656, 22.996], [40.656, 22.996], [-157.398, -10.865]], "waypoints": [[43.656, 19.996], [11.564, -67.659], [-1.11, -62.596], [-21.218, -61.43], [-1.11, -62.596], [11.564, -67.659], [23.721, -35.672], [60.151, -50.083], [81.471, 5.674], [60.151, -50.083], [130.773, -75.895], [150.836, -22.903], [130.773, -75.895], [-10.824, -22.982], [-108.393, -19.773], [-117.126, -22.704], [-108.393, -19.773], [-154.398, -13.865]], "paths": [[[60.151, -50.083], [81.471, 5.674]], [[130.773, -75.895], [150.836, -22.903]], [[43.656, 19.996], [24.711, -32.564], [23.721, -35.672]], [[23.721, -35.672], [11.564, -67.659]], [[23.721, -35.672], [60.151, -50.083]], [[60.151, -50.083], [130.773, -75.895]], [[11.564, -67.659], [4.156, -64.45], [-1.11, -62.596], [-7.305, -61.774], [-13.19, -61.574], [-21.218, -61.43]], [[-154.398, -13.865], [-108.393, -19.773]], [[-108.393, -19.773], [-79.905, -21.561], [-10.824, -22.982], [23.721, -35.672]], [[-108.393, -19.773], [-117.126, -22.704]]]}, {"id": "sec_east", "name": "East corridor", "polygon": [[-67.486, 70.155], [98.165, -12.126], [140.919, -20.085], [146.919, -20.085], [160.587, -15.446], [161.744, -12.349], [162.13, -9.105], [162.13, -3.105], [70.859, 50.319], [-47.797, 95.006], [-51.221, 95.395], [-57.221, 95.395], [-59.691, 94.385], [-61.24, 92.087], [-67.486, 76.155]], "waypoints": [[63.359, 20.518], [64.96, 24.903], [-64.486, 73.155], [-58.24, 89.087], [-54.221, 92.395], [-50.797, 92.006], [67.859, 47.319], [70.397, 44.788], [70.63, 41.579], [64.96, 24.903], [137.775, -1.92], [159.13, -6.105], [158.408, -12.167], [158.614, -10.213], [146.809, -8.037], [143.919, -17.085], [103.566, -2.719], [101.165, -9.126], [103.566, -2.719], [43.656, 19.996], [47.158, 27.024], [135.598, -6.039], [146.809, -8.037]], "paths": [[[158.408, -12.167], [158.614, -10.213]], [[158.614, -10.213], [158.864, -7.937]], [[158.864, -7.937], [159.13, -6.105]], [[-64.486, 73.155], [14.292, 43.79]], [[14.292, 43.79], [64.96, 24.903]], [[64.96, 24.903], [133.396, -0.265], [137.775, -1.92], [144.4, -3.585], [155.276, -5.583], [159.13, -6.105]], [[-64.486, 73.155], [-58.24, 89.087], [-56.691, 91.385], [-54.221, 92.395], [-50.797, 92.006], [67.859, 47.319], [70.397, 44.788], [70.63, 41.579], [64.96, 24.903]], [[64.96, 24.903], [63.359, 20.518]], [[47.158, 27.024], [45.558, 23.049], [43.656, 19.996]], [[43.656, 19.996], [81.471, 5.674]], [[81.471, 5.674], [103.566, -2.719]], [[103.566, -2.719], [101.165, -9.126]], [[103.566, -2.719], [143.919, -17.085], [146.809, -8.037]], [[47.158, 27.024], [63.359, 20.518]], [[63.359, 20.518], [135.598, -6.039], [146.809, -8.037]], [[146.809, -8.037], [150.337, -8.67], [154.708, -9.28], [158.614, -10.213]]]}], "pois": [{"id": "poi_kiosk", "name": "Info kiosk", "x": 20.099, "y": 28.1, "exposed": false}, {"id": "poi_library_door", "name": "Building 9B door", "x": 14.291, "y": 43.788, "exposed": true}, {"id": "poi_bike_rack", "name": "Bike rack", "x": -50.325, "y": 4.141, "exposed": true}, {"id": "poi_bus_stop", "name": "Bus stop", "x": 11.564, "y": -67.659, "exposed": true}, {"id": "poi_shelter_9b", "name": "9B east entrance canopy", "x": 47.158, "y": 27.024, "exposed": false}, {"id": "poi_shelter_south", "name": "South plaza arcade", "x": 23.721, "y": -35.672, "exposed": false}], "shadows": [[[62.0, 0.0], [89.997, 0.001], [89.997, 26.003], [62.0, 26.002]]], "recovery": [{"id": "lrp_east_gate", "name": "East gate", "x": 53.603, "y": 16.232}, {"id": "lrp_staging", "name": "Staging", "x": 4.603, "y": -4.763}], "robots": {"go2_01": {"platform": "go2", "length": 0.7, "width": 0.31}, "summit_01": {"platform": "summit", "length": 0.73, "width": 0.61}}, "footpaths": [{"id": "c:poi:poi_bike_rack", "source": "connector", "stairs": false, "pts": [[-50.325, 4.141], [-50.325, 4.141]]}, {"id": "c:poi:poi_bus_stop", "source": "connector", "stairs": false, "pts": [[11.564, -67.659], [11.564, -67.659]]}, {"id": "c:poi:poi_kiosk", "source": "connector", "stairs": false, "pts": [[20.099, 28.1], [20.094, 28.102]]}, {"id": "c:poi:poi_library_door", "source": "connector", "stairs": false, "pts": [[14.291, 43.788], [14.292, 43.79]]}, {"id": "c:poi:poi_shelter_9b", "source": "connector", "stairs": false, "pts": [[47.158, 27.024], [47.158, 27.024]]}, {"id": "c:poi:poi_shelter_south", "source": "connector", "stairs": false, "pts": [[23.721, -35.672], [23.721, -35.672]]}, {"id": "c:staging", "source": "connector", "stairs": false, "pts": [[4.603, -4.763], [4.603, -4.763]]}, {"id": "w1108806157.0:0", "source": "osm", "stairs": false, "pts": [[60.151, -50.083], [81.471, 5.674]]}, {"id": "w1108806158.0:0", "source": "osm", "stairs": false, "pts": [[130.773, -75.895], [150.836, -22.903]]}, {"id": "w1113048096.0:0", "source": "osm", "stairs": false, "pts": [[158.408, -12.167], [158.614, -10.213]]}, {"id": "w1113048096.0:1", "source": "osm", "stairs": false, "pts": [[158.614, -10.213], [158.864, -7.937]]}, {"id": "w1113048097.0:0", "source": "osm", "stairs": false, "pts": [[158.864, -7.937], [159.13, -6.105]]}, {"id": "w1113726614.0:0", "source": "osm", "stairs": false, "pts": [[-129.738, 90.02], [-125.031, 91.141]]}, {"id": "w1284938129.0:0", "source": "osm", "stairs": false, "pts": [[-99.823, 22.883], [-114.32, 28.223], [-126.822, -6.583]]}, {"id": "w1289707415.0:0", "source": "osm", "stairs": false, "pts": [[-164.473, 0.712], [-159.913, 2.944], [-155.189, 4.354]]}, {"id": "w143426026.0:0a", "source": "osm", "stairs": false, "pts": [[-64.486, 73.155], [14.292, 43.79]]}, {"id": "w143426026.0:0b", "source": "osm", "stairs": false, "pts": [[14.292, 43.79], [64.96, 24.903]]}, {"id": "w143426026.0:1", "source": "osm", "stairs": false, "pts": [[64.96, 24.903], [133.396, -0.265], [137.775, -1.92], [144.4, -3.585], [155.276, -5.583], [159.13, -6.105]]}, {"id": "w185121690.0:0", "source": "osm", "stairs": false, "pts": [[-112.953, -11.812], [-99.823, 22.883]]}, {"id": "w185121698.0:0a", "source": "osm", "stairs": false, "pts": [[-99.823, 22.883], [-70.707, 11.824], [-56.27, 6.44], [-50.325, 4.141]]}, {"id": "w185121698.0:0b", "source": "osm", "stairs": false, "pts": [[-50.325, 4.141], [-41.884, 0.877], [-27.412, -4.463], [-17.096, -8.427], [-10.609, -10.392]]}, {"id": "w185125477.0:0", "source": "osm", "stairs": false, "pts": [[-155.189, 4.354], [-131.641, -4.74], [-126.822, -6.583]]}, {"id": "w185125477.0:1", "source": "osm", "stairs": false, "pts": [[-126.822, -6.583], [-112.953, -11.812]]}, {"id": "w185125478.0:0", "source": "osm", "stairs": false, "pts": [[-66.0, 69.191], [-64.486, 73.155]]}, {"id": "w185125478.0:1", "source": "osm", "stairs": false, "pts": [[-64.486, 73.155], [-58.24, 89.087], [-56.691, 91.385], [-54.221, 92.395], [-50.797, 92.006], [67.859, 47.319], [70.397, 44.788], [70.63, 41.579], [64.96, 24.903]]}, {"id": "w185125478.0:2", "source": "osm", "stairs": false, "pts": [[64.96, 24.903], [63.359, 20.518]]}, {"id": "w185125480.0:0", "source": "osm", "stairs": false, "pts": [[47.158, 27.024], [45.558, 23.049], [43.656, 19.996]]}, {"id": "w185125480.0:1", "source": "osm", "stairs": false, "pts": [[43.656, 19.996], [24.711, -32.564], [23.721, -35.672]]}, {"id": "w185125480.0:2", "source": "osm", "stairs": false, "pts": [[23.721, -35.672], [11.564, -67.659]]}, {"id": "w185125482.0:0", "source": "osm", "stairs": false, "pts": [[-160.636, 6.874], [-155.189, 4.354]]}, {"id": "w185125988.0:0aa", "source": "osm", "stairs": false, "pts": [[-10.609, -10.392], [-4.225, -10.203], [2.986, -6.328], [4.603, -4.763]]}, {"id": "w185125988.0:0ab", "source": "osm", "stairs": false, "pts": [[4.603, -4.763], [9.705, 0.178], [20.094, 28.102]]}, {"id": "w185125988.0:0b", "source": "osm", "stairs": false, "pts": [[20.094, 28.102], [20.606, 29.477], [22.465, 32.208], [24.564, 33.53], [27.438, 34.396]]}, {"id": "w185431592.0:0", "source": "osm", "stairs": false, "pts": [[23.721, -35.672], [60.151, -50.083]]}, {"id": "w185431592.0:1", "source": "osm", "stairs": false, "pts": [[60.151, -50.083], [130.773, -75.895]]}, {"id": "w301653197.0:0", "source": "osm", "stairs": false, "pts": [[11.564, -67.659], [4.156, -64.45], [-1.11, -62.596], [-7.305, -61.774], [-13.19, -61.574], [-21.218, -61.43]]}, {"id": "w301780869.0:0", "source": "osm", "stairs": false, "pts": [[43.656, 19.996], [81.471, 5.674]]}, {"id": "w301780869.0:1", "source": "osm", "stairs": false, "pts": [[81.471, 5.674], [103.566, -2.719]]}, {"id": "w301780869.0:2", "source": "osm", "stairs": false, "pts": [[103.566, -2.719], [101.165, -9.126]]}, {"id": "w301780870.0:0", "source": "osm", "stairs": false, "pts": [[103.566, -2.719], [143.919, -17.085], [146.809, -8.037]]}, {"id": "w36964763.0:0", "source": "osm", "stairs": false, "pts": [[-125.031, 91.141], [-66.0, 69.191]]}, {"id": "w36964763.0:1", "source": "osm", "stairs": false, "pts": [[-66.0, 69.191], [27.438, 34.396]]}, {"id": "w36964763.0:2", "source": "osm", "stairs": false, "pts": [[27.438, 34.396], [47.158, 27.024]]}, {"id": "w36964763.0:3", "source": "osm", "stairs": false, "pts": [[47.158, 27.024], [63.359, 20.518]]}, {"id": "w36964763.0:4", "source": "osm", "stairs": false, "pts": [[63.359, 20.518], [135.598, -6.039], [146.809, -8.037]]}, {"id": "w36964763.0:5", "source": "osm", "stairs": false, "pts": [[146.809, -8.037], [150.337, -8.67], [154.708, -9.28], [158.614, -10.213]]}, {"id": "w36966642.0:0", "source": "osm", "stairs": false, "pts": [[-154.398, -13.865], [-108.393, -19.773]]}, {"id": "w36966642.0:1", "source": "osm", "stairs": false, "pts": [[-108.393, -19.773], [-79.905, -21.561], [-10.824, -22.982], [23.721, -35.672]]}, {"id": "w36966644.0:0", "source": "osm", "stairs": false, "pts": [[-108.393, -19.773], [-117.126, -22.704]]}]}, "state": {"robots": {}, "statuses": []}};
+if (window.__SNAPSHOT__) {  // ?static=1: one frame from inline data (screenshots, reports)
+  campus = window.__SNAPSHOT__.campus; state = window.__SNAPSHOT__.state;
+  for (const rid of Object.keys(state.robots)) colors[rid] = COLORS[Object.keys(colors).length % COLORS.length];
+  document.getElementById("t").textContent = state.sim_time_label || "–";
+  document.getElementById("sub").textContent = `${campus.campus_id}${campus.scale !== 1 ? ` · scale ${campus.scale}` : ""} · snapshot`;
+  panel(); fit(); draw();
+} else {
+  fetch("/sim/view/campus").then(r => r.json()).then(c => { campus = c; fit(); poll(); requestAnimationFrame(draw); })
+    .catch(e => { document.getElementById("err").textContent = "cannot load campus: " + e; });
+}
+</script>
+</body>
+</html>

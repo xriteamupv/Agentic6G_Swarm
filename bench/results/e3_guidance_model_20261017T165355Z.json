@@ -1,0 +1,82 @@
+{
+  "scenario": "guidance requests es/ca/en",
+  "model": "gpt-5-nano",
+  "rows": [
+    {
+      "lang": "es",
+      "destination": "poi_bus_stop",
+      "profile": "step_free",
+      "expected": [
+        "poi_bus_stop",
+        "step_free"
+      ],
+      "disclosed": true
+    },
+    {
+      "lang": "es",
+      "destination": "poi_kiosk",
+      "profile": "avoid_slopes",
+      "expected": [
+        "poi_kiosk",
+        "avoid_slopes"
+      ],
+      "disclosed": true
+    },
+    {
+      "lang": "ca",
+      "destination": "poi_shelter_9b",
+      "profile": "step_free",
+      "expected": [
+        "poi_shelter_9b",
+        "step_free"
+      ],
+      "disclosed": true
+    },
+    {
+      "lang": "ca",
+      "destination": "poi_bike_rack",
+      "profile": "default",
+      "expected": [
+        "poi_bike_rack",
+        "default"
+      ],
+      "disclosed": true
+    },
+    {
+      "lang": "en",
+      "destination": "poi_library_door",
+      "profile": "step_free",
+      "expected": [
+        "poi_library_door",
+        "step_free"
+      ],
+      "disclosed": true
+    },
+    {
+      "lang": "en",
+      "destination": "poi_shelter_south",
+      "profile": "default",
+      "expected": [
+        "poi_shelter_south",
+        "default"
+      ],
+      "disclosed": true
+    }
+  ],
+  "decisions_by_policy": {
+    "model": 6
+  },
+  "validator_acceptance_rate": 1.0,
+  "model_calls": [
+    {
+      "function": "conversation",
+      "calls": 6,
+      "failed": 0,
+      "input_tokens": 3933,
+      "output_tokens": 285,
+      "inference_ms_mean": 1545.7,
+      "inference_ms_p95": 2083.9,
+      "prompt": "onboard_vlm/conversation@v2"
+    }
+  ]
+}

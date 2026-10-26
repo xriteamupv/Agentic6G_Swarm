@@ -1,0 +1,11 @@
+# Nav2 prior map in campus_map (generated; OSM © contributors, ODbL)
+free_thresh: 0.25
+image: upv_vera_cpi_s0p1_loc.pgm
+mode: trinary
+negate: 0
+occupied_thresh: 0.65
+origin:
+- -19.95
+- -16.2
+- 0.0
+resolution: 0.05

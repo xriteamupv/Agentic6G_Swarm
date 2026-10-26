@@ -1,0 +1,55 @@
+# Edge services for the Agentic6G UC2 swarm (SPEC 4, NFR-UPV-01/02).
+#
+#   cd a6g-swarm && uv run langgraph build -t a6g-coordinator      # coordinator image
+#   docker compose -f deploy/edge/docker-compose.yml up -d
+#
+# The coordinator runs inside the LangGraph Agent Server: threads (= missions), checkpoints
+# and the store live in Postgres, runs are queued in Redis, so the container is stateless
+# and can be killed / migrated without stopping a mission. agent-chat-ui connects to :8123.
+# UNTESTED in the development environment (no Docker there); see README "Deployment".
+name: a6g-edge
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: a6g
+      POSTGRES_PASSWORD: ${A6G_PG_PASSWORD:?set A6G_PG_PASSWORD}
+      POSTGRES_DB: a6g
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U a6g"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports: ["1883:1883"]
+    volumes: [./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro]
+
+  coordinator:
+    image: a6g-coordinator          # built with `langgraph build -t a6g-coordinator`
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      mosquitto: {condition: service_started}
+    ports: ["8123:8000"]            # Agent Server API (agent-chat-ui, a6g CLI) + /a6g A2A gateway
+    environment:
+      POSTGRES_URI: postgres://a6g:${A6G_PG_PASSWORD}@postgres:5432/a6g?sslmode=disable
+      REDIS_URI: redis://redis:6379
+      A6G_FLEET_FILE: ${A6G_FLEET_FILE:-fleet.yaml}
+      A6G_MQTT_HOST: mosquitto
+      A6G_COORDINATOR_URL: ${A6G_COORDINATOR_URL:?public URL of /a6g, e.g. http://edge:8123/a6g}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGGRAPH_CLOUD_LICENSE_KEY: ${LANGGRAPH_CLOUD_LICENSE_KEY:-}
+
+volumes:
+  pgdata:

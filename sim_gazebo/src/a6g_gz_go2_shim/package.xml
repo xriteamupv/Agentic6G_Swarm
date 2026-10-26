@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>a6g_gz_go2_shim</name>
+  <version>0.1.0</version>
+  <description>
+    ROS nodes reproducing the real Go2 dock interfaces around the Gazebo go2_proxy (SPEC A1 7.2):
+    cmd_vel_to_sport_sim, sport_api_sim, odom_to_tf, cloud_to_scan, plus the simulation-only
+    leg_odom_sim (leg odometry with drift) and cloud_deskew_sim (cloud in the odom frame).
+  </description>
+  <maintainer email="robotic_ai@iteam.upv.es">UPV iTEAM</maintainer>
+  <license>Apache-2.0</license>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>sensor_msgs_py</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>unitree_api</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <test_depend>python3-pytest</test_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

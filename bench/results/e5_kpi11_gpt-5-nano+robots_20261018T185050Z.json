@@ -1,0 +1,260 @@
+{
+  "kpi": "UC2-KPI-11",
+  "definition": "posture change to emergency written to the twin -> reconciled envelopes published (wall clock); acknowledged_*: until every robot has answered",
+  "simulator": "2D",
+  "model": "gpt-5-nano+robots",
+  "decompose_mode": {
+    "routine": "model",
+    "interactive": "model",
+    "emergency": "template_then_model"
+  },
+  "seeds": 20,
+  "failed_runs": 0,
+  "p50_s": 0.04,
+  "p95_s": 0.047,
+  "max_s": 0.132,
+  "mean_s": 0.044,
+  "acknowledged_p50_s": 1.331,
+  "acknowledged_p95_s": 1.514,
+  "target_p95_s": 3.0,
+  "meets_target": true,
+  "runs": [
+    {
+      "seed": 0,
+      "alert_after_s_sim": 511.3,
+      "kpi11_s": 0.132,
+      "acknowledged_s": 1.306,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": 7.283
+    },
+    {
+      "seed": 1,
+      "alert_after_s_sim": 106.6,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 1.314,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 5.891
+    },
+    {
+      "seed": 2,
+      "alert_after_s_sim": 574.9,
+      "kpi11_s": 0.042,
+      "acknowledged_s": 1.4,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 6.082
+    },
+    {
+      "seed": 3,
+      "alert_after_s_sim": 165.6,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 1.397,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 5.83
+    },
+    {
+      "seed": 4,
+      "alert_after_s_sim": 164.5,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 1.418,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 5.898
+    },
+    {
+      "seed": 5,
+      "alert_after_s_sim": 385.1,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 1.512,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 5.688
+    },
+    {
+      "seed": 6,
+      "alert_after_s_sim": 482.2,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 1.302,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": 5.323
+    },
+    {
+      "seed": 7,
+      "alert_after_s_sim": 214.6,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 1.499,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 4.507
+    },
+    {
+      "seed": 8,
+      "alert_after_s_sim": 159.2,
+      "kpi11_s": 0.039,
+      "acknowledged_s": 1.189,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 5.078
+    },
+    {
+      "seed": 9,
+      "alert_after_s_sim": 293.9,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 1.204,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 5.229
+    },
+    {
+      "seed": 10,
+      "alert_after_s_sim": 355.7,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 1.55,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 4.917
+    },
+    {
+      "seed": 11,
+      "alert_after_s_sim": 287.9,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 1.417,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 4.171
+    },
+    {
+      "seed": 12,
+      "alert_after_s_sim": 300.5,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 1.109,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 7.104
+    },
+    {
+      "seed": 13,
+      "alert_after_s_sim": 177.6,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 1.348,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 4.612
+    },
+    {
+      "seed": 14,
+      "alert_after_s_sim": 90.9,
+      "kpi11_s": 0.041,
+      "acknowledged_s": 1.079,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 5.657
+    },
+    {
+      "seed": 15,
+      "alert_after_s_sim": 580.2,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 1.043,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": 5.27
+    },
+    {
+      "seed": 16,
+      "alert_after_s_sim": 236.1,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 1.349,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 5.577
+    },
+    {
+      "seed": 17,
+      "alert_after_s_sim": 327.5,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 1.29,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 6.02
+    },
+    {
+      "seed": 18,
+      "alert_after_s_sim": 133.3,
+      "kpi11_s": 0.04,
+      "acknowledged_s": 1.188,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 6.938
+    },
+    {
+      "seed": 19,
+      "alert_after_s_sim": 416.0,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 1.511,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": 4.675
+    }
+  ],
+  "stamp": "2026-10-18T18:50:50.916790+00:00"
+}

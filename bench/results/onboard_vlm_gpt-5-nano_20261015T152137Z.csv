@@ -1,0 +1,6 @@
+run,stamp,model,endpoint,image,image_kb,latency_s,ttft_s,prompt_tokens,completion_tokens,decode_tok_s,output_tok_s,valid,notable,server_rss_mb,system_used_mb,power_w,error
+1,2026-10-15T15:21:50+00:00,gpt-5-nano,provider cloud API,synthetic_0.jpg,9.9,5.165,4.734,560,451,1046.4,87.3,True,True,,6070.4,,
+2,2026-10-15T15:21:57+00:00,gpt-5-nano,provider cloud API,synthetic_1.jpg,9.7,7.372,6.799,560,706,1230.5,95.8,True,True,,6071.6,,
+3,2026-10-15T15:22:06+00:00,gpt-5-nano,provider cloud API,synthetic_2.jpg,9.7,8.865,8.198,560,775,1161.3,87.4,True,True,,6071.5,,
+4,2026-10-15T15:22:17+00:00,gpt-5-nano,provider cloud API,synthetic_0.jpg,9.9,10.757,10.052,560,959,1360.1,89.1,True,True,,6023.5,,
+5,2026-10-15T15:22:25+00:00,gpt-5-nano,provider cloud API,synthetic_1.jpg,9.7,8.53,7.974,560,836,1502.7,98.0,True,True,,6033.6,,

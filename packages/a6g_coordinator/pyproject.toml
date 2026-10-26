@@ -1,0 +1,39 @@
+[project]
+name = "a6g-coordinator"
+version = "0.1.0"
+description = "LangGraph swarm coordinator (served by the LangGraph Agent Server) and A2A gateway."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-interactions",
+    "a6g-kb",
+    "a6g-common",
+    "a6g-observability",
+    "a6g-allocator",
+    "a6g-transport",
+    "a6g-memory",
+    "langgraph>=1.2,<2",
+    "langgraph-sdk>=0.4,<0.5",
+    "langgraph-checkpoint-sqlite>=3.1,<4",
+    "starlette>=1.0,<2",
+    "httpx>=0.28,<1",
+    "uvicorn>=0.54,<1",
+]
+
+[project.scripts]
+a6g-coordinator = "a6g_coordinator.plain:main"
+
+[project.optional-dependencies]
+postgres = ["langgraph-checkpoint-postgres>=3.1,<4", "psycopg[binary,pool]>=3.2,<4"]
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-interactions = { workspace = true }
+a6g-kb = { workspace = true }
+a6g-common = { workspace = true }
+a6g-observability = { workspace = true }
+a6g-allocator = { workspace = true }
+a6g-transport = { workspace = true }
+a6g-memory = { workspace = true }

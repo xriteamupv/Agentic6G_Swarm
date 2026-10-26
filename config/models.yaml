@@ -1,0 +1,37 @@
+# Chat models per role, instantiated with LangChain's init_chat_model, exactly like the
+# LangChain Academy notebooks: a model string such as "gpt-5-nano" and the provider's key
+# (OPENAI_API_KEY) from the environment or a .env file at the repository root.
+#
+# To use a self-hosted OpenAI-compatible server instead (llama.cpp / Ollama / vLLM), set
+# base_url (e.g. via the env vars below). Empty base_url = the provider's cloud API.
+# Models only choose, triage or justify; they never control motion (SPEC Rule 1).
+schema_version: "1.0"
+roles:
+  coordinator_llm:
+    model: ${A6G_COORDINATOR_LLM_MODEL:-gpt-5-nano}
+    base_url: ${A6G_COORDINATOR_LLM_URL:-}
+    timeout_s: 30
+    reasoning_effort: low       # reasoning models: minimal | low | medium | high
+    reasoning_summary: true     # stream the model's thoughts to the chat UI
+  edge_vlm:
+    model: ${A6G_EDGE_VLM_MODEL:-gpt-5-nano}
+    base_url: ${A6G_EDGE_VLM_URL:-}
+    supports_vision: true
+    timeout_s: 30
+  onboard_vlm:
+    # Development default is the cloud model. On the Go2 dock, point A6G_ONBOARD_VLM_URL at
+    # the local llama.cpp server (FR-UPV-03: on-board VLM; the robot must not depend on 5G).
+    # TODO(UPV): choose after the P5 benchmark (Qwen2.5-VL-3B, Gemma 3 4B, SmolVLM2, Moondream2...)
+    model: ${A6G_ONBOARD_VLM_MODEL:-gpt-5-nano}
+    base_url: ${A6G_ONBOARD_VLM_URL:-}
+    supports_vision: true
+    timeout_s: 20
+    # The robot's cognitive core (SPEC A2.3) decides within per-function deadlines (8 s for
+    # deliberation): keep reasoning minimal on the cloud model. Ignored with base_url.
+    reasoning_effort: minimal
+  embedder:
+    # Knowledge-base indexing and search (SPEC A3.3.3). Tests use a deterministic hashing
+    # embedder. In profile: real it receives utterances: keep it local (SPEC A3.5).
+    model: ${A6G_EMBEDDER_MODEL:-openai:text-embedding-3-small}
+    base_url: ${A6G_EMBEDDER_URL:-}
+    timeout_s: 10

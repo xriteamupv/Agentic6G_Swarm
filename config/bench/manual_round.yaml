@@ -1,0 +1,6 @@
+# UC2-KPI-1 (SPEC A3.8): a manual inspection round, to compare with the robots' work.
+# TODO(UPV): replace with the campus security service's figures.
+walking_speed_mps: 1.2        # a guard walking the round
+minutes_per_poi: 3.0          # time spent at each inspected point
+operator_minutes_per_command: 1.0   # operator time per command given to the swarm
+cost_per_hour_eur: 25.0       # person-hour cost

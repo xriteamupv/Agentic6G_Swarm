@@ -1,0 +1,48 @@
+{
+  "scenario": "Survey the campus",
+  "model": "gpt-5-nano",
+  "fidelity": "functional",
+  "decisions_by_policy": {
+    "fallback_rejected": 3,
+    "model": 3
+  },
+  "validator_acceptance_rate": 0.5,
+  "fallbacks": 3,
+  "model_calls": [
+    {
+      "function": "deliberation",
+      "calls": 7,
+      "failed": 0,
+      "input_tokens": 4752,
+      "output_tokens": 495,
+      "inference_ms_mean": 1489.6,
+      "inference_ms_p95": 2599.0,
+      "prompt": "onboard_vlm/deliberation@v1"
+    },
+    {
+      "function": "replanning",
+      "calls": 2,
+      "failed": 0,
+      "input_tokens": 1056,
+      "output_tokens": 138,
+      "inference_ms_mean": 1325.0,
+      "inference_ms_p95": 1559.4,
+      "prompt": "onboard_vlm/replanning@v1"
+    },
+    {
+      "function": "reporting",
+      "calls": 2,
+      "failed": 0,
+      "input_tokens": 266,
+      "output_tokens": 70,
+      "inference_ms_mean": 952.6,
+      "inference_ms_p95": 1017.2,
+      "prompt": "onboard_vlm/reporting@v1"
+    }
+  ],
+  "tasks": {
+    "rou-survey_sector-sec_north": "done",
+    "rou-survey_sector-sec_south": "done",
+    "rou-survey_sector-sec_east": "done"
+  }
+}

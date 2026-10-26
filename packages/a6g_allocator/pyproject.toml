@@ -1,0 +1,17 @@
+[project]
+name = "a6g-allocator"
+version = "0.1.0"
+description = "Deterministic cost function, assignment and contract-net scoring."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-common",
+    "scipy>=1.15,<1.17",
+    "numpy>=2.0,<3",
+]
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-common = { workspace = true }

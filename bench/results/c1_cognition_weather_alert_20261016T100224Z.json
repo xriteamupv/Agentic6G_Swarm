@@ -1,0 +1,27 @@
+{
+  "scenario": "Weather alert",
+  "model": "gpt-5-nano",
+  "fidelity": "functional",
+  "decisions_by_policy": {
+    "model": 3
+  },
+  "validator_acceptance_rate": 1.0,
+  "fallbacks": 0,
+  "model_calls": [
+    {
+      "function": "deliberation",
+      "calls": 3,
+      "failed": 0,
+      "input_tokens": 2064,
+      "output_tokens": 205,
+      "inference_ms_mean": 1338.1,
+      "inference_ms_p95": 1609.0,
+      "prompt": "onboard_vlm/deliberation@v2"
+    }
+  ],
+  "tasks": {
+    "eme-hold_post-poi_library_door": "done",
+    "eme-hold_post-poi_bike_rack": "done",
+    "eme-hold_post-poi_bus_stop": "done"
+  }
+}
