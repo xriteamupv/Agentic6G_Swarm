@@ -38,8 +38,10 @@ def test_no_agent_imports_a_transport_library() -> None:
     offenders = []
     for path in sorted((ROOT / "packages").glob("*/src/**/*.py")):
         rel = path.relative_to(ROOT).as_posix()
-        in_bindings = "/a6g_transport/bindings/" in rel
-        in_transport = "/src/a6g_transport/" in rel
+        # the protocol micro-benchmark (SPEC A4.8) is the instrument that compares bindings
+        # (also REST and gRPC, which the messaging layer does not offer), not an agent
+        in_bindings = "/a6g_transport/bindings/" in rel or "/a6g_devstack/protolab/" in rel
+        in_transport = "/src/a6g_transport/" in rel or "/a6g_devstack/protolab/" in rel
         for module in _imports(path):
             top = module.split(".")[0]
             if top in TRANSPORT_LIBS and not in_bindings:

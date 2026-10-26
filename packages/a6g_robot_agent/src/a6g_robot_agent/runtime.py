@@ -180,6 +180,8 @@ class RobotAgent:
         #: mission -> the robot's latest envelope thread, active or finished: an idle robot
         #: bids for and takes a dead peer's work on it (SPEC A4 N1, 2026-10-26)
         self._mission_thread: dict[str, str] = {}
+        #: thread -> the envelope's flow grants per task (SPEC A4.7, I3), from the last run
+        self._grants: dict[str, dict[str, Any]] = {}
         # Speech output (SPEC A3.4): what the robot said while answering one ``say`` call;
         # everything also goes to ``on_speech`` (the sim console, a Gazebo label). Never
         # logged (rule 28).
@@ -329,6 +331,8 @@ class RobotAgent:
         return (await self.graph.aget_state(self._config(self.thread_id(envelope_id)))).values
 
     def _track(self, thread: str, state: dict[str, Any]) -> None:
+        if state.get("envelope") is not None:
+            self._grants[thread] = (state.get("envelope") or {}).get("flows") or {}
         mission = (state.get("envelope") or {}).get("mission_id")
         if mission and not thread.startswith(f"{self.robot_id}:interaction:"):
             self._mission_thread[mission] = thread
@@ -353,34 +357,33 @@ class RobotAgent:
             self._skill_task_id = dispatch["task_id"]
             self._skill = asyncio.create_task(self._run_skill(thread, dispatch))
 
-    async def _open_stream(self, thread: str, task_id: str) -> None:
+    def _open_stream(self, thread: str, task_id: str) -> None:
         """SPEC A4.7, I3 (rule 29): a class above telemetry opens only when its flow is
         granted (or degraded), at the granted rate; otherwise the robot stays on telemetry.
-        The opening goes to the message log (``direction: budget``)."""
-        with contextlib.suppress(Exception):
-            values = (await self.graph.aget_state(self._config(thread))).values
-            flow = ((values.get("envelope") or {}).get("flows") or {}).get(task_id)
-            if not flow:
-                return
-            ok = flow.get("state") in ("granted", "degraded")
-            from a6g_observability.comms import comms_log
+        The opening goes to the message log (``direction: budget``). Synchronous: the
+        grants are cached from the last run (an await here shifted the robot's timing)."""
+        flow = (self._grants.get(thread) or {}).get(task_id)
+        if not flow:
+            return
+        ok = flow.get("state") in ("granted", "degraded")
+        from a6g_observability.comms import comms_log
 
-            comms_log().record(
-                {
-                    "ts": time.time(),
-                    "direction": "budget",
-                    "agent": self.robot_id,
-                    "task_id": task_id,
-                    "flow_class": flow.get("class"),
-                    "grant_state": flow.get("state"),
-                    "opened": flow.get("class") if ok else "telemetry",
-                    "ul_mbps": (flow.get("ul_mbps") or 0.0) if ok else 0.0,
-                    "pattern": "budget",
-                }
-            )
+        comms_log().record(
+            {
+                "ts": time.time(),
+                "direction": "budget",
+                "agent": self.robot_id,
+                "task_id": task_id,
+                "flow_class": flow.get("class"),
+                "grant_state": flow.get("state"),
+                "opened": flow.get("class") if ok else "telemetry",
+                "ul_mbps": (flow.get("ul_mbps") or 0.0) if ok else 0.0,
+                "pattern": "budget",
+            }
+        )
 
     async def _run_skill(self, thread: str, dispatch: dict[str, Any]) -> None:
-        await self._open_stream(thread, dispatch["task_id"])
+        self._open_stream(thread, dispatch["task_id"])
         result = await self.skills.call(
             dispatch["tool"], dispatch["args"], dispatch.get("mission_id")
         )
