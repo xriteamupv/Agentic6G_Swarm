@@ -146,3 +146,32 @@ async def test_g10_passes_with_the_coverage_map(tmp_path: Path) -> None:
     assert result["error"] is None, result["error"]
     for name in ("interventions", "guidance", "link_loss", "forget", "invariants"):
         assert result["checks"][name]["ok"], (name, result["checks"][name])
+
+
+def test_the_whole_pilot_area_is_covered_outdoors() -> None:
+    """2026-10-26: coverage on any outdoor point of the pilot area, not only footpaths."""
+    from a6g_common.geometry import point_in_polygon
+
+    cfg = _cfg()
+    m = cv.build_model_map(cfg.campus, cfg.network, cv.calibrate(cfg.campus, cfg.network))
+    area = m.area_samples
+    assert len(area) > 1000
+    assert all(point_in_polygon((s["x"], s["y"]), cfg.campus.pilot_area) for s in area)
+    assert not any(
+        point_in_polygon((s["x"], s["y"]), b) for s in area[::25] for b in cfg.campus.obstacles
+    )
+    summary = m.summary(cfg.campus)
+    assert summary["area"]["samples"] == len(area)
+    assert summary["footpath_m"] == pytest.approx(len(m.path_samples) * 2.0)
+
+
+def test_a_point_near_a_footpath_takes_the_footpath_level() -> None:
+    m = cv.CoverageMap(
+        samples=[
+            {"kind": "path", "edge": "a", "x": 0.0, "y": 0.0, "level": "good", "sinr": 20},
+            {"kind": "area", "edge": None, "x": 1.0, "y": 0.0, "level": "lost", "sinr": -9},
+            {"kind": "area", "edge": None, "x": 40.0, "y": 0.0, "level": "cell_edge", "sinr": 7},
+        ]
+    )
+    assert m.nearest(1.2, 0.0)["level"] == "good"  # within 3 m of the path
+    assert m.nearest(39.0, 0.0)["level"] == "cell_edge"  # open ground: the area grid

@@ -91,6 +91,8 @@ class CoverageConfig(_M):
     calibration_targets: CalibrationTargets = Field(default_factory=CalibrationTargets)
     sinr_from_rsrp: SinrFromRsrp = Field(default_factory=SinrFromRsrp)
     sample_step_m: float = Field(2.0, gt=0.0)
+    #: a grid over the whole pilot area, outdoors (0: footpaths only)
+    grid_step_m: float = Field(4.0, ge=0.0)
     levels_by: Literal["sinr"] = "sinr"
     thresholds_sinr_db: dict[str, float] = Field(
         default_factory=lambda: {"good": 13.0, "cell_edge": 5.0, "degraded": -5.0}

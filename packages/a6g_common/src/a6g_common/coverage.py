@@ -12,8 +12,10 @@ Sources (``network.coverage.source``):
 
 SINR comes from RSRP with the offset read from the plots (or from the export); the level
 from SINR thresholds, with ``lost`` below the degraded threshold or below a minimum RSRP.
-The map holds a sample every ``sample_step_m`` along the footpaths (robots move only on
-footpaths); it is deterministic (generator rule of SPEC A1.5).
+The map holds a sample every ``sample_step_m`` along the footpaths (where the robots work)
+and one every ``grid_step_m`` over the rest of the pilot area, outdoors (robots may be sent
+anywhere later; 2026-10-26); a point near a footpath takes the footpath's level. It is
+deterministic (generator rule of SPEC A1.5).
 """
 
 import csv
@@ -31,7 +33,7 @@ from a6g_common.geometry import point_in_polygon
 from a6g_common.netconfig import LEVELS, NetworkConfig
 
 C = 299_792_458.0
-MODEL_VERSION = "38901-uma-footprint-los/1"
+MODEL_VERSION = "38901-uma-footprint-los/2"  # /2: the whole pilot area (grid)
 
 
 # --------------------------------------------------------------------------- radio model
@@ -252,14 +254,43 @@ class CoverageMap:
     cell_m: float = 5.0
     _grid: dict[tuple[int, int], list[int]] = field(default_factory=dict, repr=False)
 
+    _area: dict[tuple[int, int], list[int]] = field(default_factory=dict, repr=False)
+    #: a point this close to a footpath sample takes the footpath's level (robots on paths
+    #: see exactly what they saw before the area grid existed)
+    path_snap_m: float = 3.0
+
     def __post_init__(self) -> None:
         for i, s in enumerate(self.samples):
-            self._grid.setdefault(self._key(s["x"], s["y"]), []).append(i)
+            index = self._area if s.get("kind") == "area" else self._grid
+            index.setdefault(self._key(s["x"], s["y"]), []).append(i)
+
+    @property
+    def path_samples(self) -> list[dict[str, Any]]:
+        return [s for s in self.samples if s.get("kind") != "area"]
+
+    @property
+    def area_samples(self) -> list[dict[str, Any]]:
+        return [s for s in self.samples if s.get("kind") == "area"]
 
     def _key(self, x: float, y: float) -> tuple[int, int]:
         return (math.floor(x / self.cell_m), math.floor(y / self.cell_m))
 
     def nearest(self, x: float, y: float, max_rings: int = 6) -> dict[str, Any] | None:
+        """The footpath sample within ``path_snap_m``, else the nearest area sample (any
+        point of the pilot area), else the nearest footpath sample."""
+        path = self._nearest(self._grid, x, y, max_rings)
+        if path is not None and math.dist((path["x"], path["y"]), (x, y)) <= self.path_snap_m:
+            return path
+        area = self._nearest(self._area, x, y, max_rings) if self._area else None
+        if area is None:
+            return path
+        if path is None:
+            return area
+        return min((path, area), key=lambda s: math.dist((s["x"], s["y"]), (x, y)))
+
+    def _nearest(
+        self, index: dict[tuple[int, int], list[int]], x: float, y: float, max_rings: int
+    ) -> dict[str, Any] | None:
         kx, ky = self._key(x, y)
         best, best_d = None, math.inf
         for r in range(max_rings + 1):
@@ -267,7 +298,7 @@ class CoverageMap:
                 for dy in range(-r, r + 1):
                     if max(abs(dx), abs(dy)) != r:
                         continue
-                    for i in self._grid.get((kx + dx, ky + dy), []):
+                    for i in index.get((kx + dx, ky + dy), []):
                         s = self.samples[i]
                         d = (s["x"] - x) ** 2 + (s["y"] - y) ** 2
                         if d < best_d:
@@ -280,22 +311,20 @@ class CoverageMap:
         """Share of footpath length per level and per sector; the level at each POI,
         the staging area and every link-recovery point."""
         step = self.meta.get("sample_step_m", 2.0)
-        total = len(self.samples) or 1
+        paths = self.path_samples
+        total = len(paths) or 1
         share = {
-            lvl: round(sum(1 for s in self.samples if s["level"] == lvl) / total, 4)
-            for lvl in LEVELS
+            lvl: round(sum(1 for s in paths if s["level"] == lvl) / total, 4) for lvl in LEVELS
         }
         # the model's own levels (without the injected placeholder shadows)
         model_share = {
-            lvl: round(
-                sum(1 for s in self.samples if s.get("model_level", s["level"]) == lvl) / total, 4
-            )
+            lvl: round(sum(1 for s in paths if s.get("model_level", s["level"]) == lvl) / total, 4)
             for lvl in LEVELS
         }
         sectors: dict[str, dict[str, float]] = {}
         for sec in getattr(campus, "sectors", []) or []:
             edges = set(getattr(sec, "path_edges", []) or [])
-            mine = [s for s in self.samples if s["edge"] in edges]
+            mine = [s for s in paths if s["edge"] in edges]
             if mine:
                 sectors[sec.sector_id] = {
                     lvl: round(sum(1 for s in mine if s["level"] == lvl) / len(mine), 4)
@@ -311,11 +340,12 @@ class CoverageMap:
         lrps = {r.point_id: at(r.pose.x, r.pose.y) for r in campus.link_recovery_points}
         shadows = getattr(campus, "link_shadows", []) or []
         in_shadow = [
-            s for s in self.samples if any(point_in_polygon((s["x"], s["y"]), sh) for sh in shadows)
+            s for s in paths if any(point_in_polygon((s["x"], s["y"]), sh) for sh in shadows)
         ]
-        model_lost = [s for s in self.samples if s.get("model_level") == "lost"]
+        model_lost = [s for s in paths if s.get("model_level") == "lost"]
         return {
-            "footpath_m": round(len(self.samples) * step, 1),
+            "footpath_m": round(len(paths) * step, 1),
+            "area": self._area_summary(),
             "share_by_level": share,
             "share_by_level_without_injected_shadows": model_share,
             "share_by_sector": sectors,
@@ -335,6 +365,22 @@ class CoverageMap:
             },
             "mostly_good": model_share["good"] > 0.8,
             "exposed_below_good": sorted(k for k, v in exposed.items() if v != "good"),
+        }
+
+    def _area_summary(self) -> dict[str, Any]:
+        """Share of the pilot area's outdoor ground per level (grid samples)."""
+        area = self.area_samples
+        if not area:
+            return {}
+        n = len(area)
+        step = float(self.meta.get("grid_step_m") or 0.0)
+        return {
+            "samples": n,
+            "grid_step_m": step,
+            "outdoor_m2": round(n * step * step, 0),
+            "share_by_level": {
+                lvl: round(sum(1 for s in area if s["level"] == lvl) / n, 4) for lvl in LEVELS
+            },
         }
 
     def to_json(self) -> dict[str, Any]:
@@ -358,15 +404,49 @@ def _classify(
     return out
 
 
+def area_points(campus: Any, step: float) -> list[tuple[float, float]]:
+    """A grid over the pilot area, outdoors only (UC2): points inside a building footprint
+    are left out. Deterministic."""
+    area = getattr(campus, "pilot_area", None)
+    if not area or step <= 0:
+        return []
+    poly = [tuple(p) for p in area]
+    x0, x1 = min(p[0] for p in poly), max(p[0] for p in poly)
+    y0, y1 = min(p[1] for p in poly), max(p[1] for p in poly)
+    buildings = [[tuple(p) for p in o] for o in campus.obstacles or [] if len(o) >= 3]
+    boxes = [
+        (min(x for x, _ in b), min(y for _, y in b), max(x for x, _ in b), max(y for _, y in b))
+        for b in buildings
+    ]
+    out = []
+    nx, ny = int((x1 - x0) / step), int((y1 - y0) / step)
+    for i in range(nx + 1):
+        for j in range(ny + 1):
+            x, y = round(x0 + i * step, 3), round(y0 + j * step, 3)
+            if not point_in_polygon((x, y), poly):
+                continue
+            if any(
+                bx0 <= x <= bx1 and by0 <= y <= by1 and point_in_polygon((x, y), b)
+                for b, (bx0, by0, bx1, by1) in zip(buildings, boxes, strict=True)
+            ):
+                continue
+            out.append((x, y))
+    return out
+
+
 def build_model_map(campus: Any, net: NetworkConfig, calibration: dict[str, Any]) -> CoverageMap:
     model = radio_model(campus, net, calibration["offset_db"])
     cell = net.cells[0].id
     samples = []
-    for edge, x, y in footpath_samples(campus, net.coverage.sample_step_m):
+    points = [("path", e, x, y) for e, x, y in footpath_samples(campus, net.coverage.sample_step_m)]
+    step = net.coverage.grid_step_m * (campus.scale or 1.0)
+    points += [("area", None, x, y) for x, y in area_points(campus, step)]
+    for kind, edge, x, y in points:
         rsrp, los = model.rsrp(x, y)
         sinr = sinr_from_rsrp(net, rsrp)
         samples.append(
             {
+                "kind": kind,
                 "edge": edge,
                 "x": x,
                 "y": y,
@@ -386,6 +466,7 @@ def build_model_map(campus: Any, net: NetworkConfig, calibration: dict[str, Any]
             "the plots); footpaths behind buildings (NLOS) extrapolated",
             "calibration": calibration,
             "sample_step_m": net.coverage.sample_step_m,
+            "grid_step_m": net.coverage.grid_step_m,
             "cell": cell,
             "assumption": "uplink quality follows the plotted (downlink) SINR",
             "shadows_override": net.coverage.shadows_override,
@@ -406,7 +487,10 @@ def build_radio_dt_map(campus: Any, net: NetworkConfig, csv_path: Path, geo: Any
                 (x, y, float(r["rsrp_dbm"]), sinr)
             )
     samples = []
-    for edge, x, y in footpath_samples(campus, net.coverage.sample_step_m):
+    points = [("path", e, x, y) for e, x, y in footpath_samples(campus, net.coverage.sample_step_m)]
+    step = net.coverage.grid_step_m * (campus.scale or 1.0)
+    points += [("area", None, x, y) for x, y in area_points(campus, step)]
+    for kind, edge, x, y in points:
         best: tuple[str, float, float | None] | None = None
         for cell, pts in rows.items():
             near = sorted(pts, key=lambda p: (p[0] - x) ** 2 + (p[1] - y) ** 2)[:4]
@@ -422,6 +506,7 @@ def build_radio_dt_map(campus: Any, net: NetworkConfig, csv_path: Path, geo: Any
         sinr = sinr if sinr is not None else sinr_from_rsrp(net, rsrp)
         samples.append(
             {
+                "kind": kind,
                 "edge": edge,
                 "x": x,
                 "y": y,
@@ -438,6 +523,7 @@ def build_radio_dt_map(campus: Any, net: NetworkConfig, csv_path: Path, geo: Any
             "source": "radio_dt",
             "label": f"radio DT export {csv_path.name} (UPV ray tracing, calibrated by campaigns)",
             "sample_step_m": net.coverage.sample_step_m,
+            "grid_step_m": net.coverage.grid_step_m,
             "cells": sorted(rows),
             "shadows_override": net.coverage.shadows_override,
         },

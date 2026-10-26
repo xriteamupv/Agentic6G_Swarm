@@ -23,7 +23,13 @@ def _coverage_points(cfg: A6GConfig) -> list[list[Any]]:
     try:
         from a6g_common.coverage import load_or_build
 
-        return [[s["x"], s["y"], s["level"]] for s in load_or_build(cfg).samples]
+        cmap = load_or_build(cfg)
+        step = float(cmap.meta.get("grid_step_m") or 0.0) * (cfg.campus.scale or 1.0)
+        # [x, y, level, cell size]: area cells (a heatmap) first, footpath samples on top
+        return [
+            [s["x"], s["y"], s["level"], step if s.get("kind") == "area" else 0]
+            for s in sorted(cmap.samples, key=lambda s: s.get("kind") != "area")
+        ]
     except Exception:  # the view never fails for a missing map
         return []
 
@@ -211,7 +217,7 @@ PAGE = r"""<!doctype html>
       <div><span style="background:rgba(var(--shadow),.18);border:1px dashed rgb(var(--shadow))"></span>5G coverage shadow (link lost) · <span style="background:rgba(217,113,28,.18);border:1px dashed rgb(217,113,28)"></span>degraded</div>
       <div><span style="background:var(--poi)"></span>point of interest · <span style="background:var(--exposed)"></span>exposed</div>
       <div><span style="background:var(--recovery)"></span>link recovery point · staging square</div>
-      <div><span style="background:#e41a1c"></span>n40 gNB site · footpath coverage (when emulated): <span style="background:#1b9e77"></span>good <span style="background:#e6ab02"></span>cell edge <span style="background:#d95f02"></span>degraded <span style="background:#7570b3"></span>lost</div>
+      <div><span style="background:#e41a1c"></span>n40 gNB site · coverage (when emulated; footpaths as dots, the rest of the area shaded): <span style="background:#1b9e77"></span>good <span style="background:#e6ab02"></span>cell edge <span style="background:#d95f02"></span>degraded <span style="background:#7570b3"></span>lost</div>
       <div><span style="background:transparent;border:2px solid var(--pilot)"></span>pilot area</div>
       <div><label><input type="checkbox" id="paths" checked> <span style="background:var(--path)"></span>footpath (OSM) · dashed: open space · <span style="background:#c24141"></span>stairs</label></div>
       <div><span style="background:#e02424"></span>restricted (closed, obstructed, flooded…)</div>
@@ -290,9 +296,12 @@ function draw() {
     for (const b of campus.buildings) poly(b, css("--building"), css("--building-edge"));
     if (document.getElementById("paths").checked) drawPaths();
     const lvl = {good: "#1b9e77", cell_edge: "#e6ab02", degraded: "#d95f02", lost: "#7570b3"};
-    for (const [x, y, l] of campus.coverage || []) {
+    for (const [x, y, l, cell] of campus.coverage || []) {
       const [u, v] = toPx(x, y); ctx.fillStyle = lvl[l] || "#999";
-      ctx.beginPath(); ctx.arc(u, v, 2.2, 0, 7); ctx.fill();
+      if (cell) {  // the pilot area: a faint heatmap cell
+        const [u2, v2] = toPx(x + cell, y + cell), w = Math.max(1, u2 - u), h = Math.max(1, v - v2);
+        ctx.globalAlpha = 0.22; ctx.fillRect(u - w / 2, v - h / 2, w, h); ctx.globalAlpha = 1;
+      } else { ctx.beginPath(); ctx.arc(u, v, 2.2, 0, 7); ctx.fill(); }
     }
     for (const st of campus.sites || []) {
       const [u, v] = toPx(st.x, st.y); ctx.fillStyle = "#e41a1c";

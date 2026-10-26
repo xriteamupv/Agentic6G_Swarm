@@ -51,7 +51,15 @@ def preview_html(cfg, cmap, calibration: dict | None) -> str:
     for sh in c.link_shadows:
         d = " ".join(f"{sx(x)},{sy(y)}" for x, y in sh)
         out.append(f'<polygon points="{d}" fill="none" stroke="#7570b3" stroke-dasharray="4 3"/>')
-    for s in cmap.samples:
+    step = float(cmap.meta.get("grid_step_m") or 0.0) * (c.scale or 1.0)
+    cell = max(1.0, step / (x1 - x0) * w)
+    for s in cmap.area_samples:  # the rest of the pilot area, shaded
+        out.append(
+            f'<rect x="{sx(s["x"]) - cell / 2}" y="{sy(s["y"]) - cell / 2}" width="{cell}" '
+            f'height="{cell}" fill="{LEVEL_COLOUR[s["level"]]}" fill-opacity="0.3">'
+            f"<title>RSRP {s['rsrp']} dBm, SINR {s['sinr']} dB, {s['level']}</title></rect>"
+        )
+    for s in cmap.path_samples:
         out.append(
             f'<circle cx="{sx(s["x"])}" cy="{sy(s["y"])}" r="2.2" '
             f'fill="{LEVEL_COLOUR[s["level"]]}">'
@@ -98,7 +106,8 @@ def preview_html(cfg, cmap, calibration: dict | None) -> str:
         "<!doctype html><html><head><meta charset='utf-8'><title>Coverage preview</title></head>"
         "<body style='font-family:sans-serif;margin:16px'>"
         f"<h3>Coverage levels ({cmap.meta.get('source')}): emulated, not measured</h3>"
-        f"<p>{legend} &nbsp; squares on the velodrome loop: predicted levels to compare "
+        f"<p>{legend} &nbsp; dots: footpaths; shaded: the rest of the pilot "
+        "area (outdoors); black-edged squares on the velodrome loop: predicted levels to compare "
         "with UPV's plots; dashed: placeholder shadows</p>"
         + "".join(out)
         + f"<pre>{meta}</pre></body></html>"
