@@ -174,6 +174,11 @@ class RobotAgent:
         self._peer_offline: set[str] = set()
         self._peer_envelopes: dict[str, dict[str, Any]] = {}
         self._redistributed: set[str] = set()
+        #: a dead peer's task nobody could take: offered again from this time (SPEC A4 N1)
+        self._retry_at: dict[str, datetime] = {}
+        #: mission -> the robot's latest envelope thread, active or finished: an idle robot
+        #: bids for and takes a dead peer's work on it (SPEC A4 N1, 2026-10-26)
+        self._mission_thread: dict[str, str] = {}
         # Speech output (SPEC A3.4): what the robot said while answering one ``say`` call;
         # everything also goes to ``on_speech`` (the sim console, a Gazebo label). Never
         # logged (rule 28).
@@ -319,6 +324,9 @@ class RobotAgent:
         return (await self.graph.aget_state(self._config(self.thread_id(envelope_id)))).values
 
     def _track(self, thread: str, state: dict[str, Any]) -> None:
+        mission = (state.get("envelope") or {}).get("mission_id")
+        if mission and not thread.startswith(f"{self.robot_id}:interaction:"):
+            self._mission_thread[mission] = thread
         active = state.get("status") in ACTIVE_STATUSES
         if active and thread not in self._threads:
             self._threads.append(thread)
@@ -414,16 +422,24 @@ class RobotAgent:
             self._mission = envelope.mission_id
         return reply
 
+    def _bid_thread(self, mission_id: str) -> str | None:
+        """The envelope thread a contract-net round runs on: an active one, else the
+        robot's finished envelope of that mission (an idle robot, the best placed to take a
+        dead peer's work, refused every call before 2026-10-26)."""
+        if self._threads:
+            return self._threads[0]
+        return self._mission_thread.get(mission_id)
+
     async def handle_cfp(self, cfp: CallForProposals, nl: dict[str, Any] | None = None) -> Bid:
         robot_state = await self.skills.get_state()
-        if not self._threads:
+        thread = self._bid_thread(cfp.mission_id)
+        if thread is None:
             return Bid(
                 cfp_id=cfp.cfp_id,
                 bidder=self.robot_id,
                 refusal_reason=RefusalReason.REGION.value,
                 stamp=self.deps.clock.now(),
             )
-        thread = self._threads[0]
         self._cfp_thread[cfp.cfp_id] = thread
         state = await self.invoke(
             thread,
@@ -1093,9 +1109,10 @@ class RobotAgent:
 
     async def _redistribute_dead_peers(self) -> None:
         """SPEC 9.2/9.3: with the coordinator lost, the lowest alive robot_id redistributes
-        the open swappable tasks of dead peers among the survivors (never new goals)."""
-        if self.peers is None or not self._threads:
-            return
+        the open swappable tasks of dead peers among the survivors (never new goals). An
+        idle robot takes part too; a task nobody could take is offered again later."""
+        if self.peers is None or self.link_quality is LinkQuality.LOST:
+            return  # out of coverage: it can reach nobody, and takes no new work (A1.12)
         alive = sorted([self.robot_id, *[p for p in self._known_peers() if self._peer_alive(p)]])
         if alive[0] != self.robot_id:
             return  # someone else is the initiator
@@ -1106,14 +1123,22 @@ class RobotAgent:
             for task_id, entry in sorted(env.get("tasks", {}).items()):
                 if entry["status"] not in OPEN_TASK_STATUSES or task_id in self._redistributed:
                     continue
+                retry = self._retry_at.get(task_id)
+                if retry is not None and self.deps.clock.now() < retry:
+                    continue
                 self._redistributed.add(task_id)
-                await self._contract_net(
+                taken = await self._contract_net(
                     TaskSpec.model_validate(entry["spec"]),
                     mission_id=env["mission_id"],
                     envelope_id=env["envelope_id"],
                     from_robot=dead,
                     bidders=alive,
                 )
+                if not taken:  # nobody could take it now (busy, out of coverage): later
+                    self._redistributed.discard(task_id)
+                    self._retry_at[task_id] = self.deps.clock.now() + timedelta(
+                        seconds=self.deps.agent_cfg.peer_timeout_s * 3
+                    )
 
     async def _redistribute_own(self, state: dict[str, Any], task_id: str) -> None:
         env = state.get("envelope") or {}
@@ -1138,9 +1163,10 @@ class RobotAgent:
         envelope_id: str,
         from_robot: str,
         bidders: list[str],
-    ) -> None:
+    ) -> bool:
+        """True: the task found a robot (its award was accepted)."""
         if not bidders or not self.deps.agent_cfg.contract_net:  # B0-B2: no peer fallback
-            return
+            return False
         cfp = CallForProposals(
             cfp_id=self.deps.ids("cfp"),
             mission_id=mission_id,
@@ -1175,7 +1201,7 @@ class RobotAgent:
         winner = best_bid([(b.bidder, b.cost) for b in bids if b.cost is not None])
         if winner is None:
             log.warning("%s: nobody can take %s", self.robot_id, task.task_id)
-            return
+            return False
         award = Award(
             award_id=f"aw_{cfp.cfp_id}",
             cfp_id=cfp.cfp_id,
@@ -1194,10 +1220,10 @@ class RobotAgent:
                 ack = await self.peers.link(winner[0]).award(award)  # type: ignore[union-attr]
             except Exception as exc:
                 log.warning("%s: award to %s failed: %s", self.robot_id, winner[0], exc)
-                return
+                return False
         if not ack.get("accepted"):
-            return
-        my_thread = self._threads[0] if self._threads else None
+            return False
+        my_thread = self._bid_thread(mission_id)
         if my_thread is not None:
             await self.invoke(
                 my_thread,
@@ -1208,6 +1234,7 @@ class RobotAgent:
                     "bids": [b.model_dump(mode="json") for b in bids],
                 },
             )
+        return True
 
     async def _publish_envelope(self, state: dict[str, Any]) -> None:
         """Share the accepted envelope (retained) so peers can redistribute it if we die."""

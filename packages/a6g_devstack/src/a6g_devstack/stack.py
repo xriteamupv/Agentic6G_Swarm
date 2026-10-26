@@ -176,6 +176,11 @@ class _Peer:
         proc = self.stack.robots.get(self.robot_id)
         if proc is None or proc.agent is None:
             raise ConnectionError(f"{self.robot_id} unreachable")
+        # Robot-to-robot traffic crosses the radio twice (UE to UE through the core): it
+        # fails when either robot is out of coverage (it went through before 2026-10-26).
+        for rid in (self.sender, self.robot_id):
+            if rid in self.stack.robots and self.stack.world.link_quality(rid) is LinkQuality.LOST:
+                raise ConnectionError(f"{rid} out of coverage")
         return self.stack.net.client(self.sender, self.robot_id)
 
     async def cfp(self, cfp: CallForProposals, nl: dict[str, Any] | None = None) -> Bid:

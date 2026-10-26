@@ -97,10 +97,12 @@ def odometry_m(telemetry: Path) -> float:
 
 def _baseline_row(kpi: str, results: Path) -> dict:
     """KPI-2, -5, -6 (vs B1) and -8 from the latest ``a6g bench baselines`` result."""
-    found = _latest(results, "e6_baselines")
+    found = _latest(results, "n1_outage") or _latest(results, "e6_baselines")
     if not found:
         return _row(kpi, NA, note="run `a6g bench baselines` (B0-B2 against P)")
     t = found[1]["table"]
+    if any("_o" in k for k in t):  # the outage sweep (SPEC A4 N1): its 60 s cells
+        t = {k.rsplit("_o", 1)[0]: v for k, v in t.items() if k.endswith("_o60")}
 
     def pick(key: str, field: str) -> Any:
         return {arm: t[f"{arm}_f{3}"][field] for arm in ("P", key) if f"{arm}_f3" in t}

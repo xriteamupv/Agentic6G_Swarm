@@ -938,26 +938,58 @@ def dataset_export(
 
 @bench_app.command("baselines")
 def bench_baselines(
-    seeds: Annotated[int, typer.Option("--seeds", help="seeded runs per cell")] = 5,
-    fleets: Annotated[str, typer.Option("--fleets", help="fleet sizes, comma-separated")] = "3,5",
+    seeds: Annotated[int, typer.Option("--seeds", help="seeded runs per cell")] = 10,
+    fleets: Annotated[
+        str, typer.Option("--fleets", help="fleet sizes, comma-separated (3, 5, 8)")
+    ] = "3,5,8",
+    outage_s: Annotated[
+        str,
+        typer.Option("--outage-s", help="coordinator outage lengths in s, comma-separated; inf"),
+    ] = "60,180,300,600,inf",
+    horizon_s: Annotated[
+        float, typer.Option("--horizon-s", help="mission horizon (simulated s)")
+    ] = 3600.0,
+    configs: Annotated[
+        str, typer.Option("--configs", help="P,B2,B1,B0 (comma-separated)")
+    ] = "P,B2,B1,B0",
+    jobs: Annotated[int, typer.Option("--jobs", help="runs in parallel (processes)")] = 1,
+    csv_out: Annotated[Path, typer.Option("--csv", help="per-run CSV for the paper figure")] = Path(
+        "paper/fig_outage.csv"
+    ),
     out: Annotated[Path, typer.Option("--out", help="results directory")] = Path("bench/results"),
     runs: Annotated[Path, typer.Option("--runs", help="run directories")] = Path(
-        "var/runs/baselines"
+        "var/runs/n1_outage"
     ),
     config_dir: ConfigDirOpt = None,
 ) -> None:
-    """B0-B2 against P (SPEC A3.8): six inspections with a coordinator crash and a robot
-    failure during the outage; UC2-KPI-2, -5, -6 and -8."""
+    """B0-B2 against P (SPEC A3.8) and the outage sweep (SPEC A4 N1): six inspections, a
+    coordinator crash, a robot failure during the outage, a restart after each outage
+    length; UC2-KPI-2, -5, -6, -8, time to resume, duplicates, traffic, processing time."""
     import asyncio
 
-    from a6g_devstack.bench_baselines import run, summary, write
+    from a6g_devstack.bench_baselines import ARMS, LABEL, run, summary, write, write_csv
 
     cfg = load_config(config_dir, fleet_file="sim/fleet.yaml")
     sizes = tuple(int(x) for x in fleets.split(","))
-    result = asyncio.run(run(cfg, runs, seeds=seeds, fleets=sizes))
+    outages = tuple(float(x) for x in outage_s.split(","))
+    by_label = {v: k for k, v in LABEL.items()}
+    arms = tuple(by_label[c.strip()] for c in configs.split(",") if c.strip() in by_label) or ARMS
+    result = asyncio.run(
+        run(
+            cfg,
+            runs,
+            seeds=seeds,
+            fleets=sizes,
+            arms=arms,
+            outages=outages,
+            horizon_s=horizon_s,
+            jobs=jobs,
+        )
+    )
     result["manifest"] = _manifest(cfg, seeds, time_factor="up to 200x")
     typer.echo(summary(result))
     typer.echo(f"results: {write(result, out)}")
+    typer.echo(f"figure data: {write_csv(result, csv_out)}")
 
 
 kpi_app = typer.Typer(help="KPI reports (SPEC A3.8).", no_args_is_help=True)

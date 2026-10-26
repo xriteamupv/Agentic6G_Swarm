@@ -10,6 +10,7 @@ waits for the coordinator run it triggers).
 import asyncio
 import contextlib
 import logging
+import time
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -59,6 +60,8 @@ class Coordinator:
         self._queues: dict[str, asyncio.Queue[tuple[Any, asyncio.Future[Any]]]] = {}
         self._workers: dict[str, asyncio.Task[None]] = {}
         self._busy: dict[str, int] = defaultdict(int)
+        #: wall seconds of each graph run (SPEC A4 N1: processing time per invocation)
+        self.run_wall_s: list[float] = []
         self.running = False
 
     # ------------------------------------------------------------------ lifecycle
@@ -97,7 +100,11 @@ class Coordinator:
 
     async def _run(self, mission_id: str, payload: Any) -> dict[str, Any]:
         async with self._gate():
-            return await self.graph.ainvoke(payload, self._config(mission_id))
+            started = time.perf_counter()
+            try:
+                return await self.graph.ainvoke(payload, self._config(mission_id))
+            finally:
+                self.run_wall_s.append(time.perf_counter() - started)
 
     async def _worker(self, mission_id: str) -> None:
         queue = self._queues[mission_id]
