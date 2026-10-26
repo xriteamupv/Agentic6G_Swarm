@@ -182,6 +182,15 @@ async def run(
         "timeline": timeline,
         "error": error,
         "checks": checks(stack, workdir, speaker, iid, operator, interrupts) if not error else {},
+        "network": {
+            "mode": cfg.network.mode,
+            "coverage_source": cfg.network.coverage.source,
+            # SPEC A4.6: with a coverage map the shelters' shadow is a placeholder kept as
+            # an override; the measured velodrome shows no outage
+            "link_loss": "injected shadow (placeholder polygon, a stress case)"
+            if cfg.network.coverage.source != "shadows"
+            else "shadow polygon",
+        },
         "stamp": datetime.now(UTC).isoformat(),
     }
     (workdir / "run.json").write_text(json.dumps(result, indent=2, default=str))

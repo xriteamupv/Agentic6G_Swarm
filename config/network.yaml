@@ -35,7 +35,7 @@ network:
     hysteresis_db: 3
     min_dwell_s: 2              # simulated seconds before a level change takes effect
     shadows_override: true      # the campus coverage_shadows (placeholders) stay `lost`
-    map_file: ../sim/{campus}_coverage.json
+    map_file: ../sim_gazebo/src/a6g_gz_worlds/sim/{campus}_coverage.json   # next to the route graph
   uplink_rate:                  # maximum uplink rate of one robot at a location
     anchor: {ul_mbps: 22, sinr_db: 25}   # measured single-UE TCP goodput, velodrome, 20 MHz
     spectral_efficiency: {alpha: 0.6, se_max_bps_hz: 5.55}

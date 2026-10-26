@@ -17,6 +17,17 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.routing import Route
 
 
+def _coverage_points(cfg: A6GConfig) -> list[list[Any]]:
+    if cfg.network.coverage.source == "shadows":
+        return []
+    try:
+        from a6g_common.coverage import load_or_build
+
+        return [[s["x"], s["y"], s["level"]] for s in load_or_build(cfg).samples]
+    except Exception:  # the view never fails for a missing map
+        return []
+
+
 def campus_geometry(cfg: A6GConfig) -> dict[str, Any]:
     c = cfg.campus
     edges = {e.id: e.geometry for e in (c.route_graph.edges if c.route_graph else [])}
@@ -47,6 +58,12 @@ def campus_geometry(cfg: A6GConfig) -> dict[str, Any]:
             {"id": r.point_id, "name": r.label, "x": r.pose.x, "y": r.pose.y}
             for r in c.link_recovery_points
         ],
+        # SPEC A4.6: the gNB site(s) and, with a coverage map, the footpaths by level
+        "sites": [
+            {"id": n["site_id"], "name": n.get("name") or n["site_id"], "x": n["x"], "y": n["y"]}
+            for n in c.network_sites
+        ],
+        "coverage": _coverage_points(cfg),
         "robots": {
             rid: {
                 "platform": m.platform.value,
@@ -194,6 +211,7 @@ PAGE = r"""<!doctype html>
       <div><span style="background:rgba(var(--shadow),.18);border:1px dashed rgb(var(--shadow))"></span>5G coverage shadow (link lost) · <span style="background:rgba(217,113,28,.18);border:1px dashed rgb(217,113,28)"></span>degraded</div>
       <div><span style="background:var(--poi)"></span>point of interest · <span style="background:var(--exposed)"></span>exposed</div>
       <div><span style="background:var(--recovery)"></span>link recovery point · staging square</div>
+      <div><span style="background:#e41a1c"></span>n40 gNB site · footpath coverage (when emulated): <span style="background:#1b9e77"></span>good <span style="background:#e6ab02"></span>cell edge <span style="background:#d95f02"></span>degraded <span style="background:#7570b3"></span>lost</div>
       <div><span style="background:transparent;border:2px solid var(--pilot)"></span>pilot area</div>
       <div><label><input type="checkbox" id="paths" checked> <span style="background:var(--path)"></span>footpath (OSM) · dashed: open space · <span style="background:#c24141"></span>stairs</label></div>
       <div><span style="background:#e02424"></span>restricted (closed, obstructed, flooded…)</div>
@@ -271,6 +289,16 @@ function draw() {
     ctx.lineWidth = 1;
     for (const b of campus.buildings) poly(b, css("--building"), css("--building-edge"));
     if (document.getElementById("paths").checked) drawPaths();
+    const lvl = {good: "#1b9e77", cell_edge: "#e6ab02", degraded: "#d95f02", lost: "#7570b3"};
+    for (const [x, y, l] of campus.coverage || []) {
+      const [u, v] = toPx(x, y); ctx.fillStyle = lvl[l] || "#999";
+      ctx.beginPath(); ctx.arc(u, v, 2.2, 0, 7); ctx.fill();
+    }
+    for (const st of campus.sites || []) {
+      const [u, v] = toPx(st.x, st.y); ctx.fillStyle = "#e41a1c";
+      ctx.beginPath(); ctx.moveTo(u, v - 10); ctx.lineTo(u - 8, v + 7); ctx.lineTo(u + 8, v + 7); ctx.closePath(); ctx.fill();
+      label(st.name, st.x, st.y, "#e41a1c", 20);
+    }
     ctx.lineWidth = 2; poly(campus.pilot_area, null, css("--pilot"), [8, 5]); ctx.lineWidth = 1;
     if (campus.staging.area) poly(campus.staging.area, `rgba(${staging},.10)`, `rgb(${staging})`, [3, 3]);
     for (const r of campus.recovery) {

@@ -38,6 +38,9 @@ campus_app = typer.Typer(
     help="Campus world and map generation (SPEC A1 Section 5).", no_args_is_help=True
 )
 app.add_typer(campus_app, name="campus")
+from a6g_cli.network_cli import network_app  # noqa: E402
+
+app.add_typer(network_app, name="network")
 sim_app.add_typer(inject_app, name="inject")
 
 ConfigDirOpt = Annotated[
@@ -105,6 +108,38 @@ def config_validate(
     robots = ", ".join(f"{k} ({v.platform.value})" for k, v in cfg.manifests.items())
     shown = f"; profile {cfg.profile.profile.value}" if cfg.profile else ""
     typer.echo(f"OK fleet {cfg.fleet.fleet_id}: {robots}; campus {cfg.campus.campus_id}{shown}")
+    if cfg.campus.network_sites and cfg.network.cells:  # SPEC A4.6: coverage warnings
+        try:
+            from a6g_common import coverage as cv
+
+            source = cfg.network.coverage.source
+            cmap = cv.load_or_build(
+                cfg
+                if source != "shadows"
+                else cfg.model_copy(
+                    update={
+                        "network": cfg.network.model_copy(
+                            update={
+                                "coverage": cfg.network.coverage.model_copy(
+                                    update={"source": "model"}
+                                )
+                            }
+                        )
+                    }
+                )
+            )
+        except Exception as exc:  # warnings only
+            typer.echo(f"WARNING: no coverage map ({exc})")
+            return
+        summary = cmap.summary(cfg.campus)
+        for rid, level in summary["link_recovery_points"].items():
+            if level != "good":
+                typer.echo(f"WARNING: link-recovery point {rid} is `{level}`, not `good`")
+        typer.echo(
+            "exposed POIs: "
+            + ", ".join(f"{k} {v}" for k, v in summary["exposed_pois"].items())
+            + f" (coverage: {cmap.meta.get('source')})"
+        )
 
 
 @app.command("adapter-config")

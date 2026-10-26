@@ -292,6 +292,10 @@ class RobotState(Versioned):
     current_task_id: Identifier | None = None
     commitment_until: UtcDatetime | None = None
     link_quality: LinkQuality = LinkQuality.OK
+    #: SPEC A4.6: coverage level and serving cell; ``link_quality`` is derived from the
+    #: level (lost -> lost, degraded -> degraded, otherwise ok). None: not known.
+    link_level: Literal["good", "cell_edge", "degraded", "lost"] | None = None
+    cell_id: str | None = None
     armed: bool = False
     stamp: UtcDatetime
 

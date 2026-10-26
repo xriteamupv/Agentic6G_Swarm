@@ -119,6 +119,15 @@ class CampusEditor:
             "dirty": self.dirty,
             "pilot_area": enu["pilot_area"],
             "buildings": enu["obstacles"],
+            "sites": [
+                {
+                    "id": n["site_id"],
+                    "name": n.get("name") or n["site_id"],
+                    "x": n["x"],
+                    "y": n["y"],
+                }
+                for n in enu.get("network_sites") or []
+            ],
             "shadows": [
                 {
                     "id": sh["id"],

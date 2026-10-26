@@ -20,6 +20,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import StrEnum
+from typing import Any
 
 from a6g_common.clock import _OUTSIDE, ManualClock
 from a6g_common.config import CampusConfig, Motion, RobotManifest
@@ -177,6 +178,10 @@ class SimWorld:
     ) -> None:
         self.campus = campus
         self.clock = clock or ManualClock()
+        #: SPEC A4.6: coverage levels from the network twin (None: the shadow polygons)
+        self.coverage: Any = None
+        self.coverage_net: Any = None  # the NetworkConfig the map was built with
+        self._trackers: dict[str, Any] = {}
         #: Charging rate of an idle robot inside the staging area (the dock).
         self.charge_pct_per_s = charge_pct_per_s
         # Building footprints from the campus (SPEC A1 Rule 16): robots drive around them.
@@ -232,10 +237,38 @@ class SimWorld:
 
     # ------------------------------------------------------------------ sensing
 
+    def link_level(self, robot_id: str) -> tuple[str, str | None]:
+        """(level, serving cell) of a robot: from the coverage map with hysteresis and
+        minimum dwell (SPEC A4.6); without one, from the shadow polygons."""
+        robot = self.robot(robot_id)
+        if robot.link_lost_until and self.clock.now() < robot.link_lost_until:
+            return "lost", None
+        if self.coverage is None:
+            q = self._shadow_quality(robot)
+            return {LinkQuality.LOST: "lost", LinkQuality.DEGRADED: "degraded"}.get(q, "good"), None
+        sample = self.coverage.nearest(robot.x, robot.y)
+        if sample is None:
+            return "lost", None
+        tracker = self._trackers.get(robot_id)
+        if tracker is None:
+            from a6g_common.coverage import LevelTracker
+
+            tracker = self._trackers[robot_id] = LevelTracker(self.coverage_net)
+        level = tracker.update(sample, self.clock.now())
+        return level, tracker.cell
+
     def link_quality(self, robot_id: str) -> LinkQuality:
         robot = self.robot(robot_id)
         if robot.link_lost_until and self.clock.now() < robot.link_lost_until:
             return LinkQuality.LOST
+        if self.coverage is not None:
+            level, _ = self.link_level(robot_id)
+            return {"lost": LinkQuality.LOST, "degraded": LinkQuality.DEGRADED}.get(
+                level, LinkQuality.OK
+            )
+        return self._shadow_quality(robot)
+
+    def _shadow_quality(self, robot: SimRobot) -> LinkQuality:
         if any(point_in_polygon((robot.x, robot.y), s) for s in self.campus.link_shadows):
             return LinkQuality.LOST
         if any(point_in_polygon((robot.x, robot.y), s) for s in self.campus.degraded_shadows):
@@ -250,6 +283,7 @@ class SimWorld:
 
     def state(self, robot_id: str, *, armed: bool = False) -> RobotState:
         robot = self.robot(robot_id)
+        level, cell = self.link_level(robot_id)
         m = robot.manifest
         return RobotState(
             robot_id=robot.robot_id,
@@ -260,6 +294,8 @@ class SimWorld:
             battery_pct=round(robot.battery_pct, 2) if m.battery_reliable else None,
             capabilities=[c.value for c in m.capabilities],
             link_quality=self.link_quality(robot_id),
+            link_level=level,
+            cell_id=cell,
             armed=armed,
             stamp=self.clock.now(),
         )

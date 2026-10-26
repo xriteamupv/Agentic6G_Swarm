@@ -257,6 +257,11 @@ class SimStack:
             self.cfg = self.cfg.model_copy(update={"fleet": fleet})
         self.workdir.mkdir(parents=True, exist_ok=True)
         self.world = SimWorld(self.cfg.campus, ManualClock(self.start_time))
+        if self.cfg.network.coverage.source != "shadows":  # SPEC A4.6: levels from the twin
+            from a6g_common.coverage import load_or_build
+
+            self.world.coverage = load_or_build(self.cfg)
+            self.world.coverage_net = self.cfg.network
         self.world.models_freeze_time = self.model_time == "freeze"
         self.bus = self.bus if self.bus is not None else memory_bus("devstack")
         self.log = DecisionLog(self.workdir / "decisions.jsonl")

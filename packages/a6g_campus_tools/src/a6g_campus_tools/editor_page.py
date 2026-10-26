@@ -139,6 +139,11 @@ function draw() {
     label(`${sh.id} (${sh.link_quality})`, c[0], c[1], `rgb(${rgb})`, 4);
   }
   for (const b of S.buildings) { path(b, true); ctx.fillStyle = css("--building"); ctx.fill(); ctx.strokeStyle = css("--building-edge"); ctx.stroke(); }
+  for (const st of S.sites || []) {  // SPEC A4.6.1: the gNB site (visual only)
+    const [u, v] = toPx(st.x, st.y); ctx.fillStyle = "#e41a1c";
+    ctx.beginPath(); ctx.moveTo(u, v - 10); ctx.lineTo(u - 8, v + 7); ctx.lineTo(u + 8, v + 7); ctx.closePath(); ctx.fill();
+    label(st.name, st.x, st.y, "#e41a1c", 20);
+  }
   path(S.pilot_area, true); ctx.setLineDash([8, 5]); ctx.lineWidth = 2; ctx.strokeStyle = css("--pilot"); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
   const showIds = document.getElementById("ids").checked;
   for (const e of S.edges) {
