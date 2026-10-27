@@ -1,0 +1,340 @@
+{
+  "kpi": "UC2-KPI-11",
+  "definition": "posture change to emergency written to the twin -> reconciled envelopes published (wall clock); acknowledged_*: until every robot has answered",
+  "simulator": "2D",
+  "model": "fake",
+  "decompose_mode": {
+    "routine": "model",
+    "interactive": "model",
+    "emergency": "template_then_model"
+  },
+  "seeds": 20,
+  "failed_runs": 0,
+  "p50_s": 0.03,
+  "p95_s": 0.033,
+  "max_s": 0.034,
+  "mean_s": 0.029,
+  "acknowledged_p50_s": 0.14,
+  "acknowledged_p95_s": 0.143,
+  "target_p95_s": 3.0,
+  "meets_target": true,
+  "runs": [
+    {
+      "seed": 0,
+      "model_calls": [],
+      "alert_after_s_sim": 511.3,
+      "kpi11_s": 0.025,
+      "acknowledged_s": 0.111,
+      "robots": [
+        "go2_01",
+        "go2_02"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 1,
+      "model_calls": [],
+      "alert_after_s_sim": 106.6,
+      "kpi11_s": 0.022,
+      "acknowledged_s": 0.106,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 2,
+      "model_calls": [],
+      "alert_after_s_sim": 574.9,
+      "kpi11_s": 0.033,
+      "acknowledged_s": 0.139,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 3,
+      "model_calls": [],
+      "alert_after_s_sim": 165.6,
+      "kpi11_s": 0.032,
+      "acknowledged_s": 0.143,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 4,
+      "model_calls": [],
+      "alert_after_s_sim": 164.5,
+      "kpi11_s": 0.033,
+      "acknowledged_s": 0.142,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 5,
+      "model_calls": [],
+      "alert_after_s_sim": 385.1,
+      "kpi11_s": 0.022,
+      "acknowledged_s": 0.105,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 6,
+      "model_calls": [],
+      "alert_after_s_sim": 482.2,
+      "kpi11_s": 0.025,
+      "acknowledged_s": 0.114,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 7,
+      "model_calls": [],
+      "alert_after_s_sim": 214.6,
+      "kpi11_s": 0.033,
+      "acknowledged_s": 0.143,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 8,
+      "model_calls": [],
+      "alert_after_s_sim": 159.2,
+      "kpi11_s": 0.03,
+      "acknowledged_s": 0.139,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 9,
+      "model_calls": [],
+      "alert_after_s_sim": 293.9,
+      "kpi11_s": 0.033,
+      "acknowledged_s": 0.14,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 10,
+      "model_calls": [],
+      "alert_after_s_sim": 355.7,
+      "kpi11_s": 0.034,
+      "acknowledged_s": 0.142,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 11,
+      "model_calls": [],
+      "alert_after_s_sim": 287.9,
+      "kpi11_s": 0.03,
+      "acknowledged_s": 0.14,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 12,
+      "model_calls": [],
+      "alert_after_s_sim": 300.5,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 0.14,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 13,
+      "model_calls": [],
+      "alert_after_s_sim": 177.6,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 0.143,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 14,
+      "model_calls": [],
+      "alert_after_s_sim": 90.9,
+      "kpi11_s": 0.024,
+      "acknowledged_s": 0.113,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 15,
+      "model_calls": [],
+      "alert_after_s_sim": 580.2,
+      "kpi11_s": 0.033,
+      "acknowledged_s": 0.142,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 16,
+      "model_calls": [],
+      "alert_after_s_sim": 236.1,
+      "kpi11_s": 0.033,
+      "acknowledged_s": 0.145,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 17,
+      "model_calls": [],
+      "alert_after_s_sim": 327.5,
+      "kpi11_s": 0.03,
+      "acknowledged_s": 0.135,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 18,
+      "model_calls": [],
+      "alert_after_s_sim": 133.3,
+      "kpi11_s": 0.03,
+      "acknowledged_s": 0.137,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    },
+    {
+      "seed": 19,
+      "model_calls": [],
+      "alert_after_s_sim": 416.0,
+      "kpi11_s": 0.026,
+      "acknowledged_s": 0.11,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": null
+    }
+  ],
+  "stamp": "2026-10-27T19:12:02.959350+00:00",
+  "manifest": {
+    "commit": "8400afb5e5abc64bb48855c2701f7a57eb5838e1",
+    "dirty": false,
+    "command": "a6g bench kpi11 --seeds 20",
+    "config_dir": "config",
+    "config_sha256": {
+      "allocator.yaml": "61f02e4b8bea56ed",
+      "bench/manual_round.yaml": "da07a9c882d38634",
+      "bench/protocols.yaml": "f5155b079176b8a7",
+      "campus/upv_vera_cpi.yaml": "6c1fe74165aa1832",
+      "comms.yaml": "a037a5d6d9172c95",
+      "fleet.yaml": "8e5885270fb4b0f1",
+      "gazebo/fleet.yaml": "6ef9a1346ca29fba",
+      "interactions.yaml": "0e776ba4683c7062",
+      "knowledge.yaml": "c222a4844dc2ab45",
+      "models.yaml": "b44f9a6ecfcd63e5",
+      "network.yaml": "97150ba6cf52a159",
+      "profiles/gazebo.yaml": "11eb4c94b3a9a2ff",
+      "profiles/real.yaml": "bc6d5823ca4a95e1",
+      "profiles/sim.yaml": "52291f229063d99b",
+      "robots/go2_01.yaml": "f877cde419645d48",
+      "robots/go2_02.yaml": "c4bfed9582bfd02c",
+      "robots/go2_03.yaml": "bcce48836640f943",
+      "robots/go2_04.yaml": "0a9ca6c013020bad",
+      "robots/go2_05.yaml": "77a6e53af6c8cb0c",
+      "robots/summit_01.yaml": "5469b3e0d34469a6",
+      "robots/summit_02.yaml": "05fef14e455bfece",
+      "robots/summit_03.yaml": "631138048e1f0d66",
+      "sim/fleet.yaml": "30cb0df00a680c76"
+    },
+    "seeds": 20,
+    "models": {
+      "coordinator_llm": {
+        "model": "fake",
+        "fidelity": "offline"
+      },
+      "onboard_vlm": {
+        "model": "fake",
+        "fidelity": "offline"
+      }
+    },
+    "network": "stand-in",
+    "mode": "always_grant",
+    "coverage_source": "radio_dt",
+    "coverage_calibration": "plots",
+    "provenance": {
+      "cell": "UPV network document, 2026-10-26 (5G_UPV Nodo2, NRCELL-9)",
+      "ul_capacity": "measured TCP goodput of one device in the velodrome, 20 MHz (UPV)",
+      "coverage_calibration": "RSRP/SINR read from UPV's velodrome plots (no CSV)",
+      "sinr": "downlink SINR from the plots; uplink quality assumed to follow it",
+      "link_profiles_good_rtt": "measured n40 one-way 9.76 DL + 8.89 UL ms (UPV)",
+      "other": "Nexus n40 cell (Building 6G), LTE B7, n258 and n78 not modelled"
+    },
+    "time_factor": "up to 50x",
+    "host": {
+      "name": "iterate-Inspiron-14-5410",
+      "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+      "python": "3.11.16",
+      "cpus": 8
+    },
+    "written": "2026-10-27T19:12:02.961929+00:00"
+  }
+}

@@ -4333,6 +4333,9 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 if t["spec"]["kind"] == TaskKind.HOLD_POST.value:
                     t["spec"]["sensing_mode"] = "state_only"
                     t["degraded_from"] = t.get("degraded_from") or "telemetry"
+                elif t["spec"]["kind"] == TaskKind.ESCORT.value:
+                    t["spec"]["sensing_mode"] = "state_only"  # escorted without the stream
+                    t["degraded_from"] = t.get("degraded_from") or "conversational"
                 if _spec(t).priority >= floor:
                     escalated.append(tid)
             for f in flows.values():
@@ -4376,9 +4379,9 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             )
         if escalated:
             run.note(
-                "⚠️ The network cannot carry any sensing stream at "
+                "⚠️ The network cannot carry any stream for "
                 + join(narr.task_id(tasks, t) for t in escalated)
-                + ": the robot holds the post without sensing. Please decide (move the post, "
+                + ": the robot goes on without it (state only). Please decide (move it, "
                 "or accept it like this)."
             )
         if problems["i1"]:

@@ -26,7 +26,9 @@ def flow_class(spec: TaskSpec) -> str:
     if spec.kind is TaskKind.SURVEY_SECTOR:
         return "survey_uplink"
     if spec.kind is TaskKind.ESCORT:
-        return "conversational"
+        # an escort the network cannot serve at all (a shelter in lost coverage, radio DT
+        # map, 2026-10-27) goes on without the stream: the robot talks to the person locally
+        return "telemetry" if spec.sensing_mode == "state_only" else "conversational"
     if spec.kind is TaskKind.HOLD_POST:
         if spec.sensing_mode == "state_only":  # no sensing stream the network can carry
             return "telemetry"
