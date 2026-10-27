@@ -1,0 +1,53 @@
+# Gazebo fleet (a6g-gz-stack, SPEC A1 11): Summit + two Go2 proxies, as config/sim/fleet.yaml
+# but with real skill servers over HTTP (82xx) in front of each robot's ros_adapter, so the
+# CLI kill-switch reaches them. go2_03 is hot-added with `a6g sim add_robot` (8104/8204).
+# Robot agents on 81xx; the coordinator runs in `langgraph dev` as with the 2D stack.
+schema_version: "1.0"
+fleet_id: upv_gazebo
+campus: campus/upv_vera_cpi.yaml
+
+edge:
+  host: 127.0.0.1
+  mqtt:
+    host: ${A6G_MQTT_HOST:-127.0.0.1}
+    port: ${A6G_MQTT_PORT:-1883}
+  postgres_dsn_env: A6G_PG_DSN
+  # The coordinator runs inside the LangGraph Agent Server (`langgraph dev`, port 2024);
+  # its A2A endpoint for robot reports is mounted under /a6g.
+  coordinator_a2a_url: ${A6G_COORDINATOR_URL:-http://127.0.0.1:2024/a6g}
+  decision_log_path: ${A6G_DECISION_LOG:-var/decisions.jsonl}
+
+defaults:
+  budget: {sustained_mbps: 3.0, burst_mbps: 8.0}
+  coordinator_timeout_s: 10
+  link_loss_policy: hold_then_recover
+  agent:
+    link_loss_hold_s: 30              # hold_then_recover: wait before seeking coverage
+    state_poll_interval_s: 1.0
+    peer_timeout_s: 10
+  coordinator:
+    robot_timeout_s: 10
+    heartbeat_period_s: 1.0
+    # Chat messages: "template" (deterministic plain language) or "llm" (the coordinator LLM
+    # rephrases them; a rewrite that drops any robot id is discarded).
+    narration: template
+    # "exclusive": starting a mission in a new conversation ends the other active missions
+    # (their tasks are cancelled and the robots released). "shared": they coexist.
+    missions: exclusive
+
+robots:
+  - robot_id: go2_01
+    manifest: robots/go2_01.yaml
+    a2a_url: http://127.0.0.1:8101
+    mcp_url: http://127.0.0.1:8201/mcp
+    peers: [go2_02, summit_01]
+  - robot_id: go2_02
+    manifest: robots/go2_02.yaml
+    a2a_url: http://127.0.0.1:8102
+    mcp_url: http://127.0.0.1:8202/mcp
+    peers: [go2_01, summit_01]
+  - robot_id: summit_01
+    manifest: robots/summit_01.yaml
+    a2a_url: http://127.0.0.1:8103
+    mcp_url: http://127.0.0.1:8203/mcp
+    peers: [go2_01, go2_02]

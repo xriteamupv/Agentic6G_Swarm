@@ -13,13 +13,21 @@ Secrets are never stored in YAML; reference them by environment-variable *name*
 import math
 import os
 import re
+from collections.abc import Callable
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, Literal, TypeVar
 from urllib.parse import urlsplit
 
 import yaml
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    PrivateAttr,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from a6g_common.geometry import point_in_polygon
 from a6g_common.netconfig import NetworkConfig
@@ -273,8 +281,11 @@ class AgentConfig(A6GModel):
     contract_net: bool = True
     #: An idle robot in a mission asks the coordinator for work this often (simulated s),
     #: and never more often than every ``work_request_min_wall_s`` real seconds (a fast
-    #: simulator must not flood the coordinator).
-    work_request_interval_s: float = Field(60.0, gt=0.0)
+    #: simulator must not flood the coordinator). 30 s since 2026-10-27 (was 60 s).
+    work_request_interval_s: float = Field(30.0, gt=0.0)
+    #: Unanswered asks double the wait up to this factor (was 16: a robot charged idle at
+    #: the dock then waited 16 min simulated to ask again, 2026-10-27).
+    work_request_max_backoff: int = Field(4, ge=1)
     #: Recharging early, between tasks, so that robots do not all run low together
     #: (2026-10-22): ``off``; ``rule`` (charge below ``early_recharge_pct`` when no peer is
     #: charging); ``model`` (the robot's model decides, within what code allows; the rule
@@ -286,6 +297,9 @@ class AgentConfig(A6GModel):
     link_loss_hold_s: float = Field(
         30.0, ge=0.0, description="hold_then_recover: wait this long before seeking coverage"
     )
+    #: Idle this long (simulated s) away from the staging area: drive back to it, and wait
+    #: there for work (2026-10-27). None: stay where the last task ended.
+    idle_return_s: float | None = Field(30.0, ge=0.0)
     inspect_dwell_s: float = Field(10.0, ge=0.0)
     triage_confidence_threshold: float = Field(0.6, ge=0.0, le=1.0)
     state_poll_interval_s: float = Field(1.0, gt=0.0, description="get_state / MQTT state period")
@@ -317,6 +331,11 @@ class CoordinatorConfig(A6GModel):
     """Swarm coordinator tunables (SPEC 10)."""
 
     robot_timeout_s: float = Field(10.0, gt=0.0, description="robot failed after state silence")
+    #: A robot silent longer than its running task's expected duration + the link-loss hold
+    #: + this margin is presumed stuck: all its work, including the running task, goes to the
+    #: other robots; it keeps seeking coverage on its own (2026-10-27). None: it keeps its
+    #: running task until it is back.
+    lost_release_s: float | None = Field(120.0, gt=0.0)
     #: How long the coordinator waits for a robot's envelope reply: a robot model deliberates
     #: before answering (SPEC A2.3.2, up to model_timeouts.deliberation).
     envelope_timeout_s: float = Field(15.0, gt=0.0)
@@ -630,6 +649,9 @@ class CampusConfig(Versioned):
     footpaths_only: bool = False
     #: Half-width of the walkable corridor around a footpath (simulator guard, Nav2 keepout).
     walk_corridor_m: float = Field(2.0, gt=0.0)
+    #: Robots in transit prefer the patrol paths: other footways cost this many times their
+    #: length (campus ``patrol_zones.transit_off_zone_factor``, 2026-10-27).
+    transit_off_zone_factor: float = Field(3.0, ge=1.0)
     sectors: list[Sector] = Field(min_length=1)
     pois: list[Poi] = Field(default_factory=list)
     link_shadows: list[Polygon] = Field(
@@ -725,6 +747,47 @@ class CampusConfig(Versioned):
         if problems:
             raise ValueError("; ".join(problems))
         return self
+
+    #: coverage level at a point, from the configured coverage map (set by ``load_config``)
+    _level_at: Any = PrivateAttr(default=None)
+
+    _robot_walker: Any = PrivateAttr(default=None)
+    _edge_factors: Any = PrivateAttr(default=None)
+
+    def robot_edge_factors(self) -> dict[str, float]:
+        """Cost factors for the robots' walks: the patrol paths and the connectors to POIs at
+        their length, every other footway ``transit_off_zone_factor`` times it (a recovery
+        drive took a façade footway 7.5 m off the East corridor, 2026-10-27)."""
+        if self._edge_factors is None:
+            graph = self.route_graph
+            patrolled = {e for s in self.sectors for e in s.path_edges}
+            self._edge_factors = (
+                {}
+                if graph is None or self.transit_off_zone_factor == 1.0
+                else {
+                    e.id: self.transit_off_zone_factor
+                    for e in graph.edges
+                    if e.id not in patrolled and e.source != "connector"
+                }
+            )
+        return self._edge_factors
+
+    def robot_walker(self) -> Any:
+        """The robots' footpath walker (patrol paths preferred), built once."""
+        if self._robot_walker is None and self.route_graph is not None:
+            from a6g_common.footpaths import Walker
+
+            self._robot_walker = Walker(self.route_graph, factors=self.robot_edge_factors())
+        return self._robot_walker
+
+    def link_level_at(self, x: float, y: float) -> str | None:
+        """The coverage level (good | medium | low | lost) at a point; with no coverage map,
+        ``lost`` inside a link shadow and otherwise unknown (None)."""
+        if self._level_at is not None:
+            return self._level_at(x, y)
+        if any(point_in_polygon((x, y), sh) for sh in self.link_shadows):
+            return "lost"
+        return None
 
     def places(self) -> dict[str, tuple[str, Pose2D]]:
         """Named spots on the map other than sectors and POIs (link recovery points, e.g.
@@ -1351,7 +1414,7 @@ def load_config(
             manifests[rid] = manifests[rid].model_copy(update={"max_speed_mps": rp.max_speed_mps})
         if problems:
             raise ConfigError(root / "profiles" / f"{profile_name}.yaml", problems)
-    return A6GConfig(
+    cfg = A6GConfig(
         config_dir=root,
         fleet=fleet,
         manifests=manifests,
@@ -1372,6 +1435,26 @@ def load_config(
         if (root / "network.yaml").exists()
         else NetworkConfig(),
     )
+    if cfg.network.coverage.source != "shadows":
+        cfg.campus._level_at = _coverage_lookup(cfg)
+    return cfg
+
+
+def _coverage_lookup(cfg: A6GConfig) -> Callable[[float, float], str | None]:
+    """``CampusConfig.link_level_at`` from the coverage map, loaded now: on first use it was
+    file I/O inside the Agent Server's event loop (BlockingError, 2026-10-27)."""
+    from a6g_common.coverage import load_or_build
+
+    try:
+        cmap = load_or_build(cfg)
+    except (FileNotFoundError, OSError, ValueError):
+        cmap = None
+
+    def level_at(x: float, y: float) -> str | None:
+        sample = cmap.nearest(x, y) if cmap is not None else None
+        return sample["level"] if sample else None
+
+    return level_at
 
 
 def _edge_distance(p: tuple[float, float], polygon: list[tuple[float, float]]) -> float:

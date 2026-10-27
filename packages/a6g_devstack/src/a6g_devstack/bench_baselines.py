@@ -52,8 +52,8 @@ from a6g_devstack.stack import EXTRA_ROBOTS, SimStack
 ARMS = ("none", "central_twin", "central_memory", "independent")
 LABEL = {"none": "P", "central_twin": "B2", "central_memory": "B1", "independent": "B0"}
 GOAL = (
-    "Inspect the info kiosk, the building 9B door, the bike rack, the bus stop, the 9B east "
-    "entrance canopy and the south plaza arcade"
+    "Inspect the building 8K door, the building 9B door, the bike rack, the bus stop, the "
+    "campus east access and the parking 8B"
 )
 OUTAGE_KIND = "coordinator_crash"
 DETECTION = {

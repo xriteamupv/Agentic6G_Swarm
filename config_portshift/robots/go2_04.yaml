@@ -1,0 +1,70 @@
+# Capability manifest: a 5th simulated robot for the fleet-size runs (UC2-KPI-5, SPEC A3.8): a copy of go2_03.
+schema_version: "1.0"
+robot_id: go2_04
+platform: go2
+capabilities: [survey, inspect, hold_post, escort, voice, rough_terrain]
+max_speed_mps: 0.30              # cmd_vel_to_sport clamp (vx 0.30, vy 0, wz 0.60)
+footprint: {length_m: 0.70, width_m: 0.31}
+turn_in_place_s_per_rad: 9.55    # ~30 s for an in-place 180 deg turn in static walk
+nav_mode: action                 # switch to goal_pose if Foxy action results prove unreliable
+clearance_m: 0.40
+localization_cov_max: 0.25       # m^2, trace of xy covariance
+battery_reliable: true
+battery_drain_pct_per_m: 0.05
+goal_tolerance: {xy_m: 0.25, yaw_rad: 0.25}
+# Foxy NavigateToPose results carry no codes (the dock maps results by status); the
+# table serves the Jazzy Nav2 of the Gazebo proxy and a future upgrade.
+error_code_map:                  # Nav2 (Jazzy) result codes -> outcome; complete for the actions
+  # in error_code_names (tests/test_error_codes.py parses the installed nav2_msgs).
+  # ComputePathToPose
+  200: unknown
+  201: failed                    # INVALID_PLANNER
+  202: tf_error
+  203: no_path                   # START_OUTSIDE_MAP
+  204: no_path                   # GOAL_OUTSIDE_MAP
+  205: blocked                   # START_OCCUPIED
+  206: no_path                   # GOAL_OCCUPIED
+  207: no_path                   # TIMEOUT (planner)
+  208: no_path                   # NO_VALID_PATH
+  # FollowPath
+  100: unknown
+  101: failed                    # INVALID_CONTROLLER
+  102: tf_error
+  103: no_path                   # INVALID_PATH
+  104: blocked                   # PATIENCE_EXCEEDED
+  105: blocked                   # FAILED_TO_MAKE_PROGRESS
+  106: blocked                   # NO_VALID_CONTROL (e.g. collision ahead)
+  107: timeout                   # CONTROLLER_TIMED_OUT
+  # Spin
+  700: unknown
+  701: timeout
+  702: tf_error
+  703: blocked                   # COLLISION_AHEAD
+forbidden_motions: [strafe]      # vy is clamped to 0 by cmd_vel_to_sport
+camera_topic: /camera/image_raw  # TODO(UPV): confirm the Go2 front camera topic on the dock
+agent_host: onboard
+skill_timeouts:                  # sized for a ~300 m pilot sector at 0.3 m/s; TODO(UPV)
+  get_state: 2
+  navigate_to: 1500
+  follow_route: 3600
+  inspect: 1800
+  hold_post: 3600
+  return_home: 1500
+  cancel: 5
+  stop: 3
+  capture_event_image: 10
+ros:
+  distro: foxy
+  namespace: ""
+  map_frame: map
+  base_frame: base_link
+  pose_topic: /odom              # from odom_to_tf; raw odometry is /utlidar/robot_odom
+  scan_topic: /scan              # from cloud_to_scan
+  cloud_topic: /utlidar/cloud_deskewed
+  nav_action: /navigate_to_pose
+  goal_pose_topic: /goal_pose
+  lifecycle_service: /lifecycle_manager_navigation/manage_nodes
+  stop:
+    method: sport_stop_move      # the ONLY Sport API call allowed
+    topic: /api/sport/request
+    api_id: 1003

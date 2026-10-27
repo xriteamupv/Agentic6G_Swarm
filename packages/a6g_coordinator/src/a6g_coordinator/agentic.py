@@ -223,7 +223,7 @@ Task kinds and their targets:
 - return_home (staging): back to base; name the robot(s) in robot_ids.
 
 How to express the order:
-- robots: how many robots do the task, each its own copy ("two robots inspect the kiosk":
+- robots: how many robots do the task, each its own copy ("two robots inspect the 8K door":
   robots=2). One robot per task unless the order says otherwise.
 - robot_ids: the robots the operator names for it, one per copy. "that robot", "it" or
   "the one at X" refer to the robot of the open task the order talks about (see Open tasks).
@@ -238,7 +238,7 @@ How to express the order:
   sectors than the campus has. Example, 3 robots, "send two robots to patrol the campus
   and the rest to guard the bus stop": sec_north and sec_south in group "a", sec_east in
   group "b", and a hold_post at the bus stop.
-- after: indices of tasks in this plan that must be done first ("inspect the kiosk, then
+- after: indices of tasks in this plan that must be done first ("inspect the 8K door, then
   patrol the north-west walk"); those tasks share a robot unless named otherwise.
 - end: ids of open tasks the order stops ("stop guarding the bus stop", "stop the south
   plaza patrol": only that one; "stop everything": all of them). Never end what the order

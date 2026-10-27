@@ -21,7 +21,7 @@ from a6g_interactions import InteractionClient
 from a6g_kb import KnowledgeClient
 from a6g_observability.decision_log import DecisionLog
 
-from a6g_coordinator.graph import CoordinatorDeps, build_graph
+from a6g_coordinator.graph import ADMITTED, CoordinatorDeps, build_graph
 from a6g_coordinator.links import A2ALinkFactory
 
 log = logging.getLogger(__name__)
@@ -52,6 +52,7 @@ def make_deps() -> CoordinatorDeps:
         interactions=InteractionClient(
             cfg.interactions.url, agent_id="coordinator", timeout_s=cfg.interactions.timeout_s
         ),
+        admitted=ADMITTED,  # shared with the gateway (see graph.ADMITTED)
     )
 
 
@@ -68,7 +69,7 @@ def model_first(deps: CoordinatorDeps, assistant_id: str = "coordinator") -> Coo
     return dataclasses.replace(deps, cfg=cfg)
 
 
-#: The graph's dependencies (the gateway records admitted robots in ``DEPS.admitted``).
+#: The graph's dependencies (the gateway records admitted robots in ``graph.ADMITTED``).
 #: ``A6G_UNDERSTANDING=model_first`` at launch selects the model-first coordinator; the
 #: default (and anything else) is the rules-first one. One graph is built, under one name.
 DEPS = make_deps()

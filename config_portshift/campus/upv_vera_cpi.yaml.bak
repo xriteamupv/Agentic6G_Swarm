@@ -1,0 +1,100 @@
+# Pilot campus, schema v2 (SPEC A1 Section 4). Geometry is defined ONCE here, in WGS84;
+# the 2D simulator, the Gazebo world, the Nav2 prior map and the allocator derive from it
+# (a6g campus build). Buildings come from the cached OpenStreetMap extract (ODbL).
+#
+# Pilot area: the rotated rectangle (SE, NE, NW, SW corners) given by UPV around the open
+# plaza of Ciudad Politecnica de la Innovacion (UPV, Campus de Vera), ~312 m x 157 m, long
+# axis at -20.6 deg from east. Patrol zones follow the OSM footpaths; POIs, shadows and
+# recovery points are placeholders (POIs, staging and recovery points sit on a footpath).
+# TODO(UPV): replace them with the real pilot definitions and survey.
+schema_version: 3              # v3 = v2 + campus knowledge base (SPEC A3.3.1); outdoors only
+campus_id: upv_vera_cpi
+datum:                         # origin of campus_map (ENU): centre of the pilot rectangle
+  lat_deg: 39.4788828
+  lon_deg: -0.3349505
+  alt_m: 10.0
+  heading_deg: 0.0
+pilot_sector:
+  polygon_wgs84: [[39.477725, -0.333575], [39.479026, -0.332948], [39.480068, -0.336314], [39.478712, -0.336965]]
+  bbox_wgs84: [39.477425, -0.337265, 39.480368, -0.332648]   # envelope + ~30 m: OSM extract and world extent
+world:
+  osm_cache: ../../sim_gazebo/data/osm/upv_vera_cpi.json   # paths relative to this file
+  output_dir: ../../sim_gazebo/src/a6g_gz_worlds
+  map_resolution_m: 0.05
+  default_building_height_m: 10.0
+  level_height_m: 3.0
+staging_area: {lat: 39.4785533, lon: -0.3346788, yaw_deg: 0.0, half_size_m: 10.0}   # on a footpath
+# Footpaths only (decision of 2026-10-18): the robots walk on the OSM footpaths and nowhere
+# else (low fences and obstacles elsewhere are not mapped). The patrol zones are derived from
+# the route graph: each path goes to the zone whose seed is nearest along the network,
+# balanced by length; `a6g campus zones` shows the split. To adjust it, list path edge ids
+# under a sector's `edges` (they stay in that zone).
+patrol_zones:
+  mode: footpaths              # footpaths | polygons (sectors as drawn)
+  margin_m: 3                  # zone polygon around its paths
+  simplify_m: 1.0              # survey route within this of the paths
+  corridor_m: 2.0              # walkable half-width around a path (sim guard, Nav2 keepout)
+  exclude_edges: [w1108806158.0:0, w1113048096.0:0, w1113048096.0:1, w1113048097.0:0,
+                  w1113726614.0:0, w1284938129.0:0, w1289707415.0:0, w143426026.0:0, w143426026.0:1,
+                  w185121690.0:0, w185121698.0:0, w185125477.0:0, w185125477.0:1, w185125478.0:0,
+                  w185125478.0:1, w185125478.0:2, w185125480.0:0, w185125482.0:0, w185125988.0:0,
+                  w36964763.0:0, w36964763.0:1, w36964763.0:2, w36964763.0:3, w36964763.0:4,
+                  w36964763.0:5, w36966644.0:0]
+sectors:
+  - id: sec_north
+    name: North-west walk
+    aliases: [paseo noroeste, passeig nord-oest, northwest walk, nw walk]
+    seed_wgs84: [39.4792431, -0.3358222]
+    edges: [w185125480.0:1, w36966642.0:0, w36966642.0:1]
+  - id: sec_south
+    name: South plaza
+    aliases: [plaza sur, plaça sud, south square]
+    seed_wgs84: [39.4786486, -0.3352527]
+    edges: [w185125480.0:2, w185431592.0:0, w185431592.0:1, w301653197.0:0]
+  - id: sec_east
+    name: East corridor
+    aliases: [pasillo este, corredor este, corredor est, passadís est]
+    seed_wgs84: [39.4789954, -0.3343113]
+    edges: [w1108806157.0:0, w301780869.0:0, w301780869.0:1, w301780869.0:2, w301780870.0:0]
+pois:
+  - {id: poi_kiosk, name: Info kiosk, lat: 39.4787052, lon: -0.3362153, yaw_deg: 90, kind: [inspect, escort_dest], exposed: false,
+     aliases: [punto de información, punt d'informació, information point, kiosk]}
+  - {id: poi_library_door, name: Building 9B door, lat: 39.4790622, lon: -0.3344434, yaw_deg: 90, kind: [inspect, exposed, escort_dest], exposed: true,
+     building: "9B", aliases: [puerta del edificio 9B, porta de l'edifici 9B, edificio 9B, edifici 9B, 9B, library door],
+     flood: {gain_m_per_mm: 0.01, drain_rate_per_min: 0.1, risk_levels_m: {elevated: 0.05, high: 0.15, critical: 0.3}}}
+  - {id: poi_bike_rack, name: Bike rack, lat: 39.4784319, lon: -0.334252, yaw_deg: 180, kind: [inspect, exposed], exposed: true,
+     aliases: [aparcabicis, aparcament de bicicletes, bike parking],
+     flood: {gain_m_per_mm: 0.01, drain_rate_per_min: 0.1, risk_levels_m: {elevated: 0.05, high: 0.15, critical: 0.3}}}
+  - {id: poi_bus_stop, name: Bus stop, lat: 39.4782751, lon: -0.3348212, yaw_deg: -90, kind: [inspect, exposed, escort_dest], exposed: true,
+     aliases: [parada de autobús, parada d'autobús, parada del bus, bus],
+     flood: {gain_m_per_mm: 0.01, drain_rate_per_min: 0.1, risk_levels_m: {elevated: 0.05, high: 0.15, critical: 0.3}}}
+  # Shelters (v3, SPEC A3.4/A3.6): where escorts end in bad weather. TODO(UPV): real sheltered spots.
+  - {id: poi_shelter_9b, name: 9B east entrance canopy, lat: 39.4788032, lon: -0.3332472, kind: [shelter], exposed: false,
+     building: "9B", aliases: [marquesina del 9B, porxo del 9B, 9B entrance canopy]}
+  - {id: poi_shelter_south, name: South plaza arcade, lat: 39.4783295, lon: -0.3351971, kind: [shelter], exposed: false,
+     aliases: [soportales de la plaza sur, porxos de la plaça sud, south arcade]}
+coverage_shadows:                # emulated 5G shadows (TODO(UPV): uplink survey)
+  - {id: shadow_east, link_quality: lost, polygon_wgs84: [[39.4788828, -0.3342299], [39.4788828, -0.3339045], [39.479117, -0.3339045], [39.479117, -0.3342299]]}
+link_recovery_points:            # reachable spots with known good 5G coverage (TODO(UPV))
+  - {id: lrp_east_gate, lat: 39.4790096, lon: -0.3342616, note: west edge of the east-corridor shadow,
+     aliases: [puerta este, porta est, east entrance gate]}
+  - {id: lrp_staging, lat: 39.4785533, lon: -0.3346788, note: staging area}
+
+# --------------------------------------------------------------------------- knowledge base (v3)
+# Outdoor pedestrian graph (SPEC A3.3.1; UC2 runs outdoors only): OSM footways of the pilot
+# box (cached by `a6g campus build` next to osm_cache, *.paths.json) + manual additions.
+# TODO(UPV): survey the footways, add missing links and accessibility metadata.
+route_graph:
+  source: osm+manual
+  open_space_max_m: 0       # footpaths only: no links through open space
+  nodes: []
+  edges: []
+people_routing_profiles:          # non-identifying; a declared constraint maps to one of these
+  step_free:    {exclude: [stairs], require: [step_free]}
+  avoid_slopes: {max_slope_pct: 6}
+  default:      {}
+documents:
+  - {id: doc_kiosk_hours, kind: description, lang: en, applies_to: [poi_kiosk], source: operator,
+     text: "The information kiosk is staffed on weekdays from 08:00 to 20:00."}
+  - {id: doc_kiosk_hours_es, kind: description, lang: es, applies_to: [poi_kiosk], source: operator,
+     text: "El punto de información está atendido los días laborables de 08:00 a 20:00."}

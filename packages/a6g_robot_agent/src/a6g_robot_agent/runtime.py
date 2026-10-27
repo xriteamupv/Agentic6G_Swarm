@@ -21,6 +21,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import math
 import time
 from collections import deque
 from collections.abc import Awaitable, Callable
@@ -28,6 +29,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from a6g_allocator.cost import best_bid
+from a6g_common.geometry import point_in_polygon
 from a6g_common.schemas import (
     Award,
     Bid,
@@ -64,6 +66,11 @@ from langgraph.types import Command
 from a6g_robot_agent.graph import ACTIVE_STATUSES, AgentDeps, build_graph
 from a6g_robot_agent.peers import PeerDirectory
 from a6g_robot_agent.skills import SkillClient
+
+#: The skill slot while an idle robot drives back to the staging area (not a task).
+IDLE_RETURN = "__idle_return__"
+#: Envelopes of the emergency posture carry this priority (coordinator POSTURE_PRIORITY).
+EMERGENCY_PRIORITY = 90
 
 log = logging.getLogger(__name__)
 
@@ -148,11 +155,17 @@ class RobotAgent:
         self._outbox_len: dict[str, int] = {}
         self._hold_since: dict[str, datetime] = {}  # hold_then_recover timers per thread
         self._recharging = False  # low battery: at / driving to the staging area
+        #: Below recharge_idle_pct since the last "charged": an idle robot at the dock charges
+        #: without a formal recharge, and still has to say it is charged (2026-10-27).
+        self._was_low = False
+        self._idle_from: datetime | None = None  # idle away from the staging area since
+        self._env_priority = 0  # priority of the latest envelope (an emergency: 90)
         self._recharge_threads: list[str] = []
         self._recharge_phase: str | None = None  # "going" to the staging area, "charging"
         self._idle_since: float | None = None  # wall clock: low and waiting for orders
         self._work_asked: tuple[Any, float] | None = None  # last ask: (sim, wall) time
         self._asks = 0  # asks this idle spell (the wait between them grows)
+        self._ask_battery: float | None = None  # battery at the last ask
         #: Recharge advisor (agent.recharge_advisor): peers' battery and charging, from
         #: their state and ``a6g/fleet/<id>/charge`` messages; the 5 % band last advised.
         self._peer_battery: dict[str, float] = {}
@@ -314,6 +327,8 @@ class RobotAgent:
             await self.skills.call(SkillName.CANCEL)  # preempted by a new envelope version
         if state.get("dispatch"):
             self._queue.append((thread, state["dispatch"]))
+            if self._skill_task_id == IDLE_RETURN:  # work comes first: stop driving home
+                await self.skills.call(SkillName.CANCEL)
         for followup in state.get("followups") or []:
             task = asyncio.create_task(self.invoke(thread, followup))
             self._followups.add(task)
@@ -334,6 +349,8 @@ class RobotAgent:
         if state.get("envelope") is not None:
             self._grants[thread] = (state.get("envelope") or {}).get("flows") or {}
         mission = (state.get("envelope") or {}).get("mission_id")
+        if state.get("envelope"):
+            self._env_priority = int(state["envelope"].get("priority") or 0)
         if mission and not thread.startswith(f"{self.robot_id}:interaction:"):
             self._mission_thread[mission] = thread
         active = state.get("status") in ACTIVE_STATUSES
@@ -594,6 +611,7 @@ class RobotAgent:
                 await self._check_battery(state)
                 await self._advise_recharge(state)
                 await self._ask_for_work(state)
+                await self._return_when_idle(state)
                 await self._check_link_recovery(state)
                 await self._end_replan_holds()
                 await self._check_interactions()
@@ -637,10 +655,18 @@ class RobotAgent:
         elif self._idle_since is None:
             self._idle_since = time.time()
         waited = idle and time.time() - (self._idle_since or 0) >= alloc.recharge_idle_grace_s
+        if pct < alloc.recharge_idle_pct:
+            self._was_low = True
         if not self._recharging and (low or waited):
             await self._start_recharge(pct, "" if low else " and idle")
         elif self._recharging and pct >= alloc.recharge_resume_pct:
             await self._end_recharge(pct)
+        elif not self._recharging and self._was_low and pct >= alloc.recharge_resume_pct:
+            # Charged at the dock while idle, never formally recharging: without this the
+            # coordinator kept its old battery and its battery refusals, and the robot stayed
+            # idle while another held three laps (user report, 2026-10-27).
+            log.warning("%s battery %.0f %%: charged at the dock", self.robot_id, pct)
+            await self._announce_charged(pct, list(self._threads))
 
     async def _start_recharge(self, pct: float, why: str) -> None:
         """Release the tasks, drive to the staging area and charge (low battery, idle and
@@ -666,11 +692,16 @@ class RobotAgent:
         self._advised_band = None
         await self._publish_charge(False)
         log.warning("%s battery %.0f %%: charged, back at work", self.robot_id, pct)
-        for thread in self._recharge_threads:
-            await self.invoke(thread, {"type": "battery_charged", "battery_pct": round(pct, 1)})
-        if not self._recharge_threads:  # no envelope: say it anyway
-            await self._report({"status": "charged", "battery_pct": round(pct, 1)})
+        await self._announce_charged(pct, self._recharge_threads)
         self._recharge_threads = []
+
+    async def _announce_charged(self, pct: float, threads: list[str]) -> None:
+        """Tell the coordinator: its battery refusals of this robot end (``charged``)."""
+        self._was_low = False
+        for thread in threads:
+            await self.invoke(thread, {"type": "battery_charged", "battery_pct": round(pct, 1)})
+        if not threads:  # no envelope: say it anyway
+            await self._report({"status": "charged", "battery_pct": round(pct, 1)})
 
     async def _publish_charge(self, charging: bool) -> None:
         """Peers stagger their recharges by it (``a6g/fleet/<id>/charge``, retained)."""
@@ -767,8 +798,10 @@ class RobotAgent:
     async def _report(self, payload: dict[str, Any]) -> None:
         """An envelope status sent by the runtime itself, to the mission it works for: a
         robot whose envelope is done has no thread to report through (it then never asked
-        for work, nor said it was charging or charged). Kept until delivered."""
-        if self._mission is None:
+        for work, nor said it was charging or charged). Kept until delivered. A robot never
+        given work in any mission (admitted at the staging area) still asks: the coordinator
+        hands its "idle" to every active mission (2026-10-27)."""
+        if self._mission is None and payload.get("status") not in ("idle", "charged"):
             return
         self._direct.append(
             Report(
@@ -799,18 +832,28 @@ class RobotAgent:
         moves to it what another robot has queued but not started."""
         await self._flush_direct()
         running = self._skill is not None or bool(self._queue)  # cheap checks first
-        if running or self._recharging or self.killswitch_engaged or self._mission is None:
+        if running or self._recharging or self.killswitch_engaged:
             self._work_asked, self._asks = None, 0
             return
         if not self.coordinator_reachable:
             return
         now, wall = self.deps.clock.now(), time.time()
+        pct = robot_state.battery_pct
+        if (
+            self._work_asked is not None
+            and pct is not None
+            and self._ask_battery is not None
+            and pct >= self._ask_battery + 5
+        ):
+            # Charged since the last ask: what it can take now has changed, ask at once
+            # (an idle robot charged at the dock waited 16 min to ask, 2026-10-27).
+            self._work_asked, self._asks = None, 0
         if self._work_asked is not None:
             sim_then, wall_then = self._work_asked
             cfg = self.deps.agent_cfg
-            # Each unanswered ask doubles the wait (up to 16x): a mission with nothing left
-            # to do is not asked every few seconds forever.
-            backoff = 2 ** min(self._asks - 1, 4)
+            # Each unanswered ask doubles the wait (up to work_request_max_backoff): a
+            # mission with nothing left to do is not asked every few seconds forever.
+            backoff = min(2 ** (self._asks - 1), cfg.work_request_max_backoff)
             if (now - sim_then).total_seconds() < cfg.work_request_interval_s * backoff or (
                 wall - wall_then < cfg.work_request_min_wall_s * backoff
             ):
@@ -818,6 +861,7 @@ class RobotAgent:
         if not await self._idle():
             return
         self._work_asked, self._asks = (now, wall), self._asks + 1
+        self._ask_battery = pct
         await self._report(
             {
                 "status": "idle",
@@ -825,6 +869,46 @@ class RobotAgent:
                 "battery_pct": robot_state.battery_pct,
             }
         )
+
+    async def _return_when_idle(self, robot_state: RobotState) -> None:
+        """Idle for ``idle_return_s`` away from the staging area: drive back and wait there
+        for work (2026-10-27). New work cancels the drive."""
+        limit = self.deps.agent_cfg.idle_return_s
+        if limit is not None and self._env_priority >= EMERGENCY_PRIORITY:
+            limit = 0.0  # left without work by an emergency: to the staging area at once
+        busy = self._skill is not None or bool(self._queue)
+        if limit is None or busy or self._recharging or self.killswitch_engaged:
+            self._idle_from = None
+            return
+        campus = self.deps.campus
+        here = (robot_state.pose.x, robot_state.pose.y)
+        area = campus.staging_area
+        at_staging = (point_in_polygon(here, area) if area else False) or math.dist(
+            here, (campus.staging.x, campus.staging.y)
+        ) <= 3.0
+        if at_staging or not await self._idle():
+            self._idle_from = None
+            return
+        now = self.deps.clock.now()
+        if self._idle_from is None:
+            self._idle_from = now
+            return
+        if (now - self._idle_from).total_seconds() < limit:
+            return
+        self._idle_from = None
+        log.info("%s idle for %.0f s: back to the staging area", self.robot_id, limit)
+        self._skill_task_id = IDLE_RETURN
+        self._skill = asyncio.create_task(self._drive_home())
+
+    async def _drive_home(self) -> None:
+        try:
+            await self.skills.call(SkillName.RETURN_HOME)
+        except Exception:
+            log.exception("%s could not drive back to the staging area", self.robot_id)
+        finally:
+            self._skill = None
+            self._skill_task_id = None
+            self._pump()  # work that came meanwhile
 
     async def _go_charge(self) -> None:
         with contextlib.suppress(Exception):

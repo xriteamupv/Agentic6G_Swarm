@@ -70,12 +70,16 @@ async def test_accepts_executes_all_tasks_and_reports(agent_env: AgentEnv) -> No
     reports = agent_env.uplink.reports
     results = [r.payload["task_id"] for r in reports if r.kind == ReportKind.SKILL_RESULT]
     assert sorted(results) == sorted(t.task_id for t in envelope.tasks)
-    assert [r.payload["status"] for r in agent_env.uplink.of_kind("envelope_status")] == [
-        "completed"
-    ]
+    # ("idle": a robot with no work yet asks for some, 2026-10-27)
+    statuses = [r.payload["status"] for r in agent_env.uplink.of_kind("envelope_status")]
+    assert [st for st in statuses if st != "idle"] == ["completed"]
     accepted = [r for r in agent_env.uplink.of_kind("decision") if r.payload["kind"] == "accept"]
     assert len(accepted) == 1
-    assert all(r.mission_id == "m_test" and r.envelope_id == "env_001" for r in reports)
+    assert all(
+        r.mission_id == "m_test" and r.envelope_id == "env_001"
+        for r in reports
+        if r.payload.get("status") != "idle"  # asks for work before any mission
+    )
     assert state["outbox"] == []
 
     decisions = agent_env.fleet.log.read(mission_id="m_test")
@@ -200,7 +204,7 @@ async def test_link_loss_finish_current_hold_queue_and_flush(agent_env: AgentEnv
     assert env.robot.job is None  # not moving
     odometer_at_hold = env.robot.odometer_m
     kiosk = env.fleet.cfg.campus.poi("poi_bus_stop").pose
-    assert math.hypot(env.robot.x - kiosk.x, env.robot.y - kiosk.y) < 0.3  # at the kiosk
+    assert math.hypot(env.robot.x - kiosk.x, env.robot.y - kiosk.y) < 0.3  # at the 8K door
 
     # Nothing was delivered while lost; the reports are queued, in order.
     assert len(env.uplink.reports) == delivered_before
@@ -549,3 +553,36 @@ def test_lap_numbers_are_read_from_task_ids() -> None:
 
     assert lap_number("rou-survey_sector-sec_east") == 1
     assert lap_number("rou-survey_sector-sec_east-summit_01-lap3") == 3
+
+
+async def test_an_own_lap_lasts_only_while_its_patrol_is_in_the_envelope(
+    agent_env: AgentEnv,
+) -> None:
+    """2026-10-27: a robot starts its next lap itself and keeps it while the coordinator has
+    not heard of it (the envelope still lists a lap of that patrol). When the patrol ends, an
+    emergency pauses it or it goes to another robot, the envelope lists no lap of it: the
+    robot drops the lap (summit_02 patrolled on while "idle" for the coordinator)."""
+    env = agent_env
+    env.world.pause()
+    lap1 = survey("sec_south", task_id="rou-survey_sector-sec_south", repeat=True)
+    assert (await env.agent.handle_envelope(make_envelope([lap1]))).decision == "accept"
+    thread = next(t for t in env.agent._threads if "env_001" in t)
+    config = env.agent._config(thread)
+    values = (await env.agent.graph.aget_state(config)).values
+    tasks = dict(values["tasks"])
+    own = "rou-survey_sector-sec_south-lap2"
+    tasks[own] = {
+        "spec": survey("sec_south", task_id=own, repeat=True).model_dump(mode="json"),
+        "status": "pending",
+        "outcome": None,
+        "detail": "next lap, started by the robot",
+        "local": True,
+    }
+    await env.agent.graph.aupdate_state(config, {"tasks": tasks})
+
+    # the coordinator resends lap 1 (it has not heard of lap 2): lap 2 stays
+    await env.agent.handle_envelope(make_envelope([lap1], version=2))
+    assert own in (await env.agent.graph.aget_state(config)).values["tasks"]
+    # the patrol ended: no lap of it in the envelope, lap 2 goes
+    await env.agent.handle_envelope(make_envelope([], version=3))
+    assert own not in (await env.agent.graph.aget_state(config)).values["tasks"]

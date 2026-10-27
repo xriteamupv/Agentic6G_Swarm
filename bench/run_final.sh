@@ -8,6 +8,12 @@
 #   bench/run_final.sh B C        # only these phases
 set -u
 cd "$(dirname "$0")/.."
+# The laptop suspended at 00:20 on 2026-10-27 and the chain stopped for 10 h: keep it awake
+# (sleep, idle and the lid switch) for as long as the chain runs.
+if [[ -z "${A6G_INHIBITED:-}" ]] && command -v systemd-inhibit >/dev/null; then
+  A6G_INHIBITED=1 exec systemd-inhibit --what=sleep:idle:handle-lid-switch --who=a6g-swarm \
+    --why="paper measurements (bench/run_final.sh)" --mode=block "$0" "$@"
+fi
 LOG=var/logs/final
 mkdir -p "$LOG"
 PG=postgresql://a6g:a6g@127.0.0.1:5433/a6g

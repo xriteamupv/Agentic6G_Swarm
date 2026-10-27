@@ -277,6 +277,10 @@ class TaskSpec(Versioned):
     #: ``est_duration_s``; the robot renews the bounded hold skill period after period
     #: (added 2026-10-19). Low battery still releases it (another robot takes it over).
     until_cleared: bool = False
+    #: A continuous patrol (``survey_sector``): the robot starts the next lap of the same
+    #: sector itself when this one ends, in coverage or not, and the coordinator records it
+    #: when the reports come in; it can still give the lap to another robot (2026-10-27).
+    repeat: bool = False
 
     @model_validator(mode="after")
     def _check_deps(self) -> "TaskSpec":

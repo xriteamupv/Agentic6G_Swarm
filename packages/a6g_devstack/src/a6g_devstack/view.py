@@ -32,11 +32,28 @@ def _coverage_points(cfg: A6GConfig) -> list[list[Any]]:
         return []
 
 
+def _campus_label(c: Any) -> str:
+    """ "UPV campus (lat, lon)": the centre of the pilot area, in WGS84 (publication view)."""
+    area = c.pilot_area or []
+    d = c.datum or {}
+    if not area or "lat_deg" not in d:
+        return c.campus_id
+    from a6g_common.geo import Datum
+
+    scale = c.scale or 1.0
+    x = sum(p[0] for p in area) / len(area) / scale
+    y = sum(p[1] for p in area) / len(area) / scale
+    datum = Datum(d["lat_deg"], d["lon_deg"], d.get("alt_m", 0.0), d.get("heading_deg", 0.0))
+    lat, lon, _ = datum.to_wgs84(x, y)
+    return f"UPV campus ({lat:.5f}, {lon:.5f})"
+
+
 def campus_geometry(cfg: A6GConfig) -> dict[str, Any]:
     c = cfg.campus
     edges = {e.id: e.geometry for e in (c.route_graph.edges if c.route_graph else [])}
     return {
         "campus_id": c.campus_id,
+        "label": _campus_label(c),
         "scale": c.scale,
         "pilot_area": c.pilot_area,
         "buildings": c.obstacles,
@@ -216,13 +233,16 @@ PAGE = r"""<!doctype html>
       <div><span style="background:var(--recovery)"></span>link recovery point (staging) · staging square</div>
       <div><span style="background:#e41a1c"></span>n40 gNB site · coverage by RSRP (shaded area): <span style="background:#1b9e77"></span>good <span style="background:#e6ab02"></span>medium <span style="background:#d95f02"></span>low <span style="background:#7570b3"></span>lost</div>
       <div><span style="background:transparent;border:2px solid var(--pilot)"></span>pilot area</div>
-      <div><label><input type="checkbox" id="paths" checked> <span style="background:var(--path)"></span>footpath (OSM) · dashed: open space</label></div>
+      <div><label><input type="checkbox" id="paths" checked> <span style="background:var(--path)"></span>footpath (OSM)</label></div>
     </div>
     <div class="err" id="err"></div>
   </aside>
 </div>
 <script>
-const COLORS = ["#2f6fb0", "#d9711c", "#8a4fbf", "#2f9a5b", "#c24141", "#1b9aa0", "#9c7a1a"];
+// Robot colours stay clear of the coverage levels (green, yellow, orange, purple), the POI
+// blue and the gNB red (2026-10-27): magenta, cyan, dark brown, crimson, slate, pink, navy,
+// near-black (the dark ones last: they fade in the dark theme).
+const COLORS = ["#e0218a", "#00a3c4", "#7a4a1e", "#c8102e", "#5b6f7c", "#ff7fbf", "#1a2f80", "#1c1c1c"];
 // Patrol zones are told apart by line pattern, not colour (the coverage map uses colour):
 // dark ink over a light casing, one dash pattern per zone, waypoints as hollow rings.
 const ZONE_DASH = [[], [14, 6], [3, 5], [14, 5, 3, 5], [8, 8]];
@@ -480,7 +500,7 @@ async function poll() {
     }
     document.getElementById("t").textContent = state.sim_time_label || "–";
     document.getElementById("sub").textContent =
-      `${campus.campus_id}${campus.scale !== 1 ? ` · scale ${campus.scale}` : ""} · ${Object.keys(state.robots).length} robots`;
+      `${campus.label || campus.campus_id}${campus.scale !== 1 ? ` · scale ${campus.scale}` : ""} · ${Object.keys(state.robots).length} robots`;
     document.getElementById("err").textContent = "";
     panel();
   } catch (e) {
@@ -513,7 +533,7 @@ if (window.__SNAPSHOT__) {  // ?static=1: one frame from inline data (screenshot
   campus = window.__SNAPSHOT__.campus; state = window.__SNAPSHOT__.state; zonesLegend();
   for (const rid of Object.keys(state.robots)) colors[rid] = COLORS[Object.keys(colors).length % COLORS.length];
   document.getElementById("t").textContent = state.sim_time_label || "–";
-  document.getElementById("sub").textContent = `${campus.campus_id}${campus.scale !== 1 ? ` · scale ${campus.scale}` : ""} · snapshot`;
+  document.getElementById("sub").textContent = `${campus.label || campus.campus_id}${campus.scale !== 1 ? ` · scale ${campus.scale}` : ""} · snapshot`;
   panel(); fit(); draw();
 } else {
   fetch("/sim/view/campus").then(r => r.json()).then(c => { campus = c; zonesLegend(); fit(); poll(); requestAnimationFrame(draw); })

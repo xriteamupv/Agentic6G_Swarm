@@ -140,6 +140,9 @@ class PatrolZones(_M):
     margin_m: float = Field(3.0, ge=0, description="zone polygon around its paths")
     simplify_m: float = Field(1.0, gt=0, description="survey route within this of the paths")
     corridor_m: float = Field(2.0, gt=0, description="walkable half-width around a path")
+    #: A robot moving between tasks (transit, recovery, return home) prefers the patrol
+    #: paths: any other footway costs this many times its length (2026-10-27).
+    transit_off_zone_factor: float = Field(3.0, ge=1.0)
     #: Paths no zone patrols (still walkable), by path id (``a6g campus edit``).
     exclude_edges: list[str] = Field(default_factory=list)
 
@@ -474,6 +477,7 @@ class CampusV2(_M):
             "footpaths_only": footpaths,
             # Robots keep their real size on a scaled campus: so does the corridor.
             "walk_corridor_m": self.patrol_zones.corridor_m,
+            "transit_off_zone_factor": self.patrol_zones.transit_off_zone_factor,
             "map": {
                 "map_version": f"osm-prior-{self.campus_id}",
                 "tile_uri": f"file://{self.world.output_dir}/maps/{self.world_name}.yaml",

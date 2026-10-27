@@ -276,7 +276,10 @@ next to the MCP endpoint, behind a bearer token, so no agent can arm a robot.
 
 - **Link loss** defaults to `hold_then_recover` (`link_loss_hold_s`, campus
   `link_recovery_points`): finish the task, hold, drive to the nearest reachable recovery
-  point, then home if still disconnected.
+  point, then home if still disconnected. A robot with coverage starts a lap at the end that
+  has coverage (it does not turn back into a lost area). A robot silent longer than its running
+  task's expected duration + the hold + `lost_release_s` (120 s) is presumed stuck: the
+  coordinator hands all its work to the other robots (it keeps seeking coverage meanwhile).
 - **Profiles** (`config/profiles/{sim,gazebo,real}.yaml`, `a6g config validate --profile real`):
   under `real`, roles that may see camera images or hear audio must use on-premises endpoints.
 - **Coordinator without the Agent Server**: `uv run a6g-coordinator --checkpointer postgres

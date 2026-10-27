@@ -151,6 +151,8 @@ class SimRobot:
     y: float
     yaw: float
     battery_pct: float = 100.0
+    #: charging at the dock (started below ``SimWorld.charge_below_pct``, until full)
+    docked_charging: bool = False
     cov_xy: float = 0.01
     cov_yaw: float = 0.005
     failed: bool = False
@@ -175,6 +177,7 @@ class SimWorld:
         campus: CampusConfig,
         clock: ManualClock | None = None,
         charge_pct_per_s: float = 0.5,
+        charge_below_pct: float | None = None,
     ) -> None:
         self.campus = campus
         self.clock = clock or ManualClock()
@@ -186,9 +189,15 @@ class SimWorld:
         self._trackers: dict[str, Any] = {}
         #: Charging rate of an idle robot inside the staging area (the dock).
         self.charge_pct_per_s = charge_pct_per_s
+        #: A robot at the dock starts charging only below this battery (then up to full, or
+        #: until it leaves); None: whenever it is idle there. An idle robot waiting at the
+        #: staging area must not top up passively (2026-10-27).
+        self.charge_below_pct = charge_below_pct
         # Building footprints from the campus (SPEC A1 Rule 16): robots drive around them.
         self.planner = (
-            footpath_planner_for(campus.route_graph, campus.walk_corridor_m)
+            footpath_planner_for(
+                campus.route_graph, campus.walk_corridor_m, campus.robot_edge_factors()
+            )
             if campus.footpaths_only and campus.route_graph is not None
             else planner_for(campus.obstacles)
         )
@@ -419,13 +428,18 @@ class SimWorld:
         return math.hypot(robot.x - st.x, robot.y - st.y) <= 2.0
 
     def charging(self, robot: SimRobot) -> bool:
-        return (
+        if not (
             robot.job is None
             and not robot.failed
             and robot.battery_pct < 100.0
             and self.charge_pct_per_s > 0
             and self.at_dock(robot)
-        )
+        ):
+            robot.docked_charging = False  # left the dock, or full: the next charge waits
+            return False
+        if self.charge_below_pct is None or robot.battery_pct < self.charge_below_pct:
+            robot.docked_charging = True
+        return robot.docked_charging
 
     # ------------------------------------------------------------------ faults
 

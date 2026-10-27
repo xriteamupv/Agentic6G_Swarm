@@ -81,5 +81,5 @@ async def test_status_without_a_mission_is_a_question_not_an_order() -> None:
 
     assert (await interpret_chat("status", False, None))[0].intent == "status"
     assert (await interpret_chat("What is going on?", False, None))[0].intent == "status"
-    order = await interpret_chat("Inspect the kiosk and report back to me", False, None)
+    order = await interpret_chat("Inspect the 8K door and report back to me", False, None)
     assert order[0].intent != "status"

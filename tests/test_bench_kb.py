@@ -41,7 +41,7 @@ def test_word_overlap_is_the_coordinators_fallback() -> None:
 
 def test_an_order_to_an_unnamed_place_is_a_trip_not_a_patrol() -> None:
     """Found by the bench: "send a robot to the swimming pool" planned a campus patrol,
-    and an accented destination ("punto de información") was cut short."""
+    and an accented destination ("puerta del edificio 8K") was cut short."""
     campus = _cfg().campus
 
     def plan(text: str, posture: Posture = Posture.ROUTINE) -> list:
@@ -51,7 +51,7 @@ def test_an_order_to_an_unnamed_place_is_a_trip_not_a_patrol() -> None:
     assert plan("Send a robot to the swimming pool") == []  # unknown: nothing planned
     assert plan("Send a robot to the bus station") == [("go_to", "poi_bus_stop")]
     assert plan("Go to the staging") == [("go_to", "lrp_staging")]
-    assert plan("Escort the visitor to the punto de información", Posture.INTERACTIVE) != [
+    assert plan("Escort the visitor to the puerta del edificio 8K", Posture.INTERACTIVE) != [
         ("escort", "")
     ]
     assert plan("Patrol the campus") == [("survey_sector", s.sector_id) for s in campus.sectors]

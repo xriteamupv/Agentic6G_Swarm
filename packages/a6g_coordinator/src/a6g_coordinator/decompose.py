@@ -553,7 +553,7 @@ def robot_groups(robots: Mapping[str, str], idle: Iterable[str] = ()) -> dict[st
     idle_ids = sorted(r for r in idle if r in robots)
     if idle_ids:
         groups.update({w: idle_ids for w in _IDLE_WORDS})
-    numbers = {2: "two", 3: "three", 4: "four"}
+    numbers = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
     for platform, ids in by_platform.items():
         if len(ids) < 2:
             continue
@@ -563,6 +563,12 @@ def robot_groups(robots: Mapping[str, str], idle: Iterable[str] = ()) -> dict[st
             f"both {platform}",
             f"all the {platform}s",
             f"all {platform}s",
+            # "Go2" is mostly written without a plural s ("send all Go2 to base" sent the
+            # Summits home too, 2026-10-27)
+            f"all the {platform}",
+            f"all {platform}",
+            f"every {platform}",
+            f"each {platform}",
             f"the {platform}s",
             f"{n} {platform}s",
             f"{n} {platform}",

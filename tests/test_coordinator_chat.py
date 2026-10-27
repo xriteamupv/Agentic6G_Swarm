@@ -1189,7 +1189,9 @@ async def test_idle_robot_too_low_for_a_lap_goes_to_charge(tmp_path: Path) -> No
 
         await wait_for(charged, 60, "idle low robot charged")
         assert phases == ["going", "charging"]  # shown as such, never as idle
-        assert not stack.robots[ok].agent._recharging  # 60 %: stays where it is
+        # 60 %: no recharge. Idle, it drives back to the staging area after 30 s
+        # (2026-10-27), and does not top up there (the dock charges below 40 % only).
+        assert not stack.robots[ok].agent._recharging
         assert stack.world.robot(ok).battery_pct <= 60.0
     finally:
         await stack.stop()
@@ -1271,13 +1273,13 @@ async def test_escort_goes_where_the_operator_said(tmp_path: Path) -> None:
         return [(t.kind.value, getattr(t.target, "name", None)) for t in tasks], notes
 
     for model in (True, False):  # the model's pick, and the no-model template
-        tasks, notes = await plan("Escort the visitor to the info kiosk", model)
+        tasks, notes = await plan("Escort the visitor to the building 8K door", model)
         assert [k for k, _ in tasks] == ["escort"] and not notes
         # A place it does not know goes to the closest named one, and says so.
-        # ("east entrance": the 9B east entrance canopy shares two words, the gate one.)
+        # ("east entrance": the Campus east access shares two words, the gate one.)
         tasks, notes = await plan("Escort the visitor to the east entrance", model)
         assert tasks == [("escort", None)] and "closest" in notes[0]
-        assert "9B east entrance canopy" in notes[0]
+        assert "Campus east access" in notes[0]
         # Nothing close: nothing planned, rather than a made-up destination.
         tasks, notes = await plan("Escort the visitor to the cafeteria", model)
         assert tasks == [] and "Places I know" in notes[0]
@@ -1302,12 +1304,12 @@ async def test_escort_goes_where_the_operator_said(tmp_path: Path) -> None:
     try:
         stack.world.pause()
         await stack.mission("Patrol the campus")
-        state = await stack.coordinator.chat("m1", "Escort the visitor to the info kiosk")
+        state = await stack.coordinator.chat("m1", "Escort the visitor to the building 8K door")
     finally:
         await stack.stop()
     escort = state["tasks"]["int-escort-poi_kiosk"]
     assert escort["status"] in ("assigned", "in_progress")
-    assert "escort the visitor to the info kiosk" in state["messages"][-1].content
+    assert "escort the visitor to the building 8k door" in state["messages"][-1].content.lower()
 
 
 async def test_swarm_updates_are_told_apart_from_answers(tmp_path: Path) -> None:

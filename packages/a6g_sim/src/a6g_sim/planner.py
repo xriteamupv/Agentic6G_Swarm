@@ -23,10 +23,13 @@ class FootpathPlanner:
     Nav2 does with its keepout mask on the real robots. A goal farther than ``corridor_m``
     from a path is refused; a robot off the paths walks back to the nearest one first."""
 
-    def __init__(self, graph: object, corridor_m: float) -> None:
+    def __init__(
+        self, graph: object, corridor_m: float, factors: dict[str, float] | None = None
+    ) -> None:
         from a6g_common.footpaths import Walker
 
-        self.walker = Walker(graph)  # type: ignore[arg-type]
+        self.walker = Walker(graph, factors=factors)  # type: ignore[arg-type]
+        self.factors = factors or {}
         self.corridor = corridor_m
         self.reason = ""
 
@@ -47,10 +50,13 @@ class FootpathPlanner:
 _FOOT: dict[int, FootpathPlanner] = {}
 
 
-def footpath_planner_for(graph: object, corridor_m: float) -> FootpathPlanner:
+def footpath_planner_for(
+    graph: object, corridor_m: float, factors: dict[str, float] | None = None
+) -> FootpathPlanner:
     key = id(graph)
-    if key not in _FOOT or _FOOT[key].corridor != corridor_m:
-        _FOOT[key] = FootpathPlanner(graph, corridor_m)
+    hit = _FOOT.get(key)
+    if hit is None or hit.corridor != corridor_m or hit.factors != (factors or {}):
+        _FOOT[key] = FootpathPlanner(graph, corridor_m, factors)
     return _FOOT[key]
 
 

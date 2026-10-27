@@ -46,7 +46,9 @@ def build_service(cfg, robot_id: str, args: argparse.Namespace):
     decisions = DecisionLog(cfg.fleet.edge.decision_log_path)
     floor = cfg.allocator.default_battery_floor_pct
     if args.backend == "sim":
-        world = SimWorld(cfg.campus, ManualClock(utc_now()))
+        world = SimWorld(
+            cfg.campus, ManualClock(utc_now()), charge_below_pct=cfg.allocator.recharge_idle_pct
+        )
         world.add_robot(cfg.manifests[robot_id])
         backend = SimBackend(world, robot_id, args.image_dir)
         runner = SimRunner(world, realtime_factor=args.realtime_factor, idle_when_quiet=False)

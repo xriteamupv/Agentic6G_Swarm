@@ -5,11 +5,11 @@
 # Ambiguous phrases are left out: their ground truth is not defensible. (The East gate was
 # removed from the campus on 2026-10-26, with its items.)
 - {text: "Bus stop", lang: en, group: name, expect: poi_bus_stop}
-- {text: "Info kiosk", lang: en, group: name, expect: poi_kiosk}
+- {text: "Building 8K door", lang: en, group: name, expect: poi_kiosk}
 - {text: "Bike rack", lang: en, group: name, expect: poi_bike_rack}
 - {text: "Building 9B door", lang: en, group: name, expect: poi_library_door}
-- {text: "South plaza arcade", lang: en, group: name, expect: poi_shelter_south}
-- {text: "9B east entrance canopy", lang: en, group: name, expect: poi_shelter_9b}
+- {text: "Parking 8B", lang: en, group: name, expect: poi_shelter_south}
+- {text: "Campus east access", lang: en, group: name, expect: poi_shelter_9b}
 - {text: "North-west walk", lang: en, group: name, expect: sec_north}
 - {text: "South plaza", lang: en, group: name, expect: sec_south}
 - {text: "East corridor", lang: en, group: name, expect: sec_east}
@@ -17,20 +17,20 @@
 - {text: "parada de autobús", lang: es, group: alias, expect: poi_bus_stop}
 - {text: "parada del bus", lang: es, group: alias, expect: poi_bus_stop}
 - {text: "parada d'autobús", lang: ca, group: alias, expect: poi_bus_stop}
-- {text: "punto de información", lang: es, group: alias, expect: poi_kiosk}
-- {text: "punt d'informació", lang: ca, group: alias, expect: poi_kiosk}
-- {text: "information point", lang: en, group: alias, expect: poi_kiosk}
+- {text: "puerta del edificio 8K", lang: es, group: alias, expect: poi_kiosk}
+- {text: "porta de l'edifici 8K", lang: ca, group: alias, expect: poi_kiosk}
+- {text: "8K entrance", lang: en, group: alias, expect: poi_kiosk}
 - {text: "aparcabicis", lang: es, group: alias, expect: poi_bike_rack}
 - {text: "aparcament de bicicletes", lang: ca, group: alias, expect: poi_bike_rack}
 - {text: "bike parking", lang: en, group: alias, expect: poi_bike_rack}
 - {text: "puerta del edificio 9B", lang: es, group: alias, expect: poi_library_door}
 - {text: "porta de l'edifici 9B", lang: ca, group: alias, expect: poi_library_door}
 - {text: "library door", lang: en, group: alias, expect: poi_library_door}
-- {text: "marquesina del 9B", lang: es, group: alias, expect: poi_shelter_9b}
-- {text: "porxo del 9B", lang: ca, group: alias, expect: poi_shelter_9b}
-- {text: "soportales de la plaza sur", lang: es, group: alias, expect: poi_shelter_south}
-- {text: "porxos de la plaça sud", lang: ca, group: alias, expect: poi_shelter_south}
-- {text: "south arcade", lang: en, group: alias, expect: poi_shelter_south}
+- {text: "acceso este del campus", lang: es, group: alias, expect: poi_shelter_9b}
+- {text: "accés est del campus", lang: ca, group: alias, expect: poi_shelter_9b}
+- {text: "aparcamiento 8B", lang: es, group: alias, expect: poi_shelter_south}
+- {text: "aparcament 8B", lang: ca, group: alias, expect: poi_shelter_south}
+- {text: "8B parking", lang: en, group: alias, expect: poi_shelter_south}
 - {text: "paseo noroeste", lang: es, group: alias, expect: sec_north}
 - {text: "plaça sud", lang: ca, group: alias, expect: sec_south}
 - {text: "pasillo este", lang: es, group: alias, expect: sec_east}
@@ -38,17 +38,17 @@
 - {text: "la parada del autobús", lang: es, group: paraphrase, expect: poi_bus_stop}
 - {text: "the bus station", lang: en, group: paraphrase, expect: poi_bus_stop}
 - {text: "where the buses stop", lang: en, group: paraphrase, expect: poi_bus_stop}
-- {text: "the information desk", lang: en, group: paraphrase, expect: poi_kiosk}
-- {text: "el quiosco de información", lang: es, group: paraphrase, expect: poi_kiosk}
+- {text: "the door of building 8K", lang: en, group: paraphrase, expect: poi_kiosk}
+- {text: "la entrada del edificio 8K", lang: es, group: paraphrase, expect: poi_kiosk}
 - {text: "the bicycle rack", lang: en, group: paraphrase, expect: poi_bike_rack}
 - {text: "el aparcamiento de bicis", lang: es, group: paraphrase, expect: poi_bike_rack}
 - {text: "the door of building 9B", lang: en, group: paraphrase, expect: poi_library_door}
 - {text: "la puerta de la biblioteca", lang: es, group: paraphrase, expect: poi_library_door}
 - {text: "the library entrance", lang: en, group: paraphrase, expect: poi_library_door}
-- {text: "the canopy at 9B", lang: en, group: paraphrase, expect: poi_shelter_9b}
-- {text: "la marquesina", lang: es, group: paraphrase, expect: poi_shelter_9b}
-- {text: "the arcade in the south plaza", lang: en, group: paraphrase, expect: poi_shelter_south}
-- {text: "los soportales", lang: es, group: paraphrase, expect: poi_shelter_south}
+- {text: "the east access of the campus", lang: en, group: paraphrase, expect: poi_shelter_9b}
+- {text: "el acceso este", lang: es, group: paraphrase, expect: poi_shelter_9b}
+- {text: "the 8B car park", lang: en, group: paraphrase, expect: poi_shelter_south}
+- {text: "el aparcamiento del 8B", lang: es, group: paraphrase, expect: poi_shelter_south}
 - {text: "la plaza del sur", lang: es, group: paraphrase, expect: sec_south}
 - {text: "the northwest path", lang: en, group: paraphrase, expect: sec_north}
 # 2026-10-26: four East-corridor items replace the four East-gate items (gate removed)
@@ -58,10 +58,10 @@
 
 - {text: "bus stpo", lang: en, group: typo, expect: poi_bus_stop}
 - {text: "bike rak", lang: en, group: typo, expect: poi_bike_rack}
-- {text: "info kiosck", lang: en, group: typo, expect: poi_kiosk}
+- {text: "building 8K dor", lang: en, group: typo, expect: poi_kiosk}
 - {text: "aparcabicics", lang: es, group: typo, expect: poi_bike_rack}
-- {text: "marquesina del 9b", lang: es, group: typo, expect: poi_shelter_9b}
-- {text: "souht plaza arcade", lang: en, group: typo, expect: poi_shelter_south}
+- {text: "acceso este del campsu", lang: es, group: typo, expect: poi_shelter_9b}
+- {text: "parkign 8B", lang: en, group: typo, expect: poi_shelter_south}
 - {text: "east coridor", lang: en, group: typo, expect: sec_east}
 
 - {text: "the cafeteria", lang: en, group: unknown, expect: null}

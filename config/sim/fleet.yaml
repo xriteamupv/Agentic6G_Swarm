@@ -26,6 +26,7 @@ defaults:
     peer_timeout_s: 10
   coordinator:
     robot_timeout_s: 10
+    lost_release_s: 120               # silent > running task + hold + this: its work goes to the others
     heartbeat_period_s: 1.0
     # Chat messages: "template" (deterministic plain language) or "llm" (the coordinator LLM
     # rephrases them; a rewrite that drops any robot id is discarded).

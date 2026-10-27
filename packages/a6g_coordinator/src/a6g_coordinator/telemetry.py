@@ -42,7 +42,12 @@ class CoordinatorTelemetry:
         self.on_robot_added = on_robot_added
         self._sleep = sleep
         coord = cfg.fleet.defaults.coordinator
-        self.monitor = FleetMonitor({r.robot_id for r in cfg.fleet.robots}, coord.robot_timeout_s)
+        self.monitor = FleetMonitor(
+            {r.robot_id for r in cfg.fleet.robots},
+            coord.robot_timeout_s,
+            coord.lost_release_s,
+            cfg.allocator.recharge_resume_pct,
+        )
         self._started_at = clock.now()
         self._held: list[dict[str, Any]] = []
         self._tasks: list[asyncio.Task[None]] = []

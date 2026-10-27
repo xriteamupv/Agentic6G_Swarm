@@ -152,8 +152,8 @@ PLACES = [
     # English
     ("bus stop", "poi_bus_stop"),
     ("Take me to the bus stop please", "poi_bus_stop"),
-    ("the info kiosk", "poi_kiosk"),
-    ("information point", "poi_kiosk"),
+    ("the building 8K door", "poi_kiosk"),
+    ("8K entrance", "poi_kiosk"),
     ("building 9B door", "poi_library_door"),
     ("9B", "poi_library_door"),
     ("bike parking", "poi_bike_rack"),
@@ -161,29 +161,29 @@ PLACES = [
     ("north-west walk", "sec_north"),
     ("south plaza", "sec_south"),
     ("east corridor", "sec_east"),
-    ("9B entrance canopy", "poi_shelter_9b"),
-    ("south arcade", "poi_shelter_south"),
+    ("campus east entrance", "poi_shelter_9b"),
+    ("8B parking", "poi_shelter_south"),
     # Spanish
     ("parada de autobús", "poi_bus_stop"),
     ("Llévame a la parada del bus", "poi_bus_stop"),
-    ("punto de información", "poi_kiosk"),
+    ("puerta del edificio 8K", "poi_kiosk"),
     ("puerta del edificio 9B", "poi_library_door"),
     ("aparcabicis", "poi_bike_rack"),
-    ("marquesina del 9B", "poi_shelter_9b"),
-    ("soportales de la plaza sur", "poi_shelter_south"),
+    ("acceso este del campus", "poi_shelter_9b"),
+    ("aparcamiento 8B", "poi_shelter_south"),
     ("paseo noroeste", "sec_north"),
     # Valencian
     ("parada d'autobús", "poi_bus_stop"),
-    ("porta'm al punt d'informació", "poi_kiosk"),
+    ("porta'm al porta de l'edifici 8K", "poi_kiosk"),
     ("porta de l'edifici 9B", "poi_library_door"),
     ("aparcament de bicicletes", "poi_bike_rack"),
-    ("porxo del 9B", "poi_shelter_9b"),
+    ("accés est del campus", "poi_shelter_9b"),
     ("plaça sud", "sec_south"),
     ("corredor est", "sec_east"),
     # Typos
     ("bus stp", "poi_bus_stop"),
     ("aparcabicis del campus", "poi_bike_rack"),
-    ("informacion", "poi_kiosk"),
+    ("edifcio 8K", "poi_kiosk"),
 ]
 
 

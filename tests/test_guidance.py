@@ -313,10 +313,10 @@ async def test_g11_guidance_avoids_a_reported_obstruction_and_stairs_and_survive
         b.x, b.y = start.x, start.y
         stack.world.robot("go2_02").link_lost_until = None
         answer = await stack.say(
-            "go2_02", "Hola. Necesito ir a la marquesina del 9B, no puedo usar escaleras."
+            "go2_02", "Hola. Necesito ir a la acceso este del campus, no puedo usar escaleras."
         )
         assert answer.startswith("Hola, soy go2_02, un robot automático")  # disclosure first
-        assert "marquesina del 9B" in answer and "sin escaleras" in answer
+        assert "acceso este del campus" in answer and "sin escaleras" in answer
         assert "no puedo usar escaleras" in answer and answer.endswith("¿Es correcto?")
         assert (await stack.say("go2_02", "sí, correcto")).startswith("Gracias")
         iid = _only(stack, "go2_02")

@@ -8,7 +8,7 @@ from a6g_devstack import SimStack
 from a6g_devstack.bench_baselines import schedule
 from conftest import wait_for
 
-GOAL = "Inspect the bike rack and the info kiosk"
+GOAL = "Inspect the bike rack and the building 8K door"
 
 
 def _cfg():
@@ -119,7 +119,7 @@ async def test_a_late_peer_award_does_not_put_two_robots_on_one_task(
     await stack.start()
     try:
         stack.world.pause()
-        await stack.mission("Inspect the info kiosk")
+        await stack.mission("Inspect the building 8K door")
         await stack.coordinator.drain()
         tid, entry = next(iter((await stack.coordinator.state("m1"))["tasks"].items()))
         holder = entry["robot_id"]

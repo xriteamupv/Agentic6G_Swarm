@@ -44,7 +44,7 @@ def test_expected_orders_keep_the_fast_path(text: str) -> None:
     [
         "Two robots patrol the east corridor",
         "Everyone except go2_01 patrol the campus",
-        "Inspect the kiosk, then patrol the north-west walk",
+        "Inspect the 8K door, then patrol the north-west walk",
         "Swap areas: go2_01 patrols the south plaza and go2_02 the north-west walk",
         "Check every point of interest once",
         "Send two robots to patrol the campus and the rest to guard the bus stop",

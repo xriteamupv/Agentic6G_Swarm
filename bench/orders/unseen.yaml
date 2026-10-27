@@ -27,7 +27,7 @@
     - {kind: survey_sector, target: sec_east, count: 1}
     - {kind: survey_sector, target: "*", not_robots: [go2_01]}
 - id: then
-  text: "Inspect the kiosk, then patrol the north-west walk"
+  text: "Inspect the 8K door, then patrol the north-west walk"
   expect:
     - {kind: inspect_poi, target: poi_kiosk, count: 1}
     - {kind: survey_sector, target: sec_north, count: 1}
@@ -88,7 +88,7 @@
     - {kind: hold_post, target: poi_bus_stop, count: 1}
     - {other_robot: [[hold_post, poi_bike_rack], [hold_post, poi_bus_stop]]}
 - id: patrol_keep_one
-  text: "Patrol the campus but keep one robot guarding the info kiosk"
+  text: "Patrol the campus but keep one robot guarding the building 8K door"
   expect:
     - {kind: hold_post, target: poi_kiosk, count: 1}
     - {kind: survey_sector, target: sec_north, count: 1}
@@ -131,7 +131,7 @@
     - {same_robot: [[survey_sector, sec_east], [survey_sector, sec_south]]}
     - {other_robot: [[survey_sector, sec_east], [survey_sector, sec_north]]}
 - id: escort_arcade
-  text: "Escort the visitor to the south arcade"
+  text: "Escort the visitor to the 8B parking"
   expect:
     - {kind: escort, target: poi_shelter_south, count: 1}
 - id: injected_note

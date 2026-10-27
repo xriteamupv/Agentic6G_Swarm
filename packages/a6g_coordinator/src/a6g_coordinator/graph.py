@@ -21,6 +21,7 @@ classifies chat and phrases messages.
 import asyncio
 import contextlib
 import copy
+import itertools
 import json
 import logging
 import math
@@ -38,6 +39,7 @@ from a6g_allocator.cost import (
     VirtualState,
     estimate,
     estimate_next,
+    route_distance,
     task_path,
     virtual_state,
 )
@@ -176,6 +178,13 @@ class CoordinatorDeps:
     #: Robots admitted from the staging area (``robot_added``, robot_id -> event): a
     #: mission started later counts them too, not only the configured fleet.
     admitted: dict[str, dict[str, Any]] = field(default_factory=dict)
+
+
+#: Robots admitted while the Agent Server runs, shared by its gateway and its graph. The
+#: server loads the graph file as a module of its own (not ``a6g_coordinator.server``), so a
+#: registry kept there by the gateway was another object: robots added at the staging area
+#: before a mission never joined it (2026-10-27, go2_03 and go2_04 idle for good).
+ADMITTED: dict[str, dict[str, Any]] = {}
 
 
 # --------------------------------------------------------------------------- helpers
@@ -494,6 +503,9 @@ def idle_moves(
                 t["status"] != "assigned"
                 or not holder
                 or holder == rid
+                # Out of contact, it may have started it (its "started" report waits for
+                # coverage): two robots ran one survey (2026-10-27). It keeps its work.
+                or fleet.get(holder, {}).get("status") != ACTIVE_ROBOT
                 or load(holder) < 2
                 or t.get("pinned_to")
                 or t.get("plan_group")  # model_first: "one robot does A and B"
@@ -950,10 +962,15 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             new_status = "failed" if kind == "robot_failed" else "lost"
             if rid in fleet and fleet[rid]["status"] not in ("failed", new_status):
                 fleet[rid]["status"] = new_status
-                # Dead: everything goes. Silent: it keeps its running task (it finishes it).
-                statuses = ("assigned", "in_progress") if kind == "robot_failed" else ("assigned",)
-                # Out of contact: work given to it by name waits for it. Failed: it is gone.
-                released = _release(tasks, rid, statuses, keep_pinned=kind == "robot_lost")
+                # Dead: everything goes. Silent (a coverage gap, most often): it keeps all its
+                # work, queued laps too; handing them out left robots idle each time they
+                # came out of a lost stretch (2026-10-27). Its work goes to the others only
+                # if it is presumed stuck (robot_lost_long) or goes to charge.
+                released = (
+                    _release(tasks, rid, ("assigned", "in_progress"))
+                    if kind == "robot_failed"
+                    else []
+                )
                 if kind == "robot_failed":
                     for tid in released:
                         if tasks[tid].get("pinned_to") == rid:
@@ -961,8 +978,8 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 what = (
                     "has stopped responding and is considered down"
                     if kind == "robot_failed"
-                    else "is out of contact (probably in a 5G coverage shadow); it will finish "
-                    "what it is doing"
+                    else "is out of contact (probably in a 5G coverage gap); it keeps its work "
+                    "and goes on with it"
                 )
                 moved = join(narr.task_id(tasks, t) for t in released)
                 run.note(
@@ -1047,6 +1064,90 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             upd.update(branch="allocate", reallocating=True, dirty=sorted(set(dirty)))
             return run.out(**upd, fleet=fleet, tasks=tasks)
 
+        if kind == "robot_charged":
+            # Seen charged in its state messages (the fleet monitor): back at work even if
+            # its "charged" report never came (charged idle at the dock, a report lost out
+            # of coverage, an envelope already closed; 2026-10-27). Then reallocate, idle
+            # rebalancing included, at once.
+            rid = ev["robot_id"]
+            if rid not in fleet or fleet[rid]["status"] in ("failed", "lost"):
+                return run.out(**upd, fleet=fleet, tasks=tasks)
+            was_charging = fleet[rid]["status"] == "charging"
+            fleet[rid]["status"] = ACTIVE_ROBOT
+            fleet[rid]["idle_battery_pct"] = ev.get("battery_pct")
+            fleet[rid]["seen_battery_pct"] = ev.get("battery_pct")
+            for t in tasks.values():
+                if (t.get("refused_for") or {}).get(rid) == "battery":
+                    t["refused_by"] = [r for r in t.get("refused_by") or [] if r != rid]
+                    del t["refused_for"][rid]
+                    (t.get("refused_battery") or {}).pop(rid, None)
+            resumed = []
+            for tid, t in sorted(tasks.items()):
+                if t["status"] == "paused" and t.get("resume_on") == rid:
+                    t.update(status="pending", robot_id=None, pinned_to=rid, resume_on=None)
+                    resumed.append(tid)
+            if was_charging or resumed:
+                run.note(
+                    f"🔋 {narr.robot(rid, fleet)} is charged ({ev.get('battery_pct', '?'):.0f} %)"
+                    " and back at work"
+                    + (
+                        f": it resumes {join(narr.task_id(tasks, t) for t in resumed)}."
+                        if resumed
+                        else "."
+                    )
+                )
+            upd["branch"] = "allocate"
+            return run.out(**upd, fleet=fleet, tasks=tasks)
+
+        if kind == "robot_lost_long":
+            # Presumed stuck (it keeps seeking coverage on its own) once silent longer than
+            # its running task should take, plus the link-loss hold, plus lost_release_s: a
+            # robot patrolling a lost stretch is working, not stuck (scenario 3 ran laps
+            # twice with a fixed 120 s). Then all its work goes to the others, the running
+            # task and the work given to it by name too; if it comes back, the duplicate
+            # rule settles any overlap.
+            rid = ev["robot_id"]
+            running = [
+                _expected_s(_spec(t), fleet.get(rid))
+                for t in tasks.values()
+                if t.get("robot_id") == rid and t["status"] == "in_progress"
+            ]
+            bound = (
+                max(running, default=0.0)
+                + cfg.fleet.defaults.agent.link_loss_hold_s
+                + (cfg.fleet.defaults.coordinator.lost_release_s or 0.0)
+            )
+            if ev.get("silent_s", 0) < bound:
+                return run.out(**upd, fleet=fleet, tasks=tasks)  # still plausibly working
+            if rid in fleet and fleet[rid]["status"] == "lost":
+                released = _release(tasks, rid, ("assigned", "in_progress"))
+                for tid in released:
+                    if tasks[tid].get("pinned_to") == rid:
+                        tasks[tid]["pinned_to"] = None
+                silent = ev.get("reason", "").removeprefix("no state for ")
+                if released:
+                    run.note(
+                        f"⚠️ {narr.robot(rid, fleet)} has been out of contact for {silent} "
+                        "and may be stuck (it keeps trying to reach coverage). I'm handing "
+                        "its work to the other robots: "
+                        + join(narr.task_id(tasks, t) for t in released)
+                        + "."
+                    )
+                run.decide(
+                    DecisionKind.FALLBACK,
+                    {"robot_id": rid, "released": released},
+                    policy={
+                        "rule": "robot_lost_long",
+                        "lost_release_s": cfg.fleet.defaults.coordinator.lost_release_s,
+                        "silent_bound_s": round(bound, 1),
+                    },
+                    justification=f"{rid} out of contact: {ev.get('reason', '')}",
+                    inputs_ref=f"robot:{rid}",
+                )
+                if released:
+                    upd.update(branch="allocate", reallocating=True)
+            return run.out(**upd, fleet=fleet, tasks=tasks)
+
         if kind == "robot_recovered":
             rid = ev["robot_id"]
             if rid in fleet and fleet[rid]["status"] not in (ACTIVE_ROBOT, "charging"):
@@ -1061,6 +1162,19 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 "allocate" if any(t["status"] == "pending" for t in tasks.values()) else "audit"
             )
         return run.out(**upd, fleet=fleet, tasks=tasks)
+
+    def _expected_s(spec: TaskSpec, entry: dict[str, Any] | None) -> float:
+        """How long a running task may take: its route at the robot's top speed plus its
+        dwell, doubled (turns, slow stretches). A survey's ``est_duration_s`` is a 60 s
+        placeholder: a robot surveying the lost East corridor was presumed stuck while it
+        worked, and two robots ran the survey (2026-10-27)."""
+        pts = task_path(spec, cfg.campus)
+        length = 0.0
+        for a, b in itertools.pairwise(pts):
+            d = route_distance(cfg.campus, a, b)
+            length += d if d is not None else math.hypot(b.x - a.x, b.y - a.y)
+        speed = _manifest(entry).max_speed_mps if entry else 1.0
+        return 2.0 * (spec.est_duration_s + length / speed)
 
     def describe_move(tasks: dict[str, dict[str, Any]], move: tuple[str, str | None, str]) -> str:
         task_id, old, new = move
@@ -2120,6 +2234,32 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                     dirty.append(owner)
                 if entry.get("repeat"):
                     lap = _next_lap(tasks, p["task_id"])
+                    if run.state.get("posture") == Posture.EMERGENCY.value:
+                        # Reported late (out of contact when the alert came): the next lap
+                        # waits for the all clear like the rest of the routine work.
+                        tasks[lap]["status"] = "preempted"
+                        if rid not in dirty:
+                            dirty.append(rid)  # its envelope drops the lap it started
+                        run.note(
+                            f"🔁 {narr.robot(rid, fleet)} {narr.task_done(_spec(entry))} "
+                            "(reported late); its next lap waits for the all clear."
+                        )
+                        return "publish"
+                    # The robot started that lap itself (2026-10-27): it stays with it, as
+                    # running when it had nothing else, else queued (rebalancing may move it).
+                    # (Its queued report may arrive before the "recovered" event: lost too.)
+                    if fleet.get(rid, {}).get("status") in (ACTIVE_ROBOT, "lost") and tasks[
+                        lap
+                    ].get("pinned_to") in (None, rid):
+                        busy = any(
+                            t.get("robot_id") == rid and t["status"] in OPEN and tid != lap
+                            for tid, t in tasks.items()
+                        )
+                        tasks[lap].update(
+                            robot_id=rid, status="assigned" if busy else "in_progress"
+                        )
+                        if rid not in dirty:
+                            dirty.append(rid)  # its envelope lists the lap it runs
                     run.note(
                         f"🔁 {narr.robot(rid, fleet)} {narr.task_done(_spec(entry))} "
                         f"(lap {tasks[lap]['lap'] - 1}); patrolling continues."
@@ -3069,6 +3209,13 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 and tid not in added
                 and t["spec"]["kind"] != TaskKind.RETURN_HOME.value
                 and _spec(t).kind.value not in keep
+                # a routine post held until released ends with the order (below): handed
+                # on, "send all Go2 to base" left five posts nobody could take (2026-10-27)
+                and not (
+                    t["spec"]["kind"] == TaskKind.HOLD_POST.value
+                    and t["spec"].get("until_cleared")
+                    and t.get("posture") != Posture.EMERGENCY.value
+                )
             ):
                 t.update(pinned_to=None, bundle=None, ordered_for=None)
                 if t.get("robot_id") and tid not in freed:
@@ -3543,9 +3690,46 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                     and st.battery_pct >= cfg.allocator.recharge_resume_pct
                 ):
                     fleet[rid]["status"] = ACTIVE_ROBOT
+        # A robot I marked lost because a request to it failed (not by the telemetry plane,
+        # whose "recovered" event brings it back) is asked again: summit_01 stayed "lost"
+        # for good while it stood idle at staging, publishing its state (2026-10-27).
+        unanswered = {
+            r: e for r, e in fleet.items() if e.get("status") == "lost" and e.get("lost_by")
+        }
+        if unanswered:
+            probe = {r: {**e, "status": ACTIVE_ROBOT} for r, e in unanswered.items()}
+            back, _ = await _robot_states(deps, probe)
+            for rid, st in sorted(back.items()):
+                if st.link_quality.value != "lost":
+                    fleet[rid]["status"] = ACTIVE_ROBOT
+                    fleet[rid].pop("lost_by", None)
+                    if rid not in dirty:
+                        dirty.append(rid)  # resync its envelope with what it still owns
+                    run.note(f"{narr.robot(rid, fleet)} is back in contact.")
         started = time.perf_counter()
         states, unreachable = await _robot_states(deps, fleet)
         query_latency = time.perf_counter() - started
+        for rid, st in states.items():
+            if st.battery_pct is None:
+                continue
+            fleet[rid]["seen_battery_pct"] = round(st.battery_pct, 1)
+            # What idle rebalancing estimates from: the live state, not the battery of the
+            # robot's last idle report (27 % when it had since charged to 97 %, 2026-10-27).
+            fleet[rid]["idle_battery_pct"] = round(st.battery_pct, 1)
+            fleet[rid]["idle_pose"] = {"x": st.pose.x, "y": st.pose.y}
+            # A battery refusal lapses once the robot has charged since: its battery is seen
+            # higher than when it refused. A robot charged idle at the dock never reported
+            # "charged" and stayed barred from the laps it had declined (2026-10-27).
+            for t in tasks.values():
+                if (t.get("refused_for") or {}).get(rid) != "battery":
+                    continue
+                then = (t.get("refused_battery") or {}).get(rid)
+                if (then is not None and st.battery_pct >= then + 5) or (
+                    st.battery_pct >= cfg.allocator.recharge_resume_pct
+                ):
+                    t["refused_by"] = [r for r in t.get("refused_by") or [] if r != rid]
+                    del t["refused_for"][rid]
+                    (t.get("refused_battery") or {}).pop(rid, None)
         run.call(
             "query_robot_states",
             {"robots": sorted(r for r, e in fleet.items() if e["status"] == ACTIVE_ROBOT)},
@@ -3564,12 +3748,8 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
         )
         for rid in unreachable:
             fleet[rid]["status"] = "lost"
-            # Its own work (named or bundled) waits for it; only the rest is handed on.
-            for tid in _release(tasks, rid, ("assigned",), keep_pinned=True):
-                run.note(
-                    f"I can't reach {narr.robot(rid, fleet)} right now, so someone else "
-                    f"will {narr.task_id(tasks, tid)}."
-                )
+            fleet[rid]["lost_by"] = "query"  # asked again at the next allocation
+            # Its work waits for it (2026-10-27): out of reach is most often a coverage gap.
         pending = [tid for tid, t in tasks.items() if t["status"] == "pending"]
         if cfg.fleet.defaults.baseline == "independent":
             # B0 (SPEC A3.8): each task is allocated once; work released by a failure or a
@@ -4160,7 +4340,11 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 for t, e in tasks.items()
                 if e.get("robot_id") == rid and e["status"] in ("assigned", "in_progress")
             )
-            specs = [_spec(tasks[t]) for t in mine]
+            # A continuous patrol's lap says so: the robot starts the next lap itself.
+            specs = [
+                _spec(tasks[t]).model_copy(update={"repeat": bool(tasks[t].get("repeat"))})
+                for t in mine
+            ]
             rec = envelopes.get(rid) or {
                 "envelope_id": f"env-{state['mission_id']}-{rid}"[:120],
                 "version": 0,
@@ -4205,17 +4389,11 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             if isinstance(reply, BaseException):
                 log.warning("envelope to %s failed: %s", rid, reply)
                 fleet[rid]["status"] = "lost"
-                released = _release(tasks, rid, ("assigned",), keep_pinned=True)
-                replies.append({"robot_id": rid, "error": str(reply), "released": released})
-                run.note(
-                    f"I can't reach {narr.robot(rid, fleet)} right now"
-                    + (
-                        f"; {join(narr.task_id(tasks, t) for t in released)} "
-                        "will go to another robot."
-                        if released
-                        else "."
-                    )
-                )
+                fleet[rid]["lost_by"] = "envelope"  # asked again at the next allocation
+                # Its work waits for it (2026-10-27): out of reach is most often a coverage
+                # gap; it gets this envelope when it is back in contact.
+                replies.append({"robot_id": rid, "error": str(reply), "released": []})
+                run.note(f"I can't reach {narr.robot(rid, fleet)} right now; it keeps its work.")
                 continue
             rec["ack"] = reply.decision
             rec["task_ids"] = mine
@@ -4292,6 +4470,9 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                     # A refusal while charging says nothing about the task: no lasting bar.
                     entry.setdefault("refused_by", []).append(rid)
                     entry.setdefault("refused_for", {})[rid] = reason  # battery: until charged
+                    seen = (state.get("fleet") or {}).get(rid, {}).get("seen_battery_pct")
+                    if reason == "battery" and seen is not None:
+                        entry.setdefault("refused_battery", {})[rid] = seen
                 if entry["spec"].get("interaction_id") and entry.get("pinned_to") == rid:
                     # A person is waiting: their escort goes on with another robot (A3.4.6).
                     entry["pinned_to"] = None

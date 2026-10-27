@@ -118,7 +118,7 @@ def test_ordering_and_tie_breaks(cfg) -> None:
         inspect_poi("poi_kiosk"),
         return_home(depends_on=["t_inspect_poi_kiosk", "t_inspect_poi_library_door"]),
     ]
-    kiosk = cfg.campus.poi("poi_kiosk").pose  # starting at the kiosk: it comes first
+    kiosk = cfg.campus.poi("poi_kiosk").pose  # starting at the 8K door: it comes first
     order = [
         t.task_id for t in order_nearest_first(Pose2D(x=kiosk.x, y=kiosk.y), tasks, cfg.campus)
     ]
@@ -171,3 +171,27 @@ def test_a_lap_starts_where_the_sector_was_patrolled_longest_ago(cfg) -> None:
     # end is too far; the lap runs back from where the robot stands (2026-10-19 rule).
     end = Pose2D(x=wps[-1].x, y=wps[-1].y)
     assert task_path(stale, campus, end)[0] == wps[-1]
+
+
+def test_a_robot_in_coverage_does_not_start_a_lap_in_the_lost_area(cfg) -> None:
+    """User report (2026-10-27): after recovering at staging, the next South plaza lap
+    started at the arcade (lost coverage), so the robot drove straight back into the lost
+    area. A robot with coverage starts at the covered end, whatever end was patrolled
+    longest ago."""
+    from a6g_common.schemas import Pose2D
+
+    campus = cfg.campus
+    wps = campus.sector("sec_south").survey_waypoints
+    assert campus.link_level_at(wps[-1].x, wps[-1].y) == "lost"  # the arcade end
+    assert campus.link_level_at(wps[0].x, wps[0].y) != "lost"
+    staging = Pose2D(x=campus.staging.x, y=campus.staging.y)
+    assert campus.link_level_at(staging.x, staging.y) != "lost"
+    lap = survey("sec_south")
+    for prefer in (None, True, False):
+        t = lap.model_copy(
+            update={"target": lap.target.model_copy(update={"prefer_reverse": prefer})}
+        )
+        assert task_path(t, campus, staging)[0] == wps[0]
+    # Still inside the lost area: the nearer end, as before (it walks out along the lap).
+    arcade = Pose2D(x=wps[-1].x, y=wps[-1].y)
+    assert task_path(lap, campus, arcade)[0] == wps[-1]

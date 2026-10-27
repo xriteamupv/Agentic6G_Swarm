@@ -260,7 +260,11 @@ class SimStack:
             fleet = self.cfg.fleet.model_copy(update={"defaults": defaults})
             self.cfg = self.cfg.model_copy(update={"fleet": fleet})
         self.workdir.mkdir(parents=True, exist_ok=True)
-        self.world = SimWorld(self.cfg.campus, ManualClock(self.start_time))
+        self.world = SimWorld(
+            self.cfg.campus,
+            ManualClock(self.start_time),
+            charge_below_pct=self.cfg.allocator.recharge_idle_pct,  # no passive top-up
+        )
         if self.cfg.network.coverage.source != "shadows":  # SPEC A4.6: levels from the twin
             from a6g_common.coverage import load_or_build
 
@@ -350,6 +354,11 @@ class SimStack:
         self, robot_id: str, manifest: RobotManifest | None = None, pose: Pose2D | None = None
     ) -> RobotAgent:
         manifest = manifest or self.cfg.manifests[robot_id]
+        if not manifest.battery_reliable:
+            # The 2D simulator models every battery exactly (the fleet file's
+            # simulated_battery). Robots added at the staging area were not told: summit_02
+            # saw its battery as unknown, never charged and ran flat (2026-10-27).
+            manifest = manifest.model_copy(update={"battery_reliable": True})
         self.cfg.manifests[robot_id] = manifest  # hot-added robots join the config view
         if robot_id not in self.world.robots:
             self.world.add_robot(manifest, pose)

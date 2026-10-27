@@ -204,7 +204,7 @@ def test_only_a_correction_carries_the_previous_order() -> None:
 
 async def test_the_check_may_not_move_work_the_order_gave_by_name(tmp_path: Path) -> None:
     """User report (2026-10-22): "send summit to a random place and the others to patrol
-    that area"; the check moved the summit's trip to the kiosk to go2_02."""
+    that area"; the check moved the summit's trip to the 8K door to go2_02."""
     import json
 
     from a6g_common.models import fake_model
@@ -265,3 +265,41 @@ def test_a_new_task_repeating_a_reassigned_one_is_dropped_by_code() -> None:
     )
     tidy = agentic.tidy(plan, ctx)
     assert tidy.tasks == [] and agentic.validate(tidy, ctx) == []
+
+
+async def test_all_go2_to_base_sends_only_the_go2_and_ends_their_posts(tmp_path) -> None:
+    """User report (2026-10-27, 8 robots): "Send all the Go2 to hold the Building 9B door",
+    then "Send all Go2 to base": the Summits were sent home too ("all Go2" was not read as
+    the Go2 group), and the five posts were left for robots that could not take them."""
+    from a6g_common.config import load_config
+    from a6g_devstack import SimStack
+    from a6g_devstack.stack import EXTRA_ROBOTS
+
+    cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
+    stack = SimStack(cfg, tmp_path / "s")
+    await stack.start()
+    try:
+        for rid in EXTRA_ROBOTS:
+            await stack.add_robot(robot_id=rid)
+        stack.world.pause()
+        await stack.mission("Patrol the campus")
+        coord = stack.coordinator
+        await coord.chat("m1", "Send all the Go2 to hold the Building 9B door")
+        await coord.chat("m1", "Send all Go2 to base")
+        await coord.drain()
+        state = await coord.state("m1")
+    finally:
+        await stack.stop()
+    open_tasks = [
+        t for t in state["tasks"].values() if t["status"] in ("pending", "assigned", "in_progress")
+    ]
+    homes = {
+        t.get("pinned_to") or t.get("robot_id")
+        for t in state["tasks"].values()  # one may be home already
+        if t["spec"]["kind"] == "return_home"
+    }
+    go2 = {r for r in state["fleet"] if r.startswith("go2")}
+    assert homes == go2  # the Go2s, not the Summits
+    assert not [t for t in open_tasks if t["spec"]["kind"] == "hold_post"]  # posts ended
+    patrolling = {t.get("robot_id") for t in open_tasks if t["spec"]["kind"] == "survey_sector"}
+    assert patrolling and patrolling <= {r for r in state["fleet"] if r.startswith("summit")}

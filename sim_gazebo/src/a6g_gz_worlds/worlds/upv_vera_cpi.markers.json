@@ -4,7 +4,7 @@
   {
    "exposed": false,
    "id": "poi_kiosk",
-   "name": "Info kiosk",
+   "name": "Building 8K door",
    "x": -154.166,
    "y": -13.899
   },
@@ -32,14 +32,14 @@
   {
    "exposed": false,
    "id": "poi_shelter_9b",
-   "name": "9B east entrance canopy",
+   "name": "Campus east access",
    "x": 146.551,
    "y": -8.836
   },
   {
    "exposed": false,
    "id": "poi_shelter_south",
-   "name": "South plaza arcade",
+   "name": "Parking 8B",
    "x": 131.014,
    "y": -75.274
   }

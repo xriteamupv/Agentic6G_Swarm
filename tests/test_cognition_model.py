@@ -79,12 +79,12 @@ async def test_weather_alert_completes_with_the_robots_models(tmp_path: Path) ->
 GUIDANCE = [  # (utterance, destination, profile): SPEC A3.4 in the three languages
     ("¿Me llevas a la parada del bus? Voy en silla de ruedas.", "poi_bus_stop", "step_free"),
     (
-        "Necesito ir al punto de información, me cansan mucho las cuestas.",
+        "Necesito ir al puerta del edificio 8K, me cansan mucho las cuestas.",
         "poi_kiosk",
         "avoid_slopes",
     ),
     (
-        "Porta'm a la marquesina del 9B, per favor. No puc pujar escales.",
+        "Porta'm a la acceso este del campus, per favor. No puc pujar escales.",
         "poi_shelter_9b",
         "step_free",
     ),
@@ -94,7 +94,7 @@ GUIDANCE = [  # (utterance, destination, profile): SPEC A3.4 in the three langua
         "poi_library_door",
         "step_free",
     ),
-    ("Where is the south arcade?", "poi_shelter_south", "default"),
+    ("Where is the 8B parking?", "poi_shelter_south", "default"),
 ]
 
 

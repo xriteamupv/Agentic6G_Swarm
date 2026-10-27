@@ -243,12 +243,13 @@ def checks(
         for d in decisions
         if d.actor.startswith(f"{speaker}.") and d.output.get("link_quality")
     ]
-    lost_then_ok = "lost" in links and "ok" in links[links.index("lost") :]
+    # back in coverage: "ok", or "degraded" in low coverage (radio DT map, 2026-10-26)
+    lost_then_ok = "lost" in links and any(q != "lost" for q in links[links.index("lost") :])
     replaced = any(
         d.kind is DecisionKind.FALLBACK
         and d.actor == "coordinator"
         and d.output.get("robot_id") == speaker
-        and d.policy.get("rule") == "robot_failure"
+        and d.policy.get("rule") in ("robot_failure", "robot_lost_long")
         for d in decisions
     )
     reconciles = [

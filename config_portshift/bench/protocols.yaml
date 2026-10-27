@@ -1,0 +1,32 @@
+# Protocol micro-benchmark matrix (SPEC A4.8, stage N5): `a6g bench protocols`.
+# Real sockets in rootless Linux network namespaces with tc netem; real time (rule 33).
+robots: [3, 5]              # lab sizes (P3: CFP to N-1 peers)
+labs: 4                     # isolated labs run in parallel (each its own namespaces)
+seed: 26
+repeats: 3                  # each block 3 times, blocks in an order shuffled by seed
+bindings:                   # binding, mode, encoding
+  - {binding: a2a_jsonrpc, mode: cold, encoding: json}
+  - {binding: a2a_jsonrpc, mode: warm, encoding: json}
+  - {binding: a2a_rest, mode: warm, encoding: json}
+  - {binding: a2a_grpc, mode: warm, encoding: json}
+  - {binding: mqtt, mode: persistent, encoding: json}
+  - {binding: mqtt, mode: persistent, encoding: cbor}
+profiles: [good, medium, low]   # link profiles of config/network.yaml
+patterns:                   # pattern, count (P4: duration), nl policies
+  P1: {count: 200, nl: [full, none]}
+  P2: {count: 200, nl: [full, none]}
+  P3: {count: 100}
+  P4: {duration_s: 300}
+  P6: {count: 30}
+  P7: {count: 200}
+outages: [10, 60]           # robot link down for these seconds during a P2 stream (one every 2 s)
+outage_stream_s: 150
+# Reduced scope (SPEC A4.10 stop rule): `--reduced`
+reduced:
+  bindings:
+    - {binding: a2a_jsonrpc, mode: cold, encoding: json}
+    - {binding: a2a_jsonrpc, mode: warm, encoding: json}
+    - {binding: mqtt, mode: persistent, encoding: cbor}
+  patterns: [P1, P3, P6]
+  outages: [10]
+  robots: [3]

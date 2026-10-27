@@ -264,7 +264,9 @@ async def _amain(args: argparse.Namespace) -> None:
 
             control = Starlette(
                 routes=[
-                    *view_routes(cfg, view_state, "a6g · Gazebo"),
+                    *view_routes(
+                        cfg, view_state, "Agentic6G · Campus Guardian robot swarm (Gazebo)"
+                    ),
                     Route("/sim/inject/robot_fail", robot_fail, methods=["POST"]),
                     Route("/sim/inject/link_loss", link_loss, methods=["POST"]),
                     Route("/sim/inject/anomaly", anomaly, methods=["POST"]),

@@ -708,6 +708,9 @@ def dev_serve(
         typer.echo(f"Deleting the last session's coordinator state ({human(size_of(state))}).")
         shutil.rmtree(state)
     env = {**os.environ, "LANGGRAPH_DISABLE_FILE_PERSISTENCE": "true"}
+    # ROS sourced in the shell: its Python 3.12 packages slow this 3.11 server (2026-10-27)
+    if any(m in env.get("PYTHONPATH", "") for m in ("/opt/ros/", "_ws/install/")):
+        env.pop("PYTHONPATH")
     exe = Path(sys.executable).parent / "langgraph"
     args = [str(exe), "dev", "--no-browser", "--no-reload", *ctx.args]
     os.chdir(root)

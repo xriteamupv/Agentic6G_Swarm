@@ -213,6 +213,15 @@ class Coordinator:
             )
         if report.mission_id is None and report.kind is ReportKind.DECISION:
             return True  # a robot's own decision outside any mission: logged at the robot
+        if report.mission_id is None and report.kind is ReportKind.ENVELOPE_STATUS:
+            # A robot with no mission yet (admitted at the staging area) asks for work, or
+            # says it is charged: every active mission hears it (2026-10-27).
+            for mission_id in await self.active_missions():
+                self.enqueue(
+                    mission_id,
+                    {"event": {"type": "report", "report": report.model_dump(mode="json")}},
+                )
+            return True
         if report.mission_id is None:
             return False
         self.enqueue(

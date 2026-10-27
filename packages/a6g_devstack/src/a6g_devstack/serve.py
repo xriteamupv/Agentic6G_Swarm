@@ -17,6 +17,7 @@ import logging
 import os
 import signal
 import socket
+import sys
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -104,6 +105,9 @@ class _AgentProxy:
         return getattr(agent, name)
 
 
+SHUTDOWN_DEADLINE_S = 15.0
+
+
 def install_shutdown(server: uvicorn.Server, force: Callable[[], None] | None = None) -> None:
     """The stack, not uvicorn, owns Ctrl-C / SIGTERM.
 
@@ -111,9 +115,17 @@ def install_shutdown(server: uvicorn.Server, force: Callable[[], None] | None = 
     KeyboardInterrupt that cancels the stack's own cleanup halfway (robot servers, agents,
     MQTT broker), leaving the process hanging. Here the first signal stops the control server
     and the cleanup then runs to the end; a second signal forces an exit (``force`` first).
+    A cleanup still running after ``SHUTDOWN_DEADLINE_S`` is forced too: a stack hung in its
+    shutdown kept its ports, and the next start was slow or failed (2026-10-27).
     """
     loop = asyncio.get_running_loop()
     first: float | None = None
+
+    def forced(why: str) -> None:
+        log.warning("forced exit (%s)", why)
+        if force is not None:
+            force()
+        os._exit(130)
 
     def on_signal() -> None:
         nonlocal first
@@ -122,13 +134,11 @@ def install_shutdown(server: uvicorn.Server, force: Callable[[], None] | None = 
             first = now
             log.warning("shutting down (press Ctrl-C again to force)")
             server.should_exit = True
+            loop.call_later(SHUTDOWN_DEADLINE_S, forced, "cleanup took too long")
             return
         if now - first < 1.5:
             return  # the same Ctrl-C forwarded by `uv run` (it reaches the whole process group)
-        log.warning("forced exit")
-        if force is not None:
-            force()
-        os._exit(130)
+        forced("second Ctrl-C")
 
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, on_signal)
@@ -388,7 +398,7 @@ async def _amain(args: argparse.Namespace) -> None:
 
         control = Starlette(
             routes=[
-                *view_routes(cfg, view_state, "a6g · 2D simulator"),
+                *view_routes(cfg, view_state, "Agentic6G · Campus Guardian robot swarm"),
                 Route("/sim/inject/robot_fail", robot_fail, methods=["POST"]),
                 Route("/sim/inject/link_loss", link_loss, methods=["POST"]),
                 Route("/sim/inject/anomaly", anomaly, methods=["POST"]),
@@ -447,7 +457,25 @@ async def world_reset(coordinator: Any, before: str, every_s: float = 5.0) -> No
             await asyncio.sleep(every_s)
 
 
+def _without_ros_pythonpath() -> None:
+    """A shell with ROS sourced puts its Python 3.12 packages on ``PYTHONPATH``; this 3.11
+    service needs none of them, and with them startup took from 2 s to 15 s and more
+    (2026-10-27). Restart once without them (the Gazebo stack keeps them)."""
+    path = os.environ.get("PYTHONPATH", "")
+    if (
+        not path
+        or os.environ.get("A6G_NO_ROS_PATH")
+        or not any(marker in path for marker in ("/opt/ros/", "_ws/install/"))
+    ):
+        return
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    env["A6G_NO_ROS_PATH"] = "1"
+    os.execve(sys.executable, [sys.executable, "-m", "a6g_devstack.serve", *sys.argv[1:]], env)
+
+
 def main(argv: list[str] | None = None) -> None:
+    if argv is None:
+        _without_ros_pythonpath()
     logging.basicConfig(level=logging.WARNING, format="%(asctime)s %(name)s %(message)s")
     logging.getLogger("a6g_skill_mcp.service").setLevel(logging.ERROR)
     args = _parse(argv)

@@ -673,10 +673,24 @@ def build_graph(deps: AgentDeps) -> StateGraph:
 
         old_tasks = state.get("tasks") or {}
         tasks: dict[str, dict[str, Any]] = {}
+        listed = {t.task_id for t in env.tasks}
+        patrols = {_LAP.sub("", t.task_id) for t in env.tasks}
+        for tid, old in old_tasks.items():
+            # A lap it started itself stays while the envelope still lists a lap of the
+            # same patrol (the coordinator has not heard of the new lap yet). A patrol the
+            # coordinator ended, paused for an emergency or gave to another robot lists none:
+            # the robot stops (2026-10-27: it patrolled on, "idle" for the coordinator).
+            if (
+                old.get("local")
+                and tid not in listed
+                and old["status"] in ("pending", "dispatched")
+                and _LAP.sub("", tid) in patrols
+            ):
+                tasks[tid] = old
         for t in env.tasks:
             old = old_tasks.get(t.task_id)
             if old and old["status"] in ("succeeded", "failed", "dispatched", "transferred"):
-                tasks[t.task_id] = {**old, "spec": t.model_dump(mode="json")}
+                tasks[t.task_id] = {**old, "spec": t.model_dump(mode="json"), "local": False}
             else:
                 status = "pending" if t.task_id in accepted else "refused"
                 tasks[t.task_id] = {
@@ -1587,6 +1601,10 @@ def build_graph(deps: AgentDeps) -> StateGraph:
                     ReportKind.SKILL_RESULT,
                     {"task_id": current, "result": result.model_dump(mode="json")},
                 )
+                nxt = _own_next_lap(state, ev, tasks, current, spec) if ok else None
+                if nxt:
+                    update["sequence"] = [*(state.get("sequence") or []), nxt]
+                    state = {**state, "sequence": update["sequence"]}
                 if not ok:
                     # P3: the coordinator reallocates; if unreachable, contract-net.
                     ctx.report(
@@ -1673,12 +1691,22 @@ def build_graph(deps: AgentDeps) -> StateGraph:
             state = {**state, "holding": False}
 
         link = LinkQuality(state.get("link_quality") or "ok")
-        if link is LinkQuality.LOST and deps.link_policy is LinkLossPolicy.HOLD_THEN_RECOVER:
+        work_left = any(
+            (tasks.get(t) or {}).get("status") == "pending" for t in state.get("sequence") or []
+        )
+        if (
+            link is LinkQuality.LOST
+            and deps.link_policy is LinkLossPolicy.HOLD_THEN_RECOVER
+            and not work_left  # 2026-10-27: it goes on with its laps; coverage comes back
+        ):
             update.update(_hold_then_recover(state, ctx, ev, update.get("recovery_stage")))
             update.setdefault("holding", True)
             update.update(hold_reason="link_lost", status="holding", outbox=ctx.outbox)
             return update
-        if link is LinkQuality.LOST:
+        # The other policies keep their meaning: finish the current task, then hold.
+        if link is LinkQuality.LOST and not (
+            work_left and deps.link_policy is LinkLossPolicy.HOLD_THEN_RECOVER
+        ):
             if deps.link_policy is LinkLossPolicy.RETURN_HOME and not state.get("returned_home"):
                 update.update(
                     dispatch={
@@ -1772,8 +1800,9 @@ def build_graph(deps: AgentDeps) -> StateGraph:
             return {}
         ctx = _Ctx(deps, state)
         update: dict[str, Any] = {"link_quality": new.value}
-        if state.get("envelope"):
-            update["replan_trigger"] = {"type": "link_change", "from": old.value, "to": new.value}
+        # No model replan on a link change (2026-10-27): losing and regaining coverage is
+        # routine on this campus and the link policy is code's. The model sometimes skipped
+        # the next lap ("link") and sometimes went on, so robots behaved differently.
         if new is LinkQuality.LOST:
             current = state.get("current_task_id")
             stop_now = False
@@ -1823,6 +1852,57 @@ def build_graph(deps: AgentDeps) -> StateGraph:
             )
         update["outbox"] = ctx.outbox
         return update
+
+    def _own_next_lap(
+        state: AgentState,
+        ev: dict[str, Any],
+        tasks: dict[str, dict[str, Any]],
+        done_id: str,
+        spec: TaskSpec,
+    ) -> str | None:
+        """A continuous patrol: queue the next lap of the same sector (same name as the
+        coordinator gives it, ``<task>-lap<n+1>``), whether it has coverage or not; the
+        coordinator records it when the reports arrive (2026-10-27). Not after a partial
+        route (a remainder), and not when its battery cannot finish the lap."""
+        target = spec.target
+        if not spec.repeat or not isinstance(target, SectorTarget) or target.from_waypoint:
+            return None
+        base = _LAP.sub("", done_id)
+        new_id = f"{base}-lap{lap_number(done_id) + 1}"
+        if new_id in tasks:
+            return None
+        nxt = spec.model_copy(
+            update={
+                "task_id": new_id,
+                "depends_on": [],
+                "target": target.model_copy(
+                    update={
+                        "from_waypoint": 0,
+                        "reverse": None,
+                        "prefer_reverse": (tasks[done_id] or {}).get("reverse"),
+                    }
+                ),
+            }
+        )
+        rs = ev.get("robot_state")
+        if rs:
+            robot_state = RobotState.model_validate(rs)
+            env = state.get("envelope") or {}
+            floor = (env.get("budgets") or {}).get(
+                "battery_floor_pct", deps.allocator.default_battery_floor_pct
+            )
+            start = virtual_state(robot_state, deps.manifest, deps.allocator)
+            est = estimate(start, nxt, deps.manifest, deps.campus, deps.allocator, floor)
+            if not isinstance(est, Estimate):
+                return None  # it goes to charge; the coordinator gives the lap to another
+        tasks[new_id] = {
+            "spec": nxt.model_dump(mode="json"),
+            "status": "pending",
+            "outcome": None,
+            "detail": "next lap, started by the robot",
+            "local": True,
+        }
+        return new_id
 
     async def handle_battery(state: AgentState) -> dict[str, Any]:
         """Low battery: release every open task, stop, recharge at the staging area (the

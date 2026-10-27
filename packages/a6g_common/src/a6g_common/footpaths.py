@@ -55,9 +55,15 @@ class Projection:
 
 
 class Walker:
-    """Shortest walks over the walkable edges of a route graph."""
+    """Shortest walks over the walkable edges of a route graph. ``factors``: per-edge cost
+    multipliers (the robots prefer the patrol paths, 2026-10-27); lengths stay real."""
 
-    def __init__(self, graph: RouteGraph, sources: frozenset[str] = WALKABLE) -> None:
+    def __init__(
+        self,
+        graph: RouteGraph,
+        sources: frozenset[str] = WALKABLE,
+        factors: Mapping[str, float] | None = None,
+    ) -> None:
         self.edges: dict[str, GraphEdge] = {
             e.id: e for e in sorted(graph.edges, key=lambda e: e.id) if e.source in sources
         }
@@ -69,6 +75,9 @@ class Walker:
             line = [tuple(p) for p in e.geometry] or [self.nodes[e.from_], self.nodes[e.to]]
             self.geom[eid] = line  # type: ignore[assignment]
             self.length[eid] = sum(math.dist(a, b) for a, b in pairwise(line))
+        self.factor = {eid: (factors or {}).get(eid, 1.0) for eid in self.edges}
+        self.cost = {eid: self.length[eid] * self.factor[eid] for eid in self.edges}
+        for eid, e in self.edges.items():
             self.adj.setdefault(e.from_, []).append((e.to, eid))
             self.adj.setdefault(e.to, []).append((e.from_, eid))
 
@@ -124,7 +133,7 @@ class Walker:
             if d > best.get(n, math.inf) + 1e-9:
                 continue
             for m, eid in self.adj.get(n, []):
-                nd = d + self.length[eid]
+                nd = d + self.cost[eid]
                 if nd < best.get(m, math.inf) - 1e-9:
                     best[m] = nd
                     prev[m] = (n, eid)
@@ -139,10 +148,11 @@ class Walker:
             return None
         ea, eb = self.edges[pa.edge], self.edges[pb.edge]
         la, lb = self.length[pa.edge], self.length[pb.edge]
-        options: list[tuple[float, list[XY]]] = []
+        fa, fb = self.factor[pa.edge], self.factor[pb.edge]
+        options: list[tuple[float, list[XY]]] = []  # (cost, polyline)
         if pa.edge == pb.edge:  # along the same path
-            options.append((abs(pb.along - pa.along), self.cut(pa.edge, pa.along, pb.along)))
-        starts = {ea.from_: pa.along, ea.to: la - pa.along}
+            options.append((abs(pb.along - pa.along) * fa, self.cut(pa.edge, pa.along, pb.along)))
+        starts = {ea.from_: pa.along * fa, ea.to: (la - pa.along) * fa}
         best, prev = self._dijkstra(starts)
         for end, tail in ((eb.from_, pb.along), (eb.to, lb - pb.along)):
             if end not in best:
@@ -159,10 +169,11 @@ class Walker:
             for node, eid in zip(nodes, eids, strict=False):
                 line += self.edge_line(eid, node)[1:]
             line += self.cut(pb.edge, 0.0 if end == eb.from_ else lb, pb.along)[1:]
-            options.append((best[end] + tail, line))
+            options.append((best[end] + tail * fb, line))
         if not options:
             return None
-        length, line = min(options, key=lambda o: o[0])
+        _, line = min(options, key=lambda o: o[0])
+        length = sum(math.dist(p, q) for p, q in pairwise(line))
         pts = [a, *line, b]
         out = [pts[0]]
         for q in pts[1:]:
@@ -433,6 +444,7 @@ def _cover(walker: Walker, edges: Sequence[str], start: XY, simplify_m: float) -
     zone = Walker.__new__(Walker)  # the zone's own sub-network
     zone.edges = {e: walker.edges[e] for e in mine}
     zone.nodes, zone.geom, zone.length = walker.nodes, walker.geom, walker.length
+    zone.factor, zone.cost = walker.factor, walker.cost
     zone.adj = {}
     for eid in mine:
         e = walker.edges[eid]

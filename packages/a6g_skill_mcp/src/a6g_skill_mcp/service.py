@@ -246,9 +246,7 @@ class SkillService:
         dist = math.hypot(goal.x - pose.x, goal.y - pose.y)
         if self.campus.footpaths_only and self.campus.route_graph is not None:
             # The robot walks the footpaths (2026-10-18): budget the walk, not the line.
-            from a6g_common.footpaths import walker_for
-
-            walk = walker_for(self.campus.route_graph).walk((pose.x, pose.y), (goal.x, goal.y))
+            walk = self.campus.robot_walker().walk((pose.x, pose.y), (goal.x, goal.y))
             if walk is not None:
                 dist = max(dist, walk[0])
         turn = math.pi * self.manifest.turn_in_place_s_per_rad

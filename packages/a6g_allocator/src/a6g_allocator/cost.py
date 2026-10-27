@@ -97,6 +97,16 @@ def lap_reversed(task: TaskSpec, campus: CampusConfig, start: Pose2D | None) -> 
         return walk if walk is not None else math.hypot(p.x - start.x, p.y - start.y)
 
     to_first, to_last = far(wps[0]), far(wps[-1])
+    # A robot with coverage does not start at an end in lost coverage when the other end has
+    # coverage: coming out of a lost area it would turn back into it (user report,
+    # 2026-10-27, South plaza: after recovering at staging, the next lap started at the
+    # arcade). The lap then ends in the lost area instead, and the robot recovers once.
+    here = campus.link_level_at(start.x, start.y)
+    if here is not None and here != "lost":
+        lost_first = campus.link_level_at(wps[0].x, wps[0].y) == "lost"
+        lost_last = campus.link_level_at(wps[-1].x, wps[-1].y) == "lost"
+        if lost_first != lost_last:
+            return lost_first
     if target.prefer_reverse is not None:  # the end patrolled longest ago, if not too far
         length = sum(math.hypot(b.x - a.x, b.y - a.y) for a, b in itertools.pairwise(wps))
         stale, fresh = (to_last, to_first) if target.prefer_reverse else (to_first, to_last)
@@ -159,7 +169,8 @@ def route_distance(
         return None
     straight = math.hypot(b.x - a.x, b.y - a.y)
     if campus.footpaths_only:  # the robots walk on the footpaths only (2026-10-18)
-        return _walk_length(graph, (a.x, a.y), (b.x, b.y), stairs)
+        factors = campus.robot_edge_factors()  # as the robots walk (patrol paths preferred)
+        return _walk_length(graph, (a.x, a.y), (b.x, b.y), stairs, factors)
     if straight <= graph.open_space_max_m:
         # Open plaza: a straight move through free space (cached on a 1 m grid).
         key5 = (id(campus), round(a.x), round(a.y), round(b.x), round(b.y))
@@ -187,22 +198,28 @@ def route_distance(
     return max(da + path + db, straight)
 
 
-_WALKERS: dict[tuple[int, bool], Any] = {}
-_WALK_CACHE: dict[tuple[int, bool, int, int, int, int], float | None] = {}
+_WALKERS: dict[tuple[int, bool, int], Any] = {}
+_WALK_CACHE: dict[tuple[int, bool, int, int, int, int, int], float | None] = {}
 
 
-def _walk_length(graph: Any, a: tuple[float, float], b: tuple[float, float], stairs: bool):
+def _walk_length(
+    graph: Any,
+    a: tuple[float, float],
+    b: tuple[float, float],
+    stairs: bool,
+    factors: dict[str, float] | None = None,
+):
     """Walking distance over the footpaths (cached on a 0.5 m grid)."""
     from a6g_common.footpaths import Walker
 
-    wkey = (id(graph), stairs)
+    wkey = (id(graph), stairs, id(factors))  # the campus caches its factors
     if wkey not in _WALKERS:
         g = (
             graph
             if stairs
             else graph.model_copy(update={"edges": [e for e in graph.edges if not e.stairs]})
         )
-        _WALKERS[wkey] = Walker(g)
+        _WALKERS[wkey] = Walker(g, factors=factors)
     key = (*wkey, round(a[0] * 2), round(a[1] * 2), round(b[0] * 2), round(b[1] * 2))
     if key not in _WALK_CACHE:
         if len(_WALK_CACHE) > 200_000:

@@ -24,7 +24,7 @@ from typing import Any
 
 from a6g_common.clock import SystemClock
 from a6g_common.config import load_config
-from a6g_common.schemas import Report
+from a6g_common.schemas import Report, ReportKind
 from a6g_transport.messaging import (
     TOPIC_HEARTBEAT,
     A6GMessage,
@@ -107,10 +107,9 @@ async def end_missions_before(event: dict[str, Any], before: str) -> list[str]:
 
 async def broadcast(event: dict[str, Any]) -> None:
     if event.get("type") == "robot_added":  # remembered for missions started later
-        with contextlib.suppress(Exception):
-            from a6g_coordinator.server import DEPS
+        from a6g_coordinator.graph import ADMITTED  # the graph's registry (one object)
 
-            DEPS.admitted[event["robot_id"]] = event
+        ADMITTED[event["robot_id"]] = event
     for mission_id in await active_missions():
         await submit(mission_id, event)
 
@@ -118,10 +117,14 @@ async def broadcast(event: dict[str, Any]) -> None:
 async def handle(msg: A6GMessage) -> A6GMessage:
     if msg.type is MessageType.REPORT:
         report = Report.model_validate(msg.payload)
+        event = {"type": "report", "report": report.model_dump(mode="json")}
         if report.mission_id:
-            await submit(
-                report.mission_id, {"type": "report", "report": report.model_dump(mode="json")}
-            )
+            await submit(report.mission_id, event)
+        elif report.kind is ReportKind.ENVELOPE_STATUS:
+            # A robot with no mission yet (admitted at the staging area) asks for work, or
+            # says it is charged: every active mission hears it (2026-10-27).
+            for mission_id in await active_missions():
+                await submit(mission_id, event)
         return A6GMessage(MessageType.REPORT_ACK, {"report_id": report.report_id})
     if msg.type is MessageType.OPERATOR:
         event = msg.payload["event"]

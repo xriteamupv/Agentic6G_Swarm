@@ -34,6 +34,7 @@ patrol_zones:
   margin_m: 3                  # zone polygon around its paths
   simplify_m: 1.0              # survey route within this of the paths
   corridor_m: 2.0              # walkable half-width around a path (sim guard, Nav2 keepout)
+  transit_off_zone_factor: 3   # robots between tasks prefer the patrol paths (other footways cost 3x)
   exclude_edges: [w1108806158.0:0, w1113048096.0:0, w1113048096.0:1, w1113048097.0:0,
                   w1113726614.0:0, w1284938129.0:0, w1289707415.0:0, w143426026.0:0, w143426026.0:1,
                   w185121690.0:0, w185121698.0:0, w185125477.0:0, w185125477.0:1, w185125478.0:0,
@@ -57,8 +58,8 @@ sectors:
     seed_wgs84: [39.4789954, -0.3343113]
     edges: [w1108806157.0:0, w301780869.0:0, w301780869.0:1, w301780869.0:2, w301780870.0:0]
 pois:
-  - {id: poi_kiosk, name: Info kiosk, lat: 39.4787576, lon: -0.3367423, yaw_deg: 90, kind: [inspect, escort_dest], exposed: false,
-     aliases: [punto de información, punt d'informació, information point, kiosk]}
+  - {id: poi_kiosk, name: Building 8K door, lat: 39.4787576, lon: -0.3367423, yaw_deg: 90, kind: [inspect, escort_dest], exposed: false,
+     building: "8K", aliases: [puerta del edificio 8K, porta de l'edifici 8K, edificio 8K, edifici 8K, 8K, building 8K]}
   - {id: poi_library_door, name: Building 9B door, lat: 39.4790622, lon: -0.3344434, yaw_deg: 90, kind: [inspect, exposed, escort_dest], exposed: true,
      building: "9B", aliases: [puerta del edificio 9B, porta de l'edifici 9B, edificio 9B, edifici 9B, 9B, library door],
      flood: {gain_m_per_mm: 0.01, drain_rate_per_min: 0.1, risk_levels_m: {elevated: 0.05, high: 0.15, critical: 0.3}}}
@@ -69,10 +70,10 @@ pois:
      aliases: [parada de autobús, parada d'autobús, parada del bus, bus],
      flood: {gain_m_per_mm: 0.01, drain_rate_per_min: 0.1, risk_levels_m: {elevated: 0.05, high: 0.15, critical: 0.3}}}
   # Shelters (v3, SPEC A3.4/A3.6): where escorts end in bad weather. TODO(UPV): real sheltered spots.
-  - {id: poi_shelter_9b, name: 9B east entrance canopy, lat: 39.4788032, lon: -0.3332472, kind: [shelter], exposed: false,
-     building: "9B", aliases: [marquesina del 9B, porxo del 9B, 9B entrance canopy]}
-  - {id: poi_shelter_south, name: South plaza arcade, lat: 39.4782048, lon: -0.3334278, kind: [shelter], exposed: false,
-     aliases: [soportales de la plaza sur, porxos de la plaça sud, south arcade]}
+  - {id: poi_shelter_9b, name: Campus east access, lat: 39.4788032, lon: -0.3332472, kind: [shelter], exposed: false,
+     aliases: [acceso este del campus, accés est del campus, east access, campus east entrance]}
+  - {id: poi_shelter_south, name: Parking 8B, lat: 39.4782048, lon: -0.3334278, kind: [shelter], exposed: false,
+     building: "8B", aliases: [aparcamiento 8B, aparcament 8B, 8B parking, parking 8B]}
 coverage_shadows: []           # none: coverage is emulated from the network twin (SPEC A4.6, 2026-10-26)
 link_recovery_points:            # reachable spots with 5G coverage, where a robot that lost the link drives
   # (the East gate was removed on 2026-10-26: it lies in the lost area of the radio DT map)
@@ -103,6 +104,6 @@ people_routing_profiles:          # non-identifying; a declared constraint maps 
   default:      {}
 documents:
   - {id: doc_kiosk_hours, kind: description, lang: en, applies_to: [poi_kiosk], source: operator,
-     text: "The information kiosk is staffed on weekdays from 08:00 to 20:00."}
+     text: "The Building 8K door is open on weekdays from 08:00 to 20:00."}
   - {id: doc_kiosk_hours_es, kind: description, lang: es, applies_to: [poi_kiosk], source: operator,
-     text: "El punto de información está atendido los días laborables de 08:00 a 20:00."}
+     text: "La puerta del edificio 8K está abierta los días laborables de 08:00 a 20:00."}

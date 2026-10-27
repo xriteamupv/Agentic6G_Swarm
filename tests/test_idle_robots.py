@@ -5,6 +5,7 @@ that already patrolled another sector, and the first robot stood idle while the 
 held two sectors. Now the idle robot tells the coordinator, which moves to it a task the
 busy robot has not started."""
 
+import math
 from pathlib import Path
 
 import pytest
@@ -112,7 +113,7 @@ async def test_robots_that_finish_their_work_tell_the_coordinator(tmp_path: Path
     stack = SimStack(cfg, tmp_path / "s")
     await stack.start()
     try:
-        await stack.mission("Inspect the bike rack, the bus stop and the info kiosk")
+        await stack.mission("Inspect the bike rack, the bus stop and the building 8K door")
 
         async def idle_known() -> bool:
             fleet = (await stack.coordinator.state("m1"))["fleet"]
@@ -243,9 +244,12 @@ async def test_a_robot_with_no_envelope_left_keeps_asking_and_reports_its_charge
         stack.world.robot(rid).battery_pct = 30.0  # idle and low: it goes to charge
 
         def charged() -> bool:
-            return (rid, "recharging") in seen and (rid, "charged") in seen
+            # Idle, it may already be back at the dock (2026-10-27: idle robots return to
+            # the staging area) and charge there without a formal recharge: "charged" is
+            # what the coordinator needs.
+            return (rid, "charged") in seen
 
-        await wait_for(charged, 60, "recharging and charged reported")
+        await wait_for(charged, 60, "charged reported")
         await coord.drain()
         fleet = (await coord.state("m1"))["fleet"]
     finally:
@@ -370,3 +374,301 @@ def test_assignments_say_what_the_robot_is_already_doing(cfg) -> None:
     }
     text = narr.allocation({"go2_02": ["south"]}, tasks, {"go2_02": {"platform": "go2"}})
     assert text.endswith("will patrol the South plaza next (now: patrol the North-west walk).")
+
+
+async def test_a_robot_charged_idle_at_the_dock_says_so(tmp_path: Path, cfg) -> None:
+    """User report (2026-10-27): two robots, low after their laps, charged idle in the
+    staging area (the dock) without ever starting a formal recharge; the coordinator kept
+    their low battery and their battery refusals, and they stood idle at 100 % while another
+    robot held three laps. A robot that was low and is charged again now reports it."""
+    alloc = cfg.allocator.model_copy(update={"recharge_idle_grace_s": 3600.0})
+    cfg = cfg.model_copy(update={"allocator": alloc})  # no formal recharge in this test
+    stack = SimStack(cfg, tmp_path / "s")
+    seen: list[tuple[str, str]] = []
+    await stack.start()
+    try:
+        coord = stack.coordinator
+        handle = coord.handle_report
+
+        async def spy(report):
+            if report.kind.value == "envelope_status":
+                seen.append((report.robot_id, report.payload.get("status")))
+            return await handle(report)
+
+        coord.handle_report = spy
+        await stack.mission("Inspect the bike rack")
+        state = await coord.state("m1")
+        rid = next(t["robot_id"] for t in state["tasks"].values())  # in the mission
+
+        async def done() -> bool:
+            tasks = (await coord.state("m1"))["tasks"]
+            return all(t["status"] == "done" for t in tasks.values())
+
+        await wait_for(done, 60, "the inspection done")
+        robot = stack.world.robot(rid)  # back at the dock, idle and low
+        robot.x, robot.y = stack.cfg.campus.staging.x, stack.cfg.campus.staging.y
+        stack.world.charge_pct_per_s = 0.1  # slow enough that the robot sees it low first
+        robot.battery_pct = 30.0
+
+        def charged() -> bool:
+            return (rid, "charged") in seen
+
+        await wait_for(charged, 120, "charged reported")
+        await coord.drain()
+        fleet = (await coord.state("m1"))["fleet"]
+    finally:
+        await stack.stop()
+    assert (rid, "recharging") not in seen  # it never formally recharged
+    assert fleet[rid]["idle_battery_pct"] >= cfg.allocator.recharge_resume_pct
+
+
+async def test_allocation_brings_back_a_robot_and_lifts_a_lapsed_battery_refusal(
+    tmp_path: Path, cfg
+) -> None:
+    """User report (2026-10-27): summit_01 stayed "lost" for good after one failed request,
+    idle at staging while publishing its state; go2_01, charged at the dock, stayed barred
+    from a lap it had declined for battery. The next allocation asks a robot lost that way
+    again, and a battery refusal lapses once the robot's battery is seen higher."""
+    stack = SimStack(cfg, tmp_path / "s")
+    await stack.start()
+    try:
+        stack.world.pause()
+        await stack.mission("Patrol the campus")
+        coord = stack.coordinator
+        await coord.drain()
+        state = await coord.state("m1")
+        tasks, fleet = state["tasks"], state["fleet"]
+        tid = sorted(tasks)[0]
+        tasks[tid].update(
+            status="pending",
+            robot_id=None,
+            refused_by=["go2_01"],
+            refused_for={"go2_01": "battery"},
+            refused_battery={"go2_01": 30.0},  # it is at 100 % now
+        )
+        fleet["summit_01"].update(status="lost", lost_by="query")
+        await coord.graph.aupdate_state(coord._config("m1"), {"tasks": tasks, "fleet": fleet})
+        await coord.broadcast({"type": "tick"})
+        await coord.drain()
+        state = await coord.state("m1")
+    finally:
+        await stack.stop()
+    assert state["fleet"]["summit_01"]["status"] == "available"
+    assert "lost_by" not in state["fleet"]["summit_01"]
+    assert "go2_01" not in (state["tasks"][tid].get("refused_by") or [])
+    assert state["fleet"]["go2_01"]["seen_battery_pct"] == pytest.approx(100.0, abs=1)
+
+
+async def test_an_idle_robot_asks_again_once_charged(tmp_path: Path, cfg) -> None:
+    """User report (2026-10-27): an idle robot asked for work at 27 %, got none (no lap fits
+    its reserve), and its asks backed off to 16 min; charged at the dock it stayed idle while
+    another robot held three laps. It now asks again as soon as its battery has risen."""
+    alloc = cfg.allocator.model_copy(update={"recharge_idle_grace_s": 3600.0})
+    cfg = cfg.model_copy(update={"allocator": alloc})
+    stack = SimStack(cfg, tmp_path / "s")
+    asks: list[tuple[str, float]] = []
+    await stack.start()
+    try:
+        coord = stack.coordinator
+        handle = coord.handle_report
+
+        async def spy(report):
+            if report.kind.value == "envelope_status" and report.payload.get("status") == "idle":
+                asks.append((report.robot_id, report.payload.get("battery_pct") or 0.0))
+            return await handle(report)
+
+        coord.handle_report = spy
+        await stack.mission("Inspect the bike rack")
+        rid = next(t["robot_id"] for t in (await coord.state("m1"))["tasks"].values())
+
+        async def done() -> bool:
+            tasks = (await coord.state("m1"))["tasks"]
+            return all(t["status"] == "done" for t in tasks.values())
+
+        await wait_for(done, 60, "the inspection done")
+        robot = stack.world.robot(rid)
+        robot.x, robot.y = stack.cfg.campus.staging.x, stack.cfg.campus.staging.y
+        stack.world.charge_pct_per_s = 0.05
+        robot.battery_pct = 30.0
+        agent = stack.robots[rid].agent
+        import time as _time
+
+        # its last ask was just now, at 30 %, long backed off after unanswered asks
+        agent._work_asked = (stack.world.clock.now(), _time.time())
+        agent._asks, agent._ask_battery = 5, 30.0
+
+        def asked_charged() -> bool:
+            return any(r == rid and 35.0 <= pct < 50.0 for r, pct in asks)
+
+        await wait_for(asked_charged, 120, "an ask after charging")
+    finally:
+        await stack.stop()
+
+
+async def test_robots_added_before_the_mission_ask_for_and_get_work(tmp_path: Path, cfg) -> None:
+    """User report (2026-10-27, 5 robots): go2_03 and go2_04, added at the staging area,
+    never got a lap while go2_02 held three. Robots added before a mission join it, and an
+    idle robot that was never given work still asks for it."""
+    stack = SimStack(cfg, tmp_path / "s")
+    asks: set[str] = set()
+    await stack.start()
+    try:
+        for rid in ("go2_03", "go2_04"):
+            await stack.add_robot(robot_id=rid)
+        coord = stack.coordinator
+        handle = coord.handle_report
+
+        async def spy(report):
+            if report.kind.value == "envelope_status" and report.payload.get("status") == "idle":
+                asks.add(report.robot_id)
+            return await handle(report)
+
+        coord.handle_report = spy
+        await coord.drain()
+        await stack.mission("Patrol the campus")
+        worked: set[str] = set()
+
+        async def everyone_worked() -> bool:
+            tasks = (await coord.state("m1"))["tasks"]
+            worked.update(t["robot_id"] for t in tasks.values() if t.get("robot_id"))
+            return {"go2_03", "go2_04"} <= worked
+
+        await wait_for(everyone_worked, 240, "the added robots given laps")
+        fleet = (await coord.state("m1"))["fleet"]
+    finally:
+        await stack.stop()
+    assert {"go2_03", "go2_04"} <= set(fleet)
+
+
+async def test_an_idle_robot_goes_back_to_the_staging_area(tmp_path: Path, cfg) -> None:
+    """User request (2026-10-27): a robot idle for 30 s away from the staging area drives
+    back and waits there for work."""
+    stack = SimStack(cfg, tmp_path / "s")
+    await stack.start()
+    try:
+        await stack.mission("Inspect the bike rack")
+        coord = stack.coordinator
+        rid = next(t["robot_id"] for t in (await coord.state("m1"))["tasks"].values())
+
+        async def done() -> bool:
+            tasks = (await coord.state("m1"))["tasks"]
+            return all(t["status"] == "done" for t in tasks.values())
+
+        await wait_for(done, 60, "the inspection done")
+        robot, staging = stack.world.robot(rid), stack.cfg.campus.staging
+        assert math.dist((robot.x, robot.y), (staging.x, staging.y)) > 20  # at the bike rack
+
+        def home() -> bool:
+            return math.dist((robot.x, robot.y), (staging.x, staging.y)) < 3
+
+        await wait_for(home, 120, "back at the staging area")
+    finally:
+        await stack.stop()
+
+
+async def test_a_robot_out_of_contact_keeps_its_queued_work(tmp_path: Path, cfg) -> None:
+    """User report (2026-10-27): a robot out of contact for 10 s had its queued laps handed
+    to a waiting robot, and came out of the lost stretch with nothing to do. It now keeps
+    them (only a robot presumed stuck, failed or charging hands them on)."""
+    stack = SimStack(cfg, tmp_path / "s")
+    await stack.start()
+    try:
+        stack.world.pause()
+        await stack.mission("Patrol the campus")
+        coord = stack.coordinator
+        await coord.drain()
+        state = await coord.state("m1")
+        tasks, fleet = state["tasks"], state["fleet"]
+        holder = sorted(t["robot_id"] for t in tasks.values() if t.get("robot_id"))[0]
+        queued = next(
+            tid for tid, t in sorted(tasks.items()) if t.get("robot_id") != holder
+        )  # give the holder a second, queued task
+        tasks[queued].update(robot_id=holder, status="assigned")
+        await coord.graph.aupdate_state(coord._config("m1"), {"tasks": tasks, "fleet": fleet})
+        await coord.broadcast({"type": "robot_lost", "robot_id": holder, "reason": "test"})
+        await coord.drain()
+        state = await coord.state("m1")
+    finally:
+        await stack.stop()
+    assert state["fleet"][holder]["status"] == "lost"
+    assert state["tasks"][queued]["robot_id"] == holder
+
+
+async def test_a_weather_alert_stops_the_laps_robots_started_themselves(
+    tmp_path: Path, cfg
+) -> None:
+    """User report (2026-10-27): after a weather alert the summit, given no post, went on
+    patrolling: it was on a lap it had started itself while out of contact, which the
+    coordinator did not know to pause. Back in contact, the emergency envelope drops that
+    lap, and a robot left without work by the emergency goes to the staging area at once."""
+    stack = SimStack(cfg, tmp_path / "s")
+    await stack.start()
+    try:
+        await stack.mission("Patrol the campus")
+        coord = stack.coordinator
+        found: dict = {}
+
+        async def own_lap() -> bool:  # a robot on a lap it started itself
+            for rid, proc in stack.robots.items():
+                agent = proc.agent
+                for thread in list(agent._threads):
+                    values = (await agent.graph.aget_state(agent._config(thread))).values
+                    if any(
+                        t.get("local") and t["status"] == "dispatched"
+                        for t in (values.get("tasks") or {}).values()
+                    ):
+                        found["rid"] = rid
+                        return True
+            return False
+
+        await wait_for(own_lap, 240, "a robot on a lap it started itself")
+        rid = found["rid"]
+        stack.link_loss(rid, 60)  # out of contact when the alert comes
+        await stack.weather_alert()
+        await coord.drain()
+        state = await coord.state("m1")
+        posts = {
+            t["robot_id"]
+            for t in state["tasks"].values()
+            if t["status"] in ("assigned", "in_progress") and t["spec"]["kind"] == "hold_post"
+        }
+        agent = stack.robots[rid].agent
+
+        async def stopped_patrolling() -> bool:
+            task = (await agent.activity())["task"] or ""
+            return "survey_sector" not in task
+
+        await wait_for(stopped_patrolling, 180, "its own lap dropped once back in contact")
+        if rid not in posts:
+            staging = stack.cfg.campus.staging
+
+            def home() -> bool:
+                r = stack.world.robot(rid)
+                return math.dist((r.x, r.y), (staging.x, staging.y)) < 3
+
+            await wait_for(home, 240, "a robot without a post at the staging area")
+        state = await coord.state("m1")
+    finally:
+        await stack.stop()
+    running = [t for t in state["tasks"].values() if t["status"] in ("assigned", "in_progress")]
+    assert all(t["spec"]["kind"] != "survey_sector" for t in running)
+
+
+async def test_a_summit_added_at_the_staging_area_sees_its_battery(tmp_path: Path, cfg) -> None:
+    """User report (2026-10-27): summit_02 (added with --robots) patrolled until its battery
+    was flat: its manifest says the Summit's estimator is unreliable, and only the fleet
+    file told the simulator otherwise, so it never saw its battery and never charged."""
+    stack = SimStack(cfg, tmp_path / "s")
+    await stack.start()
+    try:
+        await stack.add_robot(robot_id="summit_02")
+        state = stack.world.state("summit_02")
+        assert state.battery_pct is not None
+        stack.world.robot("summit_02").battery_pct = 22.0  # below floor + margin
+
+        def charging() -> bool:
+            return stack.robots["summit_02"].agent._recharging
+
+        await wait_for(charging, 60, "summit_02 going to charge")
+    finally:
+        await stack.stop()

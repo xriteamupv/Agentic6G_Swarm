@@ -20,7 +20,7 @@ KIOSK, BIKE = "t_inspect_poi_kiosk", "t_inspect_poi_bike_rack"
 
 
 def _around_kiosk(env: AgentEnv) -> list[tuple[float, float]]:
-    """An envelope region holding the kiosk but not the bike rack: the rack is infeasible."""
+    """An envelope region holding the 8K door but not the bike rack: the rack is infeasible."""
     k = env.fleet.cfg.campus.poi("poi_kiosk").pose
     return [(k.x - 15, k.y - 15), (k.x + 15, k.y - 15), (k.x + 15, k.y + 15), (k.x - 15, k.y + 15)]
 
@@ -36,7 +36,7 @@ async def test_validator_rejects_an_infeasible_acceptance_and_the_retry_succeeds
     greedy = json.dumps(
         {"action": "accept_subset", "task_ids": [KIOSK, BIKE], "rationale": "I take both."}
     )
-    fixed = json.dumps({"action": "accept_all", "rationale": "Only the kiosk is in my region."})
+    fixed = json.dumps({"action": "accept_all", "rationale": "Only the 8K door is in my region."})
     await env.start_agent(model=fake_model([greedy, fixed]))
     reply = await env.agent.handle_envelope(
         make_envelope(
@@ -46,7 +46,7 @@ async def test_validator_rejects_an_infeasible_acceptance_and_the_retry_succeeds
     assert reply.decision == "renegotiate"
     assert reply.accepted_task_ids == [KIOSK]
     assert reply.refusals == {BIKE: RefusalReason.REGION}  # the code's verdict stands
-    assert reply.justification == "Only the kiosk is in my region."  # the model's words
+    assert reply.justification == "Only the 8K door is in my region."  # the model's words
     decision = _decisions(env, DecisionKind.RENEGOTIATE)[-1]
     assert decision.policy["model_policy"] == "model" and decision.policy["model_attempts"] == 2
     assert "infeasible" in decision.policy["validator_rejections"][0]

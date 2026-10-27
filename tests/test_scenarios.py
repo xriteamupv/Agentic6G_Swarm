@@ -316,7 +316,7 @@ async def test_6_anomaly_escalated_interrupt_resumed_by_cli(stack: SimStack, mon
     from a6g_cli import main as cli
 
     stack.anomaly("poi_kiosk", "unattended backpack")
-    await stack.mission("Check the info kiosk", posture="interactive")
+    await stack.mission("Check the building 8K door", posture="interactive")
 
     async def interrupted() -> bool:
         return bool(await stack.coordinator.interrupts(M))
