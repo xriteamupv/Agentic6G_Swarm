@@ -12,7 +12,10 @@ step here reruns a measurement, its result here replaces the older one.*
 **Setup.** One run of `bench/run_final.sh A B C`, started 27 Oct 19:52 at commit `53dcba4`
 (clean tree; every result manifest records it). This document is updated and committed
 during the run, so later steps record later commits: those commits change only this file
-(`git diff 53dcba4..HEAD -- . ':!bench/PAPER_MEASUREMENTS.md'` is empty), the code is that of `53dcba4`. Steps run one after another so that
+(`git diff 53dcba4..HEAD -- . ':!bench/PAPER_MEASUREMENTS.md'` is empty), the code is that of `53dcba4`,
+except one fix committed during the run: `51463f3` (escorts in capacity reconciliation, found by
+the G10 step at 20:08). It only changes capacity-mode reconciliation of escorts; steps from
+N1 on record it, and G10 (with N2) is rerun on it after the chain. Steps run one after another so that
 timing-sensitive runs never share the machine; the laptop is kept awake (`systemd-inhibit`).
 LangSmith tracing is off. Postgres (`a6g-pg`, 127.0.0.1:5433) backs the G10 checkpoint meter.
 
@@ -33,11 +36,11 @@ LangSmith tracing is off. Postgres (`a6g-pg`, 127.0.0.1:5433) backs the G10 chec
 
 | Step | Measures | Status | Key result |
 |---|---|---|---|
-| A · n4_scarcity | N4: G13 over cell capacity 2–44 Mbps, reconcile / reconcile_off / reconcile_relocate, fleets 3 and 5, 10 seeds | running | |
-| A · g10_capacity | M5: G10 × 10 seeds, capacity network, checkpoint meter, Postgres | queued | |
-| A · kpi11_offline | M1: UC2-KPI-11, fake models, 20 seeds | queued | |
-| A · kpi11_offline_scarcity | M1 under scarcity (capacity network) | queued | |
-| A · n1_outage | N1: coordinator outage 60 s–∞ × fleets 3, 5, 8 × 10 seeds, P vs B0–B2 | queued | |
+| A · n4_scarcity | N4: G13 over cell capacity 2–44 Mbps, reconcile / reconcile_off / reconcile_relocate, fleets 3 and 5, 10 seeds | done 20:02 (420 runs, 0 errors) | 3 exposed posts held in every run; I1/I2/I3 violations 0 everywhere. `reconcile_off` is oversubscribed 47× (2 Mbps) to 2.1× (44 Mbps) and never gives a usable stream (video or telemetry_plus 0/3). `reconcile`: sensing on 1/3 posts at 2 Mbps, 2/3 at 4, 3/3 from 8 Mbps; video on 1/3 from 22 Mbps (the other two posts are in low coverage). `reconcile_relocate`: video on 1/3 from 16 and 2/3 at 44 Mbps; **anomaly to check:** at 12 Mbps it gives 0/3 sensing with 21–30 escalations, worse than at 8 Mbps. Fleet 8 skipped (3 exposed POIs < 8). `bench/results/n4_scarcity_20261027T190204Z.json`, `paper/fig_scarcity.csv` |
+| A · g10_capacity | M5: G10 × 10 seeds, capacity network, checkpoint meter, Postgres | **failed** 20:08: 7/10 seeds ok; seeds 3, 5, 9 broke I1 | Found: during the weather alert an escort is redirected to the nearest shelter, and both shelters (Campus east access, Parking 8B) are in lost coverage on the radio DT map, so the escort's conversational flow was rejected and nothing handled it (posts had a state-only fallback, escorts did not). Fixed in `51463f3` (an escort the network cannot serve goes on state-only and is escalated); seeds 3, 5 and 9 pass all checks with the fix. **To rerun after the chain** (with N2, which reads these runs). |
+| A · kpi11_offline | M1: UC2-KPI-11, fake models, 20 seeds | done 20:12 (0 failed) | posture change → reconciled envelopes published: p50 0.030 s, p95 0.033 s, max 0.034 s; all robots acknowledged: p95 0.143 s (target p95 3 s: met). `bench/results/e5_kpi11_fake_20261027T191202Z.json` |
+| A · kpi11_offline_scarcity | M1 under scarcity (capacity network) | done 20:15 (0 failed) | at 22 Mbps with admission and the degradation loop: p50 0.032 s, p95 0.044 s, max 0.141 s; acknowledged p95 0.157 s (target met). `bench/results/e5_kpi11_fake+capacity22_20261027T191520Z.json` |
+| A · n1_outage | N1: coordinator outage 60 s–∞ × fleets 3, 5, 8 × 10 seeds, P vs B0–B2 | running since 20:15 | |
 | A · kb_offline | M2: knowledge-server ablation (places, routes, decomposition), offline | queued | |
 | A · decompose_offline | M4: UC2-KPI-9, rule-based | queued | |
 | A · n2_overhead | N2: traffic, patterns, model calls, checkpoint bytes | queued | |
