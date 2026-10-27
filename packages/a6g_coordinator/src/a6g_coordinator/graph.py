@@ -4209,7 +4209,11 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                     "sensing_mode"
                 ):
                     t["spec"]["sensing_mode"] = net_cfg.post_sensing_mode
-        for _ in range(cfg.fleet.defaults.coordinator.reconcile_max_iter):
+        # The relocation variant's move to a viewpoint is a round of its own: it does not use
+        # up the degradation loop's rounds (N4, 2026-10-27: at 12 Mbps the telemetry asked
+        # in the last round was never settled, and every post ended without a stream).
+        extra = 1 if degrade and net_cfg.reconcile.mode == "relocate" else 0
+        for _ in range(cfg.fleet.defaults.coordinator.reconcile_max_iter + extra):
             rounds += 1
             asks, gone = flow_rules.derive(tasks, flows, now)
             if gone:  # releases first: their capacity goes to this round's requests
