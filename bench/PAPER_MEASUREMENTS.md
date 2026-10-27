@@ -14,8 +14,10 @@ step here reruns a measurement, its result here replaces the older one.*
 during the run, so later steps record later commits: those commits change only this file
 (`git diff 53dcba4..HEAD -- . ':!bench/PAPER_MEASUREMENTS.md'` is empty), the code is that of `53dcba4`,
 except one fix committed during the run: `51463f3` (escorts in capacity reconciliation, found by
-the G10 step at 20:08). It only changes capacity-mode reconciliation of escorts; steps from
-N1 on record it, and G10 (with N2) is rerun on it after the chain. Steps run one after another so that
+the G10 step at 20:08). It only changes capacity-mode reconciliation of escorts. N1 (started
+20:15, before it) records `8400afb`; its later runs loaded the fixed code, which N1 never
+exercises (it runs the always-grant network). Steps after N1 record `51463f3` or later.
+G10 (with N2) is rerun on it after the chain. Steps run one after another so that
 timing-sensitive runs never share the machine; the laptop is kept awake (`systemd-inhibit`).
 LangSmith tracing is off. Postgres (`a6g-pg`, 127.0.0.1:5433) backs the G10 checkpoint meter.
 
