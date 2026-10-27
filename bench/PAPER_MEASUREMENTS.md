@@ -1,8 +1,53 @@
 # Measurements available for the IEEE Network paper (30 Oct 2026)
 
-*Status on 26 Oct 2026. Purpose: check whether each measurement belongs in the paper's scope
+*Status on 26 Oct 2026, with the final run of 27–28 Oct in section 0. Purpose: check whether each measurement belongs in the paper's scope
 before the final runs. Source files are under `bench/results/` and `var/runs/`. Details of
 each bench are in `README.md`, and definitions are in `SPEC.md` §A3.8.*
+
+## 0. Final measurement run (27–28 Oct 2026) — in progress
+
+*Updated as each step finishes. The sections below (1–6) describe the 26 Oct state; where a
+step here reruns a measurement, its result here replaces the older one.*
+
+**Setup.** One run of `bench/run_final.sh A B C`, started 27 Oct 19:52 at commit `53dcba4`
+(clean tree; every result manifest records it). This document is updated and committed
+during the run, so later steps record later commits: those commits change only this file
+(`git diff 53dcba4..HEAD -- . ':!bench/PAPER_MEASUREMENTS.md'` is empty), the code is that of `53dcba4`. Steps run one after another so that
+timing-sensitive runs never share the machine; the laptop is kept awake (`systemd-inhibit`).
+LangSmith tracing is off. Postgres (`a6g-pg`, 127.0.0.1:5433) backs the G10 checkpoint meter.
+
+**What changed since the 26 Oct measurements** (why everything is rerun):
+- Coverage now comes from UPV's radio DT (n40 RSRP export, 0.3 m plane), levels by RSRP
+  (> −90 good, −100…−90 medium, −110…−100 low, < −110 lost), median-smoothed over 6 m.
+  Most of the East corridor and the south-east are lost; the staging area is low.
+- Robot behaviour (user decisions, 27 Oct): a robot starts its next patrol lap itself, in
+  coverage or not; a short contact loss keeps its work (only a robot presumed stuck, failed
+  or charging hands it on); idle robots return to staging after 30 s; the dock charges only
+  below 40 %; staging is the only link-recovery point (East gate removed); laps start at the
+  covered end; transit prefers patrol paths.
+- Coordinator: reconnects to the broker, robot_charged from telemetry, `relocate_for_coverage`
+  implemented (N4), analysis explains allocations from recorded costs.
+- Places renamed: Building 8K door (was Info kiosk), Campus east access (9B east entrance
+  canopy), Parking 8B (South plaza arcade). The place, goal, decomposition and orders bench
+  sets changed accordingly (East-gate items replaced, same item counts).
+
+| Step | Measures | Status | Key result |
+|---|---|---|---|
+| A · n4_scarcity | N4: G13 over cell capacity 2–44 Mbps, reconcile / reconcile_off / reconcile_relocate, fleets 3 and 5, 10 seeds | running | |
+| A · g10_capacity | M5: G10 × 10 seeds, capacity network, checkpoint meter, Postgres | queued | |
+| A · kpi11_offline | M1: UC2-KPI-11, fake models, 20 seeds | queued | |
+| A · kpi11_offline_scarcity | M1 under scarcity (capacity network) | queued | |
+| A · n1_outage | N1: coordinator outage 60 s–∞ × fleets 3, 5, 8 × 10 seeds, P vs B0–B2 | queued | |
+| A · kb_offline | M2: knowledge-server ablation (places, routes, decomposition), offline | queued | |
+| A · decompose_offline | M4: UC2-KPI-9, rule-based | queued | |
+| A · n2_overhead | N2: traffic, patterns, model calls, checkpoint bytes | queued | |
+| B · kpi11_cloud | M1 with gpt-5-nano (coordinator and robots) | queued | |
+| B · kpi11_cloud_scarcity | M1 with gpt-5-nano under scarcity | queued | |
+| B · kb_cloud | M2 with gpt-5-nano and the model embedder | queued | |
+| B · decompose_cloud | M4 with gpt-5-nano | queued | |
+| B · orders_1–3 | M7: unseen orders, rules-first vs model-first, 3 repeats | queued | |
+| C · n5_protocols | N5: A2A / MQTT / gRPC over emulated radio links (real time) | queued | |
+| C · n6_export | N6: `paper/RESULTS.md` and CSV files | queued | |
 
 ## 1. Context
 
