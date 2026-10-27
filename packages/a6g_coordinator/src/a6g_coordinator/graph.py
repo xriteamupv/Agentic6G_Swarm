@@ -1163,6 +1163,68 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             )
         return run.out(**upd, fleet=fleet, tasks=tasks)
 
+    def _how_given(tasks: dict[str, dict[str, Any]], decisions: list[Any]) -> list[dict[str, Any]]:
+        """For each open task, the allocation that gave it (its patrol's, for a later lap)
+        with every robot's cost or reason: the decision log the model sees is the last 40
+        entries, cut short, and missed it (2026-10-27)."""
+        given: dict[str, dict[str, Any]] = {}
+        for d in decisions:
+            if d.actor != "coordinator" or d.kind not in (
+                DecisionKind.ALLOCATE,
+                DecisionKind.REALLOCATE,
+            ):
+                continue
+            for a in d.output.get("assignments") or []:
+                base = re.sub(r"-lap\d+$", "", a["task_id"])
+                given[base] = {
+                    "to": a["robot_id"],
+                    "when": d.stamp.isoformat(timespec="seconds"),
+                    "candidates": (d.output.get("candidates") or {}).get(a["task_id"]),
+                }
+        out = []
+        for tid, t in sorted(tasks.items()):
+            if t["status"] not in OPEN:
+                continue
+            base = re.sub(r"-lap\d+$", "", tid)
+            entry = {"task": narr.task_id(tasks, tid), "now": t.get("robot_id")}
+            if base in given:
+                entry["given"] = given[base]
+            if t.get("repeat"):
+                entry["note"] = "a patrol stays with the robot patrolling it, lap after lap"
+            out.append(entry)
+        return out
+
+    def _candidates(
+        result: AssignResult,
+        tasks: dict[str, dict[str, Any]],
+        fleet: dict[str, Any],
+        states: dict[str, Any],
+        manifests: dict[str, RobotManifest],
+        floor: float,
+    ) -> dict[str, dict[str, str]]:
+        out: dict[str, dict[str, str]] = {}
+        doing: dict[str, list[str]] = {}
+        for tid, t in tasks.items():
+            if t["status"] in ("assigned", "in_progress") and t.get("robot_id"):
+                doing.setdefault(t["robot_id"], []).append(narr.task_id(tasks, tid))
+        for a in result.assignments:
+            spec = _spec(tasks[a.task_id])
+            row: dict[str, str] = {}
+            for rid in sorted(fleet):
+                busy = [w for w in doing.get(rid, []) if w != narr.task_id(tasks, a.task_id)]
+                also = f"; also doing {', '.join(busy[:2])}" if busy else ""
+                if rid not in states:
+                    row[rid] = f"not available ({fleet[rid].get('status')})"
+                    continue
+                vs = virtual_state(states[rid], manifests[rid], cfg.allocator)
+                est = estimate(vs, spec, manifests[rid], cfg.campus, cfg.allocator, floor)
+                if isinstance(est, Estimate):
+                    row[rid] = f"cost {est.cost:.0f}{also}"
+                else:
+                    row[rid] = f"cannot ({est.reason.value}: {est.detail}){also}"
+            out[a.task_id] = row
+        return out
+
     def _expected_s(spec: TaskSpec, entry: dict[str, Any] | None) -> float:
         """How long a running task may take: its route at the robot's top speed plus its
         dwell, doubled (turns, slow stretches). A survey's ``est_duration_s`` is a 60 s
@@ -1304,6 +1366,7 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 row["why"] = d.justification
             rows.append(row)
         facts["decisions"] = rows
+        facts["how_current_work_was_given"] = _how_given(state.get("tasks") or {}, decisions)
         fallback_text = narr.status(state)
         if deps.model is not None:
             return await _diagnose(run, state, question, trigger, facts, statements, started)
@@ -3966,6 +4029,10 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 "unallocated": {k: v.value for k, v in result.unallocated.items()},
                 "details": result.details,
                 "robots": sorted(states),
+                # why this robot and not another: every robot's cost (estimated seconds, lower
+                # wins) or why it could not take it, and what it was doing (2026-10-27: the
+                # analysis could not explain why the Summits patrolled and not the Go2s)
+                "candidates": _candidates(result, tasks, fleet, states, manifests, floor),
             },
             policy={
                 "rule": "hungarian (scipy.linear_sum_assignment), ties -> lowest robot_id",
