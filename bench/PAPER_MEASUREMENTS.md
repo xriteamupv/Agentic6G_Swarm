@@ -49,8 +49,8 @@ LangSmith tracing is off. Postgres (`a6g-pg`, 127.0.0.1:5433) backs the G10 chec
 | B · kpi11_cloud | M1 with gpt-5-nano (coordinator and robots) | done 21:56 (20 seeds, 0 failed) | posture change → reconciled envelopes published: p50 0.029 s, p95 0.035 s (the emergency fast path plans with the template; the model's plan follows as its own run); all robots acknowledged (robots deliberate with gpt-5-nano): p50 1.96 s, p95 4.06 s. Target (publication p95 3 s) met. `bench/results/e5_kpi11_gpt-5-nano+robots_20261027T205612Z.json` |
 | B · kpi11_cloud_scarcity | M1 with gpt-5-nano under scarcity | done 22:06 (20 seeds, 0 failed) | at 22 Mbps with admission and the degradation loop: publication p50 0.030 s, p95 0.040 s, max 0.136 s; all robots acknowledged p50 2.23 s, p95 3.67 s. Target met; scarcity adds no measurable delay. `bench/results/e5_kpi11_gpt-5-nano+robots+capacity22_20261027T210624Z.json` |
 | B · kb_cloud | M2 with gpt-5-nano and the model embedder | done 22:14 | places (63): KB 1.0 vs word overlap 0.714 (+0.40); step-free routes as offline (100 % vs 57.5 %, deterministic); **decomposition (40 goals, gpt-5-nano): with the KB 0.975, without 0.825 (+0.18)**. `bench/results/e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json` |
-| B · decompose_cloud | M4 with gpt-5-nano | running since 22:14 | |
-| B · orders_1–3 | M7: unseen orders, rules-first vs model-first, 3 repeats | queued | |
+| B · decompose_cloud | M4 with gpt-5-nano | done 22:18 | 0.933 of 45 goals exact (rule-based 0.911): routine 0.913, interactive 0.929, emergency 1.0; plain 1.0, paraphrase 1.0, ambiguous 0.6, out of map 0.833 (the model planned something for 1 of 6 places not on the map), injected 1.0. `bench/results/e6_kpi9_gpt-5-nano+embedder_20261027T211848Z.json` |
+| B · orders_1–3 | M7: unseen orders, rules-first vs model-first, 3 repeats | running since 22:18 | |
 | C · n5_protocols | N5: A2A / MQTT / gRPC over emulated radio links (real time) | queued | |
 | C · n6_export | N6: `paper/RESULTS.md` and CSV files | queued | |
 
