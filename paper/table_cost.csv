@@ -1,0 +1,55 @@
+measure,variant,n,median,p95,unit,source
+UC2-KPI-11 posture change -> reconciled envelopes,fake,20,0.037,0.116,s (wall),e5_kpi11_fake_20261026T141839Z.json
+UC2-KPI-11 all robots answered,fake,20,0.163,0.441,s (wall),e5_kpi11_fake_20261026T141839Z.json
+UC2-KPI-11 posture change -> reconciled envelopes,gpt-5-nano+robots,20,0.046,0.094,s (wall),e5_kpi11_gpt-5-nano+robots_20261026T142718Z.json
+UC2-KPI-11 all robots answered,gpt-5-nano+robots,20,1.821,2.097,s (wall),e5_kpi11_gpt-5-nano+robots_20261026T142718Z.json
+UC2-KPI-11 posture change -> reconciled envelopes,fake,20,0.03,0.033,s (wall),e5_kpi11_fake_20261027T191202Z.json
+UC2-KPI-11 all robots answered,fake,20,0.14,0.143,s (wall),e5_kpi11_fake_20261027T191202Z.json
+UC2-KPI-11 posture change -> reconciled envelopes,fake+capacity22,20,0.032,0.044,s (wall),e5_kpi11_fake+capacity22_20261027T191520Z.json
+UC2-KPI-11 all robots answered,fake+capacity22,20,0.143,0.157,s (wall),e5_kpi11_fake+capacity22_20261027T191520Z.json
+UC2-KPI-11 posture change -> reconciled envelopes,gpt-5-nano+robots,20,0.029,0.035,s (wall),e5_kpi11_gpt-5-nano+robots_20261027T205612Z.json
+UC2-KPI-11 all robots answered,gpt-5-nano+robots,20,1.962,4.058,s (wall),e5_kpi11_gpt-5-nano+robots_20261027T205612Z.json
+UC2-KPI-11 posture change -> reconciled envelopes,gpt-5-nano+robots+capacity22,20,0.03,0.04,s (wall),e5_kpi11_gpt-5-nano+robots+capacity22_20261027T210624Z.json
+UC2-KPI-11 all robots answered,gpt-5-nano+robots+capacity22,20,2.226,3.673,s (wall),e5_kpi11_gpt-5-nano+robots+capacity22_20261027T210624Z.json
+unseen orders understood,rules_first,24,0.708,,share,orders_unseen_gpt-5-nano_20261026T143322Z.json
+unseen orders: envelopes sent,rules_first,24,17.72,55.43,s (wall),orders_unseen_gpt-5-nano_20261026T143322Z.json
+unseen orders understood,model_first,24,0.875,,share,orders_unseen_gpt-5-nano_20261026T143322Z.json
+unseen orders: envelopes sent,model_first,24,7.68,19.37,s (wall),orders_unseen_gpt-5-nano_20261026T143322Z.json
+unseen orders understood,rules_first,24,0.625,,share,orders_unseen_gpt-5-nano_20261026T145219Z.json
+unseen orders: envelopes sent,rules_first,24,18.37,44.99,s (wall),orders_unseen_gpt-5-nano_20261026T145219Z.json
+unseen orders understood,model_first,24,0.792,,share,orders_unseen_gpt-5-nano_20261026T145219Z.json
+unseen orders: envelopes sent,model_first,24,10.0,21.5,s (wall),orders_unseen_gpt-5-nano_20261026T145219Z.json
+unseen orders understood,rules_first,24,0.667,,share,orders_unseen_gpt-5-nano_20261026T151144Z.json
+unseen orders: envelopes sent,rules_first,24,17.49,46.54,s (wall),orders_unseen_gpt-5-nano_20261026T151144Z.json
+unseen orders understood,model_first,24,0.875,,share,orders_unseen_gpt-5-nano_20261026T151144Z.json
+unseen orders: envelopes sent,model_first,24,9.47,27.88,s (wall),orders_unseen_gpt-5-nano_20261026T151144Z.json
+unseen orders understood,rules_first,24,0.708,,share,orders_unseen_gpt-5-nano_20261027T213348Z.json
+unseen orders: envelopes sent,rules_first,24,15.23,35.43,s (wall),orders_unseen_gpt-5-nano_20261027T213348Z.json
+unseen orders understood,model_first,24,0.833,,share,orders_unseen_gpt-5-nano_20261027T213348Z.json
+unseen orders: envelopes sent,model_first,24,9.37,18.84,s (wall),orders_unseen_gpt-5-nano_20261027T213348Z.json
+unseen orders understood,rules_first,24,0.75,,share,orders_unseen_gpt-5-nano_20261027T214815Z.json
+unseen orders: envelopes sent,rules_first,24,13.76,40.68,s (wall),orders_unseen_gpt-5-nano_20261027T214815Z.json
+unseen orders understood,model_first,24,0.792,,share,orders_unseen_gpt-5-nano_20261027T214815Z.json
+unseen orders: envelopes sent,model_first,24,8.73,22.59,s (wall),orders_unseen_gpt-5-nano_20261027T214815Z.json
+unseen orders understood,rules_first,24,0.625,,share,orders_unseen_gpt-5-nano_20261027T220419Z.json
+unseen orders: envelopes sent,rules_first,24,17.56,41.34,s (wall),orders_unseen_gpt-5-nano_20261027T220419Z.json
+unseen orders understood,model_first,24,0.833,,share,orders_unseen_gpt-5-nano_20261027T220419Z.json
+unseen orders: envelopes sent,model_first,24,7.75,20.65,s (wall),orders_unseen_gpt-5-nano_20261027T220419Z.json
+place resolution accuracy,kb,63,1.0,,share,e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json
+place resolution accuracy,overlap,63,0.7143,,share,e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json
+place resolution accuracy,robot_local,63,0.7143,,share,e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json
+route compliance (as_mapped),kb,500,1.0,,share,e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json
+route compliance (as_mapped),off,500,0.7286,,share,e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json
+route compliance (with_steps),kb,500,1.0,,share,e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json
+route compliance (with_steps),off,500,0.5752,,share,e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json
+observation retrieval R-normalised P@1,query,756,0.8611,,share,e6_kpi15_embedder_20261020T151101Z.json
+observation retrieval R-normalised P@3,query,756,0.851,,share,e6_kpi15_embedder_20261020T151101Z.json
+observation retrieval R-normalised P@5,query,756,0.8952,,share,e6_kpi15_embedder_20261020T151101Z.json
+hand-over context precision@1,store_kept,2000,1.0,,share,e6_kpi15_embedder_20261020T151101Z.json
+hand-over leaks,store_kept,3002,0,,count,e6_kpi15_embedder_20261020T151101Z.json
+hand-over context precision@1,store_lost_10pct_during_escort,2000,1.0,,share,e6_kpi15_embedder_20261020T151101Z.json
+hand-over leaks,store_lost_10pct_during_escort,2984,0,,count,e6_kpi15_embedder_20261020T151101Z.json
+hand-over context precision@1,store_lost_10pct_after_leaving,2000,0.9,,share,e6_kpi15_embedder_20261020T151101Z.json
+hand-over leaks,store_lost_10pct_after_leaving,2650,0,,count,e6_kpi15_embedder_20261020T151101Z.json
+G10 runs with every check passing,var/runs/g10_n2,10,10,,count,var/runs/g10_n2
+G10 link recovery time (UC2-KPI-12),var/runs/g10_n2,6,734.7,887.1500000000001,s (simulated),var/runs/g10_n2
