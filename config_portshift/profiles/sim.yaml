@@ -1,7 +1,0 @@
-# 2D simulator (a6g-sim-stack, scenario tests). Synthetic data: cloud models allowed.
-schema_version: "1.0"
-profile: sim
-models:
-  coordinator_llm: {cloud_allowed: true}
-  edge_vlm: {cloud_allowed: true}
-  onboard_vlm: {cloud_allowed: true}
