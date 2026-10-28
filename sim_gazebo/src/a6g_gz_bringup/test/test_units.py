@@ -171,7 +171,8 @@ def test_campus_overlay_matches_the_2d_view():
 def test_stroke_font_covers_the_campus_names():
     from a6g_gz_bringup.overlay import FONT, text_triangles
 
-    for name in ("Building 9B door", "Bus stop", "Bike rack", "North-west walk", "Building 8K door"):
+    names = ("Building 9B door", "Bus stop", "Bike rack", "North-west walk", "Building 8K door")
+    for name in names:
         assert all(c in FONT or c == " " for c in name.upper()), name
     tris = text_triangles("BUS STOP", 10.0, 5.0, 0.1, 1.2)
     xs = [p[0] for p in tris]

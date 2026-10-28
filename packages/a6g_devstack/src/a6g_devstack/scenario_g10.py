@@ -5,9 +5,10 @@ simulator, with trigger times drawn from seeded distributions the agents cannot 
 2. a person asks a Go2 for the bus stop, declaring a constraint (wheelchair);
 3. a weather alert arrives while the escort is open: the escort concludes at the nearest
    shelter;
-4. the escorting robot walks into the coverage shadow (both shelters lie in it on the
-   final layout, which has no exposed point inside a shadow): the link is lost by
-   geometry, not injection, and the robot recovers (``hold_then_recover``) or is replaced;
+4. the escorting robot loses its link at the shelter: both shelters are ``lost`` on the
+   radio DT map, and the run also injects the former placeholder shadow around them
+   (``OUTAGE_WGS84``, a stress case); the robot recovers (``hold_then_recover``) or is
+   replaced;
 5. the operator gives the all clear and the survey resumes.
 
 The run directory keeps ``decisions.jsonl``, ``comms.jsonl``, ``telemetry.jsonl`` (pose,

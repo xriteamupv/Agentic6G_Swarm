@@ -772,8 +772,9 @@ offset is fitted to the minimum, median and maximum of UPV's velodrome plots (OS
 footpaths (2 m samples, used by robots on paths). `a6g network coverage --preview cov.html`
 summarises and draws the configured source (hover for RSRP and SINR). Robots report `link_level`, `cell_id`, `rsrp_dbm` and
 `sinr_db` (the live view shows them next to the battery), with hysteresis and minimum dwell;
-`link_quality` derives from the level. G10's link loss is an injected outage zone (the former
-placeholder shadow), labelled so in its results.
+`link_quality` derives from the level. G10's escort ends at a shelter, and both shelters are `lost` on the radio DT map; G10 also
+injects the former placeholder shadow around them as an outage zone (a stress case), labelled
+so in its results.
 
 **A network that can refuse (N4).** With `A6G_NETWORK_MODE=capacity` the network stand-in
 admits flows from the cell's uplink capacity and the coverage where each flow streams

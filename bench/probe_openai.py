@@ -7,6 +7,7 @@ tokens (reasoning tokens included) and the rate-limit headroom. Run it from the 
 root while the stack runs: ``uv run python bench/probe_openai.py``. The key comes from
 ``.env`` and is never printed.
 """
+
 import time
 from pathlib import Path
 
