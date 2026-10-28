@@ -89,7 +89,7 @@ class WorldSettings(_M):
     #: their real size: a smaller campus means shorter drives at real speeds.
     scale: float = Field(1.0, gt=0.0, le=1.0)
     osm_cache: str | None = None
-    output_dir: str = "../sim_gazebo/src/a6g_gz_worlds"
+    output_dir: str = "../data/world"
     map_resolution_m: float = Field(0.05, gt=0)
     #: Wall thickness of the AMCL localization map (footprint outlines, unknown interiors).
     loc_outline_m: float = Field(0.30, gt=0)

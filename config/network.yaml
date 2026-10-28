@@ -22,7 +22,7 @@ network:
       dl_mimo: "4x4 or 4x2 closed-loop spatial multiplexing"
   coverage:
     source: ${A6G_COVERAGE_SOURCE:-radio_dt}  # radio_dt (default) | model (38.901 emulation) | shadows (legacy)
-    radio_dt_file: ../sim_gazebo/data/network/n40_centroides_rsrp.csv   # UPV radio DT export, 0.3 m above ground (relative to config/)
+    radio_dt_file: ../data/network/n40_centroides_rsrp.csv   # UPV radio DT export, 0.3 m above ground (relative to config/)
     model: {pathloss: 3gpp_38901_uma, h_ut_m: 1.5, los_from_footprints: true, shadow_fading: false}
     calibration: plots          # no measurement CSV: values read from UPV's velodrome plots
     calibration_targets:
@@ -41,7 +41,7 @@ network:
     vegetation: {loss_db_per_m: 0.4, max_loss_db: 15, canopy_height_m: 8, under_canopy_db: 8}   # campus vegetation_areas; model assumptions
     min_dwell_s: 2              # simulated seconds before a level change takes effect
     shadows_override: true      # campus coverage_shadows, if any, stay `lost`
-    map_file: ../sim_gazebo/src/a6g_gz_worlds/sim/{campus}_coverage_{source}.json   # next to the route graph
+    map_file: ../data/world/sim/{campus}_coverage_{source}.json   # next to the route graph
   uplink_rate:                  # maximum uplink rate of one robot at a location
     anchor: {ul_mbps: 22, sinr_db: 25}   # measured single-UE TCP goodput, velodrome, 20 MHz
     spectral_efficiency: {alpha: 0.6, se_max_bps_hz: 5.55}

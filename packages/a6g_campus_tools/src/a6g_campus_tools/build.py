@@ -1,7 +1,7 @@
 # ruff: noqa: E501  (SDF/XML template lines are kept whole for readability)
 """``a6g campus build``: campus v2 + OSM extract -> Gazebo world, Nav2 prior map, 2D obstacles.
 
-Outputs (under ``world.output_dir``, the ``a6g_gz_worlds`` colcon package):
+Outputs (under ``world.output_dir``):
 
 * ``worlds/<campus_id>.sdf``: ground plane, extruded building footprints, trees, and a
   ``<spherical_coordinates>`` block from the campus datum (ENU), so NavSat reports real

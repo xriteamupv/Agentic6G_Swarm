@@ -41,7 +41,6 @@ CONFIG_DIR = REPO_ROOT / "config"
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    parser.addoption("--gazebo", action="store_true", help="run tests that need Gazebo")
     parser.addoption(
         "--model",
         action="store_true",
@@ -51,7 +50,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     gates = {
-        "gazebo": ("--gazebo", "needs Gazebo: run with --gazebo"),
         "model": ("--model", "calls the cloud models: run with --model"),
     }
     for marker, (option, reason) in gates.items():
@@ -74,7 +72,7 @@ def config_copy(tmp_path: Path) -> Path:
     dst = tmp_path / "config"
     shutil.copytree(CONFIG_DIR, dst)
     # The campus file references the cached OSM extract relative to itself.
-    shutil.copytree(REPO_ROOT / "sim_gazebo" / "data", tmp_path / "sim_gazebo" / "data")
+    shutil.copytree(REPO_ROOT / "data" / "osm", tmp_path / "data" / "osm")
     return dst
 
 

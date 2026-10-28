@@ -6,7 +6,7 @@ The Summit's rear ~96° is a LiDAR blind spot (GPS mast). It may reverse only wi
 manifest's `reverse_limits` (`config/robots/summit_01.yaml`): **0.15 m/s, 0.5 m per move**.
 Three layers enforce this; the same settings apply in Gazebo and on the real robot.
 
-1. **Controller** — Nav2 MPPI (`sim_gazebo/src/a6g_gz_bringup/config/nav2/summit.yaml`):
+1. **Controller** — Nav2 MPPI (`sim_gazebo/src/a6g_gz_bringup/config/nav2/summit.yaml` on the develop branch):
    `vx_min: -0.15`; `PreferForwardCritic` weight 50 (stock 5) with
    `threshold_to_consider: 0.5`, so reversing is only worth it for final corrections within
    0.5 m of a goal; `CostCritic` with `consider_footprint: true` rejects any trajectory,

@@ -36,23 +36,3 @@ def test_campus_geometry_follows_the_scale() -> None:
 
 def test_page_is_self_contained() -> None:
     assert "http://" not in PAGE and "https://" not in PAGE  # no external assets
-
-
-def test_stalled_nav2_bringup_plan() -> None:
-    """Jazzy's lifecycle manager can hang on a lost change_state reply (Fast DDS, load)."""
-    from a6g_devstack.gz_procs import NAV2_NODES, finish_bringup_plan
-
-    stalled = dict.fromkeys(NAV2_NODES, "inactive")
-    stalled["controller_server"] = stalled["smoother_server"] = "active"
-    stalled["planner_server"] = "active"  # activated; its reply never reached the manager
-    assert finish_bringup_plan(stalled) == [
-        ("behavior_server", "activate"),
-        ("velocity_smoother", "activate"),
-        ("bt_navigator", "activate"),
-    ]
-    early = dict.fromkeys(NAV2_NODES, "unconfigured")
-    early["controller_server"] = "inactive"
-    plan = finish_bringup_plan(early)
-    assert plan[:5] == [(n, "configure") for n in NAV2_NODES[1:]]
-    assert plan[5:] == [(n, "activate") for n in NAV2_NODES]
-    assert finish_bringup_plan({**stalled, "bt_navigator": "unknown"}) == []

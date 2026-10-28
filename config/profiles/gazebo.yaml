@@ -5,7 +5,7 @@
 # Optional max_speed_mps per robot (m/s, <= 1.0): Nav2 speed, simulated platform cap and the
 # speed the allocator plans with; unset = the manifest's max_speed_mps (Go2 0.30, Summit 0.50).
 # Override one launch with robot.launch.py max_speed:=<m/s>.
-# Read by the uv services and by sim_gazebo/src/a6g_gz_bringup.
+# Read by the uv services and by the Gazebo bring-up (develop branch).
 schema_version: "1.0"
 profile: gazebo
 timeout_scale: 2.0              # skill timeouts run on the wall clock; 3 robots run at RTF ~0.7

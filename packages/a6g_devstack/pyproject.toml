@@ -1,7 +1,7 @@
 [project]
 name = "a6g-devstack"
 version = "0.1.0"
-description = "Simulated deployments for tests and demos: the 2D stack (a6g-sim-stack) and the Gazebo stack (a6g-gz-stack)."
+description = "Simulated deployments for tests and demos: the 2D stack (a6g-sim-stack) and the benchmarks."
 requires-python = ">=3.11"
 dependencies = [
     "a6g-interactions",
@@ -22,7 +22,6 @@ dependencies = [
 
 [project.scripts]
 a6g-sim-stack = "a6g_devstack.serve:main"
-a6g-gz-stack = "a6g_devstack.serve_gz:main"
 
 [build-system]
 requires = ["uv_build>=0.12,<0.13"]

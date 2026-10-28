@@ -151,7 +151,7 @@ def test_the_route_graph_is_deterministic() -> None:
     first = route_graph_artifact(campus, CAMPUS.parent)
     second = route_graph_artifact(_load_v2(CAMPUS), CAMPUS.parent)
     assert first is not None and first == second
-    built = ROOT / "sim_gazebo/src/a6g_gz_worlds/sim/upv_vera_cpi_route_graph.json"
+    built = ROOT / "data/world/sim/upv_vera_cpi_route_graph.json"
     assert json.loads(built.read_text()) == json.loads(first)  # the committed build is current
     a = load_campus(CAMPUS).route_graph.model_dump(by_alias=True)
     b = load_campus(CAMPUS).route_graph.model_dump(by_alias=True)

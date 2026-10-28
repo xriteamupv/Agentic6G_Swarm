@@ -142,30 +142,6 @@ async def test_summit_reverses_only_short_and_slow(fleet: SimFleet) -> None:
     assert took >= 0.4 / limits.max_speed_mps - 0.2
 
 
-def test_reverse_limits_match_the_nav2_and_governor_settings(cfg) -> None:
-    """One source of truth: the manifest; Nav2, the speed wiring and the monitor agree."""
-    import sys
-
-    import yaml
-
-    sys.path.insert(0, "sim_gazebo/src/a6g_gz_bringup")
-    from a6g_gz_bringup.speed import SUMMIT_REVERSE_MAX
-
-    limits = cfg.manifests["summit_01"].reverse_limits
-    nav2 = yaml.safe_load(Path("sim_gazebo/src/a6g_gz_bringup/config/nav2/summit.yaml").read_text())
-    mppi = nav2["controller_server"]["ros__parameters"]["FollowPath"]
-    smoother = nav2["velocity_smoother"]["ros__parameters"]
-    assert mppi["plugin"] == "nav2_mppi_controller::MPPIController"
-    assert mppi["vx_min"] == -limits.max_speed_mps == -SUMMIT_REVERSE_MAX
-    assert smoother["min_velocity"][0] == -limits.max_speed_mps
-    assert mppi["PreferForwardCritic"]["threshold_to_consider"] == limits.max_distance_m
-    behaviors = nav2["behavior_server"]["ros__parameters"]["behavior_plugins"]
-    assert not any("back" in b.lower() for b in behaviors)  # no blind BackUp recovery
-
-
-# --------------------------------------------------------------------------- skill behaviour
-
-
 async def _wait_until(predicate, timeout: float = 5.0) -> None:
     async with asyncio.timeout(timeout):
         while not predicate():

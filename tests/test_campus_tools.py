@@ -12,7 +12,7 @@ from a6g_common.config import load_config
 from a6g_common.geo import Datum
 
 REPO = Path(__file__).resolve().parents[1]
-CACHE = REPO / "sim_gazebo" / "data" / "osm" / "upv_vera_cpi.json"
+CACHE = REPO / "data" / "osm" / "upv_vera_cpi.json"
 DATUM = Datum(39.4785856, -0.3330281, 10.0)
 
 
@@ -141,9 +141,7 @@ def test_localization_map_has_outlines_and_unknown_interiors(tmp_path: Path) -> 
 
 def test_runtime_campus_obstacles_match_the_generated_file(config_dir: Path) -> None:
     campus = load_config(config_dir, env={}).campus
-    generated = (
-        REPO / "sim_gazebo" / "src" / "a6g_gz_worlds" / "sim" / "upv_vera_cpi_obstacles.yaml"
-    )
+    generated = REPO / "data" / "world" / "sim" / "upv_vera_cpi_obstacles.yaml"
     if not generated.exists():
         pytest.skip("run `a6g campus build` first")
     data = yaml.safe_load(generated.read_text())["obstacles"]

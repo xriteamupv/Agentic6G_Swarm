@@ -149,7 +149,7 @@ class CoverageConfig(_M):
     min_dwell_s: float = 2.0
     shadows_override: bool = True
     #: the map file (``a6g network coverage --build`` / ``calibrate``), relative to config/
-    map_file: str = "../sim_gazebo/src/a6g_gz_worlds/sim/{campus}_coverage_{source}.json"
+    map_file: str = "../data/world/sim/{campus}_coverage_{source}.json"
 
 
 class UplinkRate(_M):
