@@ -929,3 +929,7 @@ from the staging area, are moved to the nearest roomy, reachable spot
 Gazebo tests are full-scale only (their routes and accuracy limits are physical) and skip
 when a scale is set.
 
+
+## License
+
+Apache License 2.0, see [LICENSE](LICENSE). Copyright 2026 Universitat Politècnica de València.
