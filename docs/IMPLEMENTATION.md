@@ -204,7 +204,7 @@ uv run a6g-sim-stack --speed 10
 #    `a6g dev serve` = `langgraph dev --no-browser --no-reload` on a clean slate (below)
 uv run a6g dev serve
 
-# 3. the chat UI (in ../agent-chat-ui; .env points it at :2024 / assistant `coordinator`)
+# 3. the chat UI (in chat-ui/; .env points it at :2024 / assistant `coordinator`)
 pnpm dev     # then open http://localhost:3000
 ```
 
@@ -425,7 +425,7 @@ markers; the link emulator turns ground-truth positions in `coverage_shadows` in
 ```bash
 uv run a6g-gz-stack [--headless] [--robots summit_01,go2_01,go2_02]   # terminal 1
 uv run a6g dev serve                                                   # terminal 2: coordinator
-cd ../agent-chat-ui && pnpm dev                                        # terminal 3: chat UI
+cd chat-ui && pnpm dev                                              # terminal 3: chat UI
 # then, e.g.: "Patrol the campus"; faults: a6g sim inject robot_fail go2_01 | weather_alert |
 #   link_loss go2_02 60 | anomaly poi_kiosk "broken glass"; a6g sim add_robot config/robots/go2_03.yaml
 A6G_FLEET_FILE=gazebo/fleet.yaml uv run a6g killswitch on          # both paths (MQTT + MCP)

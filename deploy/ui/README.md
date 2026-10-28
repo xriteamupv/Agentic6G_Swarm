@@ -1,7 +1,7 @@
 # Operator chat UI: production deployment (SPEC 10.4)
 
 The operator talks to the coordinator through the customised
-[agent-chat-ui](../../../agent-chat-ui). `next dev` is for UI development only: it renders
+[agent-chat-ui](../../chat-ui) in `chat-ui/`. `next dev` is for UI development only: it renders
 React in development mode and recompiles on demand, which is much slower on long mission
 threads. In production the UI runs as a self-contained Next.js server.
 
@@ -11,7 +11,7 @@ threads. In production the UI runs as a self-contained Next.js server.
 deploy/ui/build.sh
 ```
 
-- Builds `../agent-chat-ui` (`output: "standalone"`) and assembles `var/chat-ui/`
+- Builds `chat-ui/` (`output: "standalone"`) and assembles `var/chat-ui/`
   (`server.js`, static assets, `start.sh`).
 - `NEXT_PUBLIC_API_URL` (Agent Server, default `http://localhost:2024`) and
   `NEXT_PUBLIC_ASSISTANT_ID` are baked in at build time: from the UI's `.env`, or the

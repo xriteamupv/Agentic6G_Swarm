@@ -157,9 +157,10 @@ Each robot card on the right shows:
 - the signal it measures (RSRP, SINR and coverage level);
 - its battery.
 
-The operator talks to the coordinator through
-[agent-chat-ui](https://github.com/langchain-ai/agent-chat-ui). Every step of the
-coordinator appears there as a tool call with its result:
+The operator talks to the coordinator through the chat UI in [`chat-ui/`](chat-ui/), our
+modified version of LangChain's [agent-chat-ui](https://github.com/langchain-ai/agent-chat-ui):
+it shows the swarm's own updates live, and every step of the coordinator as a tool call with
+its result:
 
 <img src="docs/img/operator-chat.png" alt="The operator chat during the weather alert" width="700">
 
@@ -200,9 +201,9 @@ uv run a6g dev serve                     # A6G_COORDINATOR_LLM=off uv run ... wi
 
 # 3. Talk to it, from the command line ...
 uv run a6g goal "Patrol the campus"
-#    ... or from the chat UI: clone langchain-ai/agent-chat-ui, set
-#    NEXT_PUBLIC_API_URL=http://localhost:2024 and NEXT_PUBLIC_ASSISTANT_ID=coordinator
-#    in its .env, run `pnpm install && pnpm dev`, and open http://localhost:3000
+#    ... or from the chat UI (needs Node.js and pnpm):
+cd chat-ui && cp .env.example .env && pnpm install && pnpm dev
+#    then open http://localhost:3000
 ```
 
 Things to try in the chat, one message at a time:
@@ -287,6 +288,7 @@ Notes:
 | `packages/a6g_kb` · `a6g_interactions` | Campus knowledge server, and the guidance dialogue (forgets personal data) |
 | `packages/a6g_sim` · `a6g_devstack` | The 2D simulator, the simulated deployment and the benchmarks |
 | `packages/a6g_cli` | The `a6g` command |
+| `chat-ui/` | The operator chat (modified agent-chat-ui, Next.js) |
 | `config/` | Campus, fleet, robots, models, network and coverage configuration |
 | `sim_gazebo/` | Gazebo worlds and ROS 2 bring-up for the Go2 and Summit-XL |
 | `bench/` · `paper/` | Benchmark inputs and results · exported tables and figure data |
@@ -329,3 +331,4 @@ added here once it is published.
 ## License
 
 Apache License 2.0, see [LICENSE](LICENSE). Copyright 2026 Universitat Politècnica de València.
+`chat-ui/` is derived from LangChain's agent-chat-ui and keeps its MIT licence ([chat-ui/LICENSE](chat-ui/LICENSE)).

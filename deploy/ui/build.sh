@@ -13,7 +13,7 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
-UI_DIR="${UI_DIR:-$REPO/../agent-chat-ui}"
+UI_DIR="${UI_DIR:-$REPO/chat-ui}"
 OUT="${OUT:-$REPO/var/chat-ui}"
 NODE_BIN="${NODE_BIN:-$(command -v node)}"
 
