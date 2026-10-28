@@ -1,0 +1,3966 @@
+{
+  "spec": "SPEC A4 N2",
+  "traffic": {
+    "unit": "bytes per simulated second per robot; wire bytes accounted by the binding (in-process transport)",
+    "by_source_phase_fleet": {
+      "g10|emergency|f3": {
+        "up_payload_Bps": {
+          "n": 30,
+          "median": 459.3,
+          "p95": 471.113,
+          "mean": 403.844
+        },
+        "up_wire_Bps": {
+          "n": 30,
+          "median": 750.97,
+          "p95": 762.698,
+          "mean": 655.138
+        },
+        "down_payload_Bps": {
+          "n": 30,
+          "median": 1230.89,
+          "p95": 1438.166,
+          "mean": 1245.915
+        },
+        "down_wire_Bps": {
+          "n": 30,
+          "median": 2243.18,
+          "p95": 2574.416,
+          "mean": 2266.767
+        }
+      },
+      "g10|interactive|f3": {
+        "up_payload_Bps": {
+          "n": 30,
+          "median": 555.485,
+          "p95": 956.621,
+          "mean": 620.271
+        },
+        "up_wire_Bps": {
+          "n": 30,
+          "median": 916.69,
+          "p95": 1765.788,
+          "mean": 1064.696
+        },
+        "down_payload_Bps": {
+          "n": 30,
+          "median": 1616.855,
+          "p95": 1837.004,
+          "mean": 1614.631
+        },
+        "down_wire_Bps": {
+          "n": 30,
+          "median": 2863.135,
+          "p95": 3408.702,
+          "mean": 2906.953
+        }
+      },
+      "g10|routine|f3": {
+        "up_payload_Bps": {
+          "n": 60,
+          "median": 744.11,
+          "p95": 1577.659,
+          "mean": 842.233
+        },
+        "up_wire_Bps": {
+          "n": 60,
+          "median": 1474.73,
+          "p95": 3395.423,
+          "mean": 1681.37
+        },
+        "down_payload_Bps": {
+          "n": 60,
+          "median": 1981.96,
+          "p95": 3038.131,
+          "mean": 2122.734
+        },
+        "down_wire_Bps": {
+          "n": 60,
+          "median": 3635.86,
+          "p95": 5928.998,
+          "mean": 3931.073
+        }
+      },
+      "n1|routine|f3": {
+        "up_payload_Bps": {
+          "n": 30,
+          "median": 162.77,
+          "p95": 487.163,
+          "mean": 236.682
+        },
+        "up_wire_Bps": {
+          "n": 30,
+          "median": 264.17,
+          "p95": 793.199,
+          "mean": 385.619
+        },
+        "down_payload_Bps": {
+          "n": 30,
+          "median": 671.925,
+          "p95": 795.988,
+          "mean": 595.493
+        },
+        "down_wire_Bps": {
+          "n": 30,
+          "median": 1322.97,
+          "p95": 1518.528,
+          "mean": 1136.138
+        }
+      },
+      "n1|routine|f5": {
+        "up_payload_Bps": {
+          "n": 50,
+          "median": 341.045,
+          "p95": 530.333,
+          "mean": 321.329
+        },
+        "up_wire_Bps": {
+          "n": 50,
+          "median": 558.13,
+          "p95": 866.226,
+          "mean": 526.905
+        },
+        "down_payload_Bps": {
+          "n": 50,
+          "median": 1325.5,
+          "p95": 1932.697,
+          "mean": 1379.049
+        },
+        "down_wire_Bps": {
+          "n": 50,
+          "median": 2364.92,
+          "p95": 3313.555,
+          "mean": 2405.067
+        }
+      },
+      "n1|routine|f8": {
+        "up_payload_Bps": {
+          "n": 80,
+          "median": 489.59,
+          "p95": 537.951,
+          "mean": 411.76
+        },
+        "up_wire_Bps": {
+          "n": 80,
+          "median": 795.55,
+          "p95": 902.062,
+          "mean": 679.045
+        },
+        "down_payload_Bps": {
+          "n": 80,
+          "median": 3095.43,
+          "p95": 3395.945,
+          "mean": 2995.227
+        },
+        "down_wire_Bps": {
+          "n": 80,
+          "median": 5170.985,
+          "p95": 5632.337,
+          "mean": 4993.312
+        }
+      }
+    },
+    "rows": [
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 263.9,
+        "up_payload_Bps": 442.76,
+        "up_wire_Bps": 707.47,
+        "down_payload_Bps": 1450.03,
+        "down_wire_Bps": 2567.15
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 263.9,
+        "up_payload_Bps": 489.81,
+        "up_wire_Bps": 774.65,
+        "down_payload_Bps": 1445.7,
+        "down_wire_Bps": 2551.48
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 263.9,
+        "up_payload_Bps": 483.43,
+        "up_wire_Bps": 777.29,
+        "down_payload_Bps": 1445.7,
+        "down_wire_Bps": 2551.52
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 51.3,
+        "up_payload_Bps": 714.48,
+        "up_wire_Bps": 1252.55,
+        "down_payload_Bps": 1659.03,
+        "down_wire_Bps": 3036.2
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 51.3,
+        "up_payload_Bps": 505.24,
+        "up_wire_Bps": 817.54,
+        "down_payload_Bps": 1591.07,
+        "down_wire_Bps": 2791.11
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 51.3,
+        "up_payload_Bps": 558.71,
+        "up_wire_Bps": 921.81,
+        "down_payload_Bps": 1619.16,
+        "down_wire_Bps": 2853.22
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 1171.9,
+        "up_payload_Bps": 277.2,
+        "up_wire_Bps": 446.48,
+        "down_payload_Bps": 1243.4,
+        "down_wire_Bps": 2267.18
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 1171.9,
+        "up_payload_Bps": 465.39,
+        "up_wire_Bps": 753.33,
+        "down_payload_Bps": 1240.19,
+        "down_wire_Bps": 2258.07
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 1171.9,
+        "up_payload_Bps": 465.79,
+        "up_wire_Bps": 762.77,
+        "down_payload_Bps": 1240.19,
+        "down_wire_Bps": 2258.12
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 3.4,
+        "up_payload_Bps": 1160.29,
+        "up_wire_Bps": 2437.94,
+        "down_payload_Bps": 2719.41,
+        "down_wire_Bps": 5057.65
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 3.4,
+        "up_payload_Bps": 1015.0,
+        "up_wire_Bps": 2210.88,
+        "down_payload_Bps": 2719.41,
+        "down_wire_Bps": 5057.65
+      },
+      {
+        "source": "g10/seed0",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 3.4,
+        "up_payload_Bps": 1016.18,
+        "up_wire_Bps": 2227.35,
+        "down_payload_Bps": 2723.53,
+        "down_wire_Bps": 5065.29
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 94.1,
+        "up_payload_Bps": 417.52,
+        "up_wire_Bps": 657.68,
+        "down_payload_Bps": 1444.1,
+        "down_wire_Bps": 2538.35
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 94.1,
+        "up_payload_Bps": 494.88,
+        "up_wire_Bps": 781.63,
+        "down_payload_Bps": 1442.84,
+        "down_wire_Bps": 2545.65
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 94.1,
+        "up_payload_Bps": 488.06,
+        "up_wire_Bps": 783.8,
+        "down_payload_Bps": 1442.84,
+        "down_wire_Bps": 2545.72
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 78.2,
+        "up_payload_Bps": 458.57,
+        "up_wire_Bps": 841.45,
+        "down_payload_Bps": 1373.26,
+        "down_wire_Bps": 2581.05
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 78.2,
+        "up_payload_Bps": 513.17,
+        "up_wire_Bps": 830.18,
+        "down_payload_Bps": 1317.17,
+        "down_wire_Bps": 2370.49
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 78.2,
+        "up_payload_Bps": 531.93,
+        "up_wire_Bps": 885.28,
+        "down_payload_Bps": 1335.6,
+        "down_wire_Bps": 2411.38
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 1019.2,
+        "up_payload_Bps": 478.13,
+        "up_wire_Bps": 760.07,
+        "down_payload_Bps": 1438.82,
+        "down_wire_Bps": 2575.62
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 1019.2,
+        "up_payload_Bps": 462.98,
+        "up_wire_Bps": 749.95,
+        "down_payload_Bps": 1438.17,
+        "down_wire_Bps": 2574.4
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 1019.2,
+        "up_payload_Bps": 458.28,
+        "up_wire_Bps": 754.28,
+        "down_payload_Bps": 1438.16,
+        "down_wire_Bps": 2574.43
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 3.4,
+        "up_payload_Bps": 1018.53,
+        "up_wire_Bps": 2213.82,
+        "down_payload_Bps": 2868.53,
+        "down_wire_Bps": 5376.18
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 3.4,
+        "up_payload_Bps": 1151.76,
+        "up_wire_Bps": 2429.71,
+        "down_payload_Bps": 2866.18,
+        "down_wire_Bps": 5373.82
+      },
+      {
+        "source": "g10/seed1",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 3.4,
+        "up_payload_Bps": 1152.06,
+        "up_wire_Bps": 2448.53,
+        "down_payload_Bps": 2867.94,
+        "down_wire_Bps": 5379.12
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 291.7,
+        "up_payload_Bps": 445.54,
+        "up_wire_Bps": 710.85,
+        "down_payload_Bps": 1450.78,
+        "down_wire_Bps": 2566.4
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 291.7,
+        "up_payload_Bps": 487.44,
+        "up_wire_Bps": 770.96,
+        "down_payload_Bps": 1446.86,
+        "down_wire_Bps": 2552.22
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 291.7,
+        "up_payload_Bps": 482.02,
+        "up_wire_Bps": 774.53,
+        "down_payload_Bps": 1446.86,
+        "down_wire_Bps": 2552.26
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 58.4,
+        "up_payload_Bps": 702.96,
+        "up_wire_Bps": 1226.78,
+        "down_payload_Bps": 1482.26,
+        "down_wire_Bps": 2747.86
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 58.4,
+        "up_payload_Bps": 510.45,
+        "up_wire_Bps": 831.18,
+        "down_payload_Bps": 1422.53,
+        "down_wire_Bps": 2532.55
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 58.4,
+        "up_payload_Bps": 398.05,
+        "up_wire_Bps": 669.01,
+        "down_payload_Bps": 1447.72,
+        "down_wire_Bps": 2586.08
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 969.9,
+        "up_payload_Bps": 240.24,
+        "up_wire_Bps": 387.73,
+        "down_payload_Bps": 1206.81,
+        "down_wire_Bps": 2202.34
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 969.9,
+        "up_payload_Bps": 471.46,
+        "up_wire_Bps": 762.61,
+        "down_payload_Bps": 1202.88,
+        "down_wire_Bps": 2191.29
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 969.9,
+        "up_payload_Bps": 470.3,
+        "up_wire_Bps": 769.58,
+        "down_payload_Bps": 1205.39,
+        "down_wire_Bps": 2198.75
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 2.6,
+        "up_payload_Bps": 1576.54,
+        "up_wire_Bps": 3403.46,
+        "down_payload_Bps": 3029.23,
+        "down_wire_Bps": 5928.46
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 2.6,
+        "up_payload_Bps": 1554.62,
+        "up_wire_Bps": 3381.54,
+        "down_payload_Bps": 3029.23,
+        "down_wire_Bps": 5928.46
+      },
+      {
+        "source": "g10/seed2",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 2.6,
+        "up_payload_Bps": 1753.46,
+        "up_wire_Bps": 3708.85,
+        "down_payload_Bps": 3034.62,
+        "down_wire_Bps": 5939.23
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 120.0,
+        "up_payload_Bps": 384.49,
+        "up_wire_Bps": 626.24,
+        "down_payload_Bps": 1390.13,
+        "down_wire_Bps": 2482.45
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 120.0,
+        "up_payload_Bps": 506.51,
+        "up_wire_Bps": 806.03,
+        "down_payload_Bps": 1383.16,
+        "down_wire_Bps": 2462.42
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 120.0,
+        "up_payload_Bps": 490.38,
+        "up_wire_Bps": 791.01,
+        "down_payload_Bps": 1381.88,
+        "down_wire_Bps": 2455.3
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 40.7,
+        "up_payload_Bps": 524.23,
+        "up_wire_Bps": 842.46,
+        "down_payload_Bps": 1613.49,
+        "down_wire_Bps": 2826.44
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 40.7,
+        "up_payload_Bps": 776.22,
+        "up_wire_Bps": 1385.9,
+        "down_payload_Bps": 1697.17,
+        "down_wire_Bps": 3133.34
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 40.7,
+        "up_payload_Bps": 565.16,
+        "up_wire_Bps": 945.01,
+        "down_payload_Bps": 1648.97,
+        "down_wire_Bps": 2904.79
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 1887.7,
+        "up_payload_Bps": 468.44,
+        "up_wire_Bps": 748.56,
+        "down_payload_Bps": 1213.78,
+        "down_wire_Bps": 2212.63
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 1887.7,
+        "up_payload_Bps": 247.85,
+        "up_wire_Bps": 398.17,
+        "down_payload_Bps": 1214.86,
+        "down_wire_Bps": 2214.52
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 1887.7,
+        "up_payload_Bps": 456.14,
+        "up_wire_Bps": 750.14,
+        "down_payload_Bps": 1213.3,
+        "down_wire_Bps": 2211.36
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 3.1,
+        "up_payload_Bps": 1453.23,
+        "up_wire_Bps": 3075.48,
+        "down_payload_Bps": 2853.87,
+        "down_wire_Bps": 5558.39
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 3.1,
+        "up_payload_Bps": 1469.35,
+        "up_wire_Bps": 3090.97,
+        "down_payload_Bps": 2858.39,
+        "down_wire_Bps": 5562.9
+      },
+      {
+        "source": "g10/seed3",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 3.1,
+        "up_payload_Bps": 1124.84,
+        "up_wire_Bps": 2453.87,
+        "down_payload_Bps": 2846.45,
+        "down_wire_Bps": 5324.84
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 116.9,
+        "up_payload_Bps": 390.43,
+        "up_wire_Bps": 644.97,
+        "down_payload_Bps": 1385.74,
+        "down_wire_Bps": 2487.72
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 116.9,
+        "up_payload_Bps": 498.92,
+        "up_wire_Bps": 791.11,
+        "down_payload_Bps": 1375.69,
+        "down_wire_Bps": 2445.98
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 116.9,
+        "up_payload_Bps": 491.33,
+        "up_wire_Bps": 792.54,
+        "down_payload_Bps": 1375.69,
+        "down_wire_Bps": 2446.08
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 18.0,
+        "up_payload_Bps": 1116.33,
+        "up_wire_Bps": 2087.72,
+        "down_payload_Bps": 1909.72,
+        "down_wire_Bps": 3668.56
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 18.0,
+        "up_payload_Bps": 544.06,
+        "up_wire_Bps": 907.17,
+        "down_payload_Bps": 1724.61,
+        "down_wire_Bps": 3018.22
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 18.0,
+        "up_payload_Bps": 676.5,
+        "up_wire_Bps": 1167.39,
+        "down_payload_Bps": 1804.67,
+        "down_wire_Bps": 3195.22
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 1139.1,
+        "up_payload_Bps": 274.8,
+        "up_wire_Bps": 440.63,
+        "down_payload_Bps": 1233.03,
+        "down_wire_Bps": 2253.19
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 1139.1,
+        "up_payload_Bps": 463.65,
+        "up_wire_Bps": 750.96,
+        "down_payload_Bps": 1229.69,
+        "down_wire_Bps": 2243.16
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 1139.1,
+        "up_payload_Bps": 458.25,
+        "up_wire_Bps": 754.59,
+        "down_payload_Bps": 1229.68,
+        "down_wire_Bps": 2243.2
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 3.3,
+        "up_payload_Bps": 1191.82,
+        "up_wire_Bps": 2507.88,
+        "down_payload_Bps": 3104.85,
+        "down_wire_Bps": 5772.73
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 3.3,
+        "up_payload_Bps": 1507.27,
+        "up_wire_Bps": 3115.76,
+        "down_payload_Bps": 3112.12,
+        "down_wire_Bps": 5996.06
+      },
+      {
+        "source": "g10/seed4",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 3.3,
+        "up_payload_Bps": 1518.79,
+        "up_wire_Bps": 3147.27,
+        "down_payload_Bps": 3113.94,
+        "down_wire_Bps": 6002.73
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 210.4,
+        "up_payload_Bps": 430.38,
+        "up_wire_Bps": 688.93,
+        "down_payload_Bps": 1443.98,
+        "down_wire_Bps": 2557.43
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 210.4,
+        "up_payload_Bps": 500.1,
+        "up_wire_Bps": 791.6,
+        "down_payload_Bps": 1440.0,
+        "down_wire_Bps": 2546.01
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 210.4,
+        "up_payload_Bps": 485.15,
+        "up_wire_Bps": 781.18,
+        "down_payload_Bps": 1439.27,
+        "down_wire_Bps": 2541.95
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 49.4,
+        "up_payload_Bps": 501.78,
+        "up_wire_Bps": 809.17,
+        "down_payload_Bps": 1555.43,
+        "down_wire_Bps": 2738.4
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 49.4,
+        "up_payload_Bps": 700.34,
+        "up_wire_Bps": 1247.83,
+        "down_payload_Bps": 1625.69,
+        "down_wire_Bps": 2992.61
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 49.4,
+        "up_payload_Bps": 549.66,
+        "up_wire_Bps": 909.23,
+        "down_payload_Bps": 1584.66,
+        "down_wire_Bps": 2802.96
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 2064.1,
+        "up_payload_Bps": 470.69,
+        "up_wire_Bps": 751.26,
+        "down_payload_Bps": 1231.12,
+        "down_wire_Bps": 2241.77
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 2064.1,
+        "up_payload_Bps": 263.54,
+        "up_wire_Bps": 425.27,
+        "down_payload_Bps": 1232.1,
+        "down_wire_Bps": 2243.5
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 2064.1,
+        "up_payload_Bps": 455.52,
+        "up_wire_Bps": 748.95,
+        "down_payload_Bps": 1230.66,
+        "down_wire_Bps": 2240.25
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 3.2,
+        "up_payload_Bps": 1077.19,
+        "up_wire_Bps": 2347.81,
+        "down_payload_Bps": 2734.38,
+        "down_wire_Bps": 5131.56
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 3.2,
+        "up_payload_Bps": 1083.44,
+        "up_wire_Bps": 2353.44,
+        "down_payload_Bps": 2738.75,
+        "down_wire_Bps": 5135.94
+      },
+      {
+        "source": "g10/seed5",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 3.2,
+        "up_payload_Bps": 1076.25,
+        "up_wire_Bps": 2363.75,
+        "down_payload_Bps": 2737.19,
+        "down_wire_Bps": 5138.12
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 251.9,
+        "up_payload_Bps": 442.41,
+        "up_wire_Bps": 710.06,
+        "down_payload_Bps": 1447.65,
+        "down_wire_Bps": 2566.79
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 251.9,
+        "up_payload_Bps": 490.37,
+        "up_wire_Bps": 775.49,
+        "down_payload_Bps": 1442.98,
+        "down_wire_Bps": 2547.42
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 251.9,
+        "up_payload_Bps": 483.53,
+        "up_wire_Bps": 777.66,
+        "down_payload_Bps": 1442.98,
+        "down_wire_Bps": 2547.46
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 53.6,
+        "up_payload_Bps": 703.41,
+        "up_wire_Bps": 1217.01,
+        "down_payload_Bps": 1652.13,
+        "down_wire_Bps": 3004.44
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 53.6,
+        "up_payload_Bps": 501.44,
+        "up_wire_Bps": 810.76,
+        "down_payload_Bps": 1587.67,
+        "down_wire_Bps": 2783.73
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 53.6,
+        "up_payload_Bps": 552.26,
+        "up_wire_Bps": 910.54,
+        "down_payload_Bps": 1614.55,
+        "down_wire_Bps": 2843.17
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 1197.2,
+        "up_payload_Bps": 281.31,
+        "up_wire_Bps": 452.84,
+        "down_payload_Bps": 1246.12,
+        "down_wire_Bps": 2271.95
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 1197.2,
+        "up_payload_Bps": 464.89,
+        "up_wire_Bps": 752.57,
+        "down_payload_Bps": 1242.98,
+        "down_wire_Bps": 2263.03
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 1197.2,
+        "up_payload_Bps": 464.54,
+        "up_wire_Bps": 761.26,
+        "down_payload_Bps": 1242.98,
+        "down_wire_Bps": 2263.08
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 3.2,
+        "up_payload_Bps": 1085.0,
+        "up_wire_Bps": 2355.62,
+        "down_payload_Bps": 2740.31,
+        "down_wire_Bps": 5137.5
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 3.2,
+        "up_payload_Bps": 1078.12,
+        "up_wire_Bps": 2348.75,
+        "down_payload_Bps": 2740.31,
+        "down_wire_Bps": 5137.5
+      },
+      {
+        "source": "g10/seed6",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 3.2,
+        "up_payload_Bps": 1078.75,
+        "up_wire_Bps": 2365.62,
+        "down_payload_Bps": 2744.69,
+        "down_wire_Bps": 5145.31
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 139.1,
+        "up_payload_Bps": 406.95,
+        "up_wire_Bps": 660.45,
+        "down_payload_Bps": 1407.99,
+        "down_wire_Bps": 2510.32
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 139.1,
+        "up_payload_Bps": 496.49,
+        "up_wire_Bps": 786.18,
+        "down_payload_Bps": 1399.77,
+        "down_wire_Bps": 2480.6
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 139.1,
+        "up_payload_Bps": 488.49,
+        "up_wire_Bps": 787.18,
+        "down_payload_Bps": 1399.77,
+        "down_wire_Bps": 2480.69
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 20.8,
+        "up_payload_Bps": 1057.84,
+        "up_wire_Bps": 1982.45,
+        "down_payload_Bps": 1863.46,
+        "down_wire_Bps": 3583.37
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 20.8,
+        "up_payload_Bps": 541.35,
+        "up_wire_Bps": 895.82,
+        "down_payload_Bps": 1701.73,
+        "down_wire_Bps": 2984.76
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 20.8,
+        "up_payload_Bps": 646.54,
+        "up_wire_Bps": 1112.88,
+        "down_payload_Bps": 1771.01,
+        "down_wire_Bps": 3137.93
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 1267.8,
+        "up_payload_Bps": 293.87,
+        "up_wire_Bps": 471.26,
+        "down_payload_Bps": 1251.8,
+        "down_wire_Bps": 2283.78
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 1267.8,
+        "up_payload_Bps": 463.14,
+        "up_wire_Bps": 750.43,
+        "down_payload_Bps": 1248.82,
+        "down_wire_Bps": 2275.36
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 1267.8,
+        "up_payload_Bps": 458.25,
+        "up_wire_Bps": 754.57,
+        "down_payload_Bps": 1248.82,
+        "down_wire_Bps": 2275.4
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 3.5,
+        "up_payload_Bps": 985.43,
+        "up_wire_Bps": 2146.57,
+        "down_payload_Bps": 2515.43,
+        "down_wire_Bps": 4707.14
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 3.5,
+        "up_payload_Bps": 981.71,
+        "up_wire_Bps": 2143.43,
+        "down_payload_Bps": 2513.14,
+        "down_wire_Bps": 4704.57
+      },
+      {
+        "source": "g10/seed7",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 3.5,
+        "up_payload_Bps": 992.57,
+        "up_wire_Bps": 2169.71,
+        "down_payload_Bps": 2514.86,
+        "down_wire_Bps": 4710.0
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 115.4,
+        "up_payload_Bps": 343.47,
+        "up_wire_Bps": 541.72,
+        "down_payload_Bps": 1366.57,
+        "down_wire_Bps": 2416.85
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 115.4,
+        "up_payload_Bps": 493.5,
+        "up_wire_Bps": 778.09,
+        "down_payload_Bps": 1367.63,
+        "down_wire_Bps": 2424.9
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 115.4,
+        "up_payload_Bps": 485.23,
+        "up_wire_Bps": 778.8,
+        "down_payload_Bps": 1366.59,
+        "down_wire_Bps": 2423.91
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 61.1,
+        "up_payload_Bps": 572.37,
+        "up_wire_Bps": 957.76,
+        "down_payload_Bps": 1603.7,
+        "down_wire_Bps": 2870.25
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 61.1,
+        "up_payload_Bps": 704.26,
+        "up_wire_Bps": 1234.17,
+        "down_payload_Bps": 1643.96,
+        "down_wire_Bps": 3020.41
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 61.1,
+        "up_payload_Bps": 547.15,
+        "up_wire_Bps": 911.57,
+        "down_payload_Bps": 1611.33,
+        "down_wire_Bps": 2856.02
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 1131.1,
+        "up_payload_Bps": 468.66,
+        "up_wire_Bps": 751.43,
+        "down_payload_Bps": 1216.38,
+        "down_wire_Bps": 2215.91
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 1131.1,
+        "up_payload_Bps": 263.32,
+        "up_wire_Bps": 424.64,
+        "down_payload_Bps": 1220.37,
+        "down_wire_Bps": 2226.07
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 1131.1,
+        "up_payload_Bps": 460.32,
+        "up_wire_Bps": 760.25,
+        "down_payload_Bps": 1215.58,
+        "down_wire_Bps": 2213.8
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 2.8,
+        "up_payload_Bps": 1598.93,
+        "up_wire_Bps": 3395.0,
+        "down_payload_Bps": 2967.14,
+        "down_wire_Bps": 5755.36
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 2.8,
+        "up_payload_Bps": 1616.79,
+        "up_wire_Bps": 3412.14,
+        "down_payload_Bps": 2972.14,
+        "down_wire_Bps": 5760.36
+      },
+      {
+        "source": "g10/seed8",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 2.8,
+        "up_payload_Bps": 1067.14,
+        "up_wire_Bps": 2435.71,
+        "down_payload_Bps": 2958.93,
+        "down_wire_Bps": 5497.14
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 173.3,
+        "up_payload_Bps": 413.56,
+        "up_wire_Bps": 664.67,
+        "down_payload_Bps": 1426.79,
+        "down_wire_Bps": 2533.28
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 173.3,
+        "up_payload_Bps": 505.96,
+        "up_wire_Bps": 805.56,
+        "down_payload_Bps": 1422.15,
+        "down_wire_Bps": 2523.72
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 173.3,
+        "up_payload_Bps": 487.14,
+        "up_wire_Bps": 785.05,
+        "down_payload_Bps": 1421.08,
+        "down_wire_Bps": 2514.49
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_01",
+        "sim_s": 31.6,
+        "up_payload_Bps": 519.15,
+        "up_wire_Bps": 849.56,
+        "down_payload_Bps": 1608.23,
+        "down_wire_Bps": 2820.44
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "go2_02",
+        "sim_s": 31.6,
+        "up_payload_Bps": 832.91,
+        "up_wire_Bps": 1500.98,
+        "down_payload_Bps": 1715.03,
+        "down_wire_Bps": 3192.25
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "interactive",
+        "robot": "summit_01",
+        "sim_s": 31.6,
+        "up_payload_Bps": 581.61,
+        "up_wire_Bps": 979.72,
+        "down_payload_Bps": 1653.92,
+        "down_wire_Bps": 2921.33
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_01",
+        "sim_s": 1683.3,
+        "up_payload_Bps": 470.08,
+        "up_wire_Bps": 750.98,
+        "down_payload_Bps": 1186.91,
+        "down_wire_Bps": 2170.21
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "go2_02",
+        "sim_s": 1683.3,
+        "up_payload_Bps": 222.04,
+        "up_wire_Bps": 357.53,
+        "down_payload_Bps": 1188.11,
+        "down_wire_Bps": 2172.32
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "emergency",
+        "robot": "summit_01",
+        "sim_s": 1683.3,
+        "up_payload_Bps": 456.24,
+        "up_wire_Bps": 751.04,
+        "down_payload_Bps": 1186.35,
+        "down_wire_Bps": 2168.33
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 3.4,
+        "up_payload_Bps": 1152.06,
+        "up_wire_Bps": 2430.29,
+        "down_payload_Bps": 2729.71,
+        "down_wire_Bps": 5067.94
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 3.4,
+        "up_payload_Bps": 1025.0,
+        "up_wire_Bps": 2220.59,
+        "down_payload_Bps": 2733.82,
+        "down_wire_Bps": 5071.76
+      },
+      {
+        "source": "g10/seed9",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 3.4,
+        "up_payload_Bps": 1025.59,
+        "up_wire_Bps": 2237.06,
+        "down_payload_Bps": 2732.35,
+        "down_wire_Bps": 5074.12
+      },
+      {
+        "source": "n1/P_f3_o60_s0",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1633.7,
+        "up_payload_Bps": 152.56,
+        "up_wire_Bps": 246.06,
+        "down_payload_Bps": 410.19,
+        "down_wire_Bps": 737.71
+      },
+      {
+        "source": "n1/P_f3_o60_s0",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1633.7,
+        "up_payload_Bps": 114.29,
+        "up_wire_Bps": 188.54,
+        "down_payload_Bps": 670.66,
+        "down_wire_Bps": 1316.77
+      },
+      {
+        "source": "n1/P_f3_o60_s0",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1633.7,
+        "up_payload_Bps": 377.75,
+        "up_wire_Bps": 615.33,
+        "down_payload_Bps": 673.19,
+        "down_wire_Bps": 1329.17
+      },
+      {
+        "source": "n1/P_f3_o60_s1",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1476.0,
+        "up_payload_Bps": 41.94,
+        "up_wire_Bps": 69.28,
+        "down_payload_Bps": 125.93,
+        "down_wire_Bps": 221.37
+      },
+      {
+        "source": "n1/P_f3_o60_s1",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1476.0,
+        "up_payload_Bps": 241.01,
+        "up_wire_Bps": 393.73,
+        "down_payload_Bps": 791.29,
+        "down_wire_Bps": 1513.65
+      },
+      {
+        "source": "n1/P_f3_o60_s1",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1476.0,
+        "up_payload_Bps": 486.23,
+        "up_wire_Bps": 788.08,
+        "down_payload_Bps": 796.29,
+        "down_wire_Bps": 1522.52
+      },
+      {
+        "source": "n1/P_f3_o60_s2",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1634.4,
+        "up_payload_Bps": 172.98,
+        "up_wire_Bps": 278.34,
+        "down_payload_Bps": 452.97,
+        "down_wire_Bps": 814.85
+      },
+      {
+        "source": "n1/P_f3_o60_s2",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1634.4,
+        "up_payload_Bps": 113.9,
+        "up_wire_Bps": 187.96,
+        "down_payload_Bps": 690.58,
+        "down_wire_Bps": 1348.23
+      },
+      {
+        "source": "n1/P_f3_o60_s2",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1634.4,
+        "up_payload_Bps": 378.52,
+        "up_wire_Bps": 617.34,
+        "down_payload_Bps": 693.14,
+        "down_wire_Bps": 1361.59
+      },
+      {
+        "source": "n1/P_f3_o60_s3",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1192.2,
+        "up_payload_Bps": 74.67,
+        "up_wire_Bps": 121.63,
+        "down_payload_Bps": 227.43,
+        "down_wire_Bps": 399.86
+      },
+      {
+        "source": "n1/P_f3_o60_s3",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1192.2,
+        "up_payload_Bps": 195.82,
+        "up_wire_Bps": 323.35,
+        "down_payload_Bps": 774.36,
+        "down_wire_Bps": 1485.99
+      },
+      {
+        "source": "n1/P_f3_o60_s3",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1192.2,
+        "up_payload_Bps": 487.6,
+        "up_wire_Bps": 794.0,
+        "down_payload_Bps": 781.57,
+        "down_wire_Bps": 1501.49
+      },
+      {
+        "source": "n1/P_f3_o60_s4",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1196.6,
+        "up_payload_Bps": 73.18,
+        "up_wire_Bps": 119.27,
+        "down_payload_Bps": 222.79,
+        "down_wire_Bps": 391.75
+      },
+      {
+        "source": "n1/P_f3_o60_s4",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1196.6,
+        "up_payload_Bps": 196.35,
+        "up_wire_Bps": 324.12,
+        "down_payload_Bps": 771.86,
+        "down_wire_Bps": 1481.12
+      },
+      {
+        "source": "n1/P_f3_o60_s4",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1196.6,
+        "up_payload_Bps": 486.63,
+        "up_wire_Bps": 792.22,
+        "down_payload_Bps": 778.48,
+        "down_wire_Bps": 1495.91
+      },
+      {
+        "source": "n1/P_f3_o60_s5",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1610.6,
+        "up_payload_Bps": 124.32,
+        "up_wire_Bps": 200.28,
+        "down_payload_Bps": 344.86,
+        "down_wire_Bps": 612.91
+      },
+      {
+        "source": "n1/P_f3_o60_s5",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1610.6,
+        "up_payload_Bps": 116.2,
+        "up_wire_Bps": 191.87,
+        "down_payload_Bps": 644.05,
+        "down_wire_Bps": 1274.01
+      },
+      {
+        "source": "n1/P_f3_o60_s5",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1610.6,
+        "up_payload_Bps": 375.13,
+        "up_wire_Bps": 610.22,
+        "down_payload_Bps": 646.65,
+        "down_wire_Bps": 1285.79
+      },
+      {
+        "source": "n1/P_f3_o60_s6",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1665.2,
+        "up_payload_Bps": 141.67,
+        "up_wire_Bps": 228.88,
+        "down_payload_Bps": 385.42,
+        "down_wire_Bps": 692.35
+      },
+      {
+        "source": "n1/P_f3_o60_s6",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1665.2,
+        "up_payload_Bps": 112.4,
+        "up_wire_Bps": 185.59,
+        "down_payload_Bps": 651.11,
+        "down_wire_Bps": 1286.54
+      },
+      {
+        "source": "n1/P_f3_o60_s6",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1665.2,
+        "up_payload_Bps": 370.25,
+        "up_wire_Bps": 603.71,
+        "down_payload_Bps": 653.63,
+        "down_wire_Bps": 1298.91
+      },
+      {
+        "source": "n1/P_f3_o60_s7",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1029.5,
+        "up_payload_Bps": 108.53,
+        "up_wire_Bps": 177.15,
+        "down_payload_Bps": 329.13,
+        "down_wire_Bps": 581.19
+      },
+      {
+        "source": "n1/P_f3_o60_s7",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1029.5,
+        "up_payload_Bps": 152.51,
+        "up_wire_Bps": 250.0,
+        "down_payload_Bps": 757.8,
+        "down_wire_Bps": 1453.6
+      },
+      {
+        "source": "n1/P_f3_o60_s7",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1029.5,
+        "up_payload_Bps": 473.37,
+        "up_wire_Bps": 770.98,
+        "down_payload_Bps": 762.58,
+        "down_wire_Bps": 1470.46
+      },
+      {
+        "source": "n1/P_f3_o60_s8",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1180.7,
+        "up_payload_Bps": 74.58,
+        "up_wire_Bps": 121.52,
+        "down_payload_Bps": 226.97,
+        "down_wire_Bps": 397.94
+      },
+      {
+        "source": "n1/P_f3_o60_s8",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1180.7,
+        "up_payload_Bps": 192.86,
+        "up_wire_Bps": 318.58,
+        "down_payload_Bps": 777.34,
+        "down_wire_Bps": 1489.72
+      },
+      {
+        "source": "n1/P_f3_o60_s8",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1180.7,
+        "up_payload_Bps": 494.65,
+        "up_wire_Bps": 804.38,
+        "down_payload_Bps": 784.35,
+        "down_wire_Bps": 1505.05
+      },
+      {
+        "source": "n1/P_f3_o60_s9",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1031.2,
+        "up_payload_Bps": 146.97,
+        "up_wire_Bps": 237.67,
+        "down_payload_Bps": 443.76,
+        "down_wire_Bps": 782.07
+      },
+      {
+        "source": "n1/P_f3_o60_s9",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1031.2,
+        "up_payload_Bps": 144.46,
+        "up_wire_Bps": 232.48,
+        "down_payload_Bps": 795.62,
+        "down_wire_Bps": 1503.43
+      },
+      {
+        "source": "n1/P_f3_o60_s9",
+        "fleet": 3,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1031.2,
+        "up_payload_Bps": 479.13,
+        "up_wire_Bps": 776.01,
+        "down_payload_Bps": 800.78,
+        "down_wire_Bps": 1528.18
+      },
+      {
+        "source": "n1/P_f5_o60_s0",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1168.0,
+        "up_payload_Bps": 510.13,
+        "up_wire_Bps": 818.13,
+        "down_payload_Bps": 1904.39,
+        "down_wire_Bps": 3275.74
+      },
+      {
+        "source": "n1/P_f5_o60_s0",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1168.0,
+        "up_payload_Bps": 384.11,
+        "up_wire_Bps": 622.2,
+        "down_payload_Bps": 1903.5,
+        "down_wire_Bps": 3272.27
+      },
+      {
+        "source": "n1/P_f5_o60_s0",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 1168.0,
+        "up_payload_Bps": 229.75,
+        "up_wire_Bps": 368.89,
+        "down_payload_Bps": 901.35,
+        "down_wire_Bps": 1539.94
+      },
+      {
+        "source": "n1/P_f5_o60_s0",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 1168.0,
+        "up_payload_Bps": 502.0,
+        "up_wire_Bps": 811.65,
+        "down_payload_Bps": 1900.77,
+        "down_wire_Bps": 3270.98
+      },
+      {
+        "source": "n1/P_f5_o60_s0",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1168.0,
+        "up_payload_Bps": 296.95,
+        "up_wire_Bps": 494.81,
+        "down_payload_Bps": 1903.19,
+        "down_wire_Bps": 3270.96
+      },
+      {
+        "source": "n1/P_f5_o60_s1",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1490.0,
+        "up_payload_Bps": 43.83,
+        "up_wire_Bps": 74.9,
+        "down_payload_Bps": 199.05,
+        "down_wire_Bps": 341.0
+      },
+      {
+        "source": "n1/P_f5_o60_s1",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1490.0,
+        "up_payload_Bps": 415.36,
+        "up_wire_Bps": 681.15,
+        "down_payload_Bps": 1664.95,
+        "down_wire_Bps": 2898.56
+      },
+      {
+        "source": "n1/P_f5_o60_s1",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 1490.0,
+        "up_payload_Bps": 500.86,
+        "up_wire_Bps": 816.36,
+        "down_payload_Bps": 1667.08,
+        "down_wire_Bps": 2909.32
+      },
+      {
+        "source": "n1/P_f5_o60_s1",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 1490.0,
+        "up_payload_Bps": 525.14,
+        "up_wire_Bps": 851.87,
+        "down_payload_Bps": 1667.38,
+        "down_wire_Bps": 2906.36
+      },
+      {
+        "source": "n1/P_f5_o60_s1",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1490.0,
+        "up_payload_Bps": 230.97,
+        "up_wire_Bps": 396.72,
+        "down_payload_Bps": 1666.87,
+        "down_wire_Bps": 2901.75
+      },
+      {
+        "source": "n1/P_f5_o60_s2",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1257.8,
+        "up_payload_Bps": 507.29,
+        "up_wire_Bps": 812.48,
+        "down_payload_Bps": 1935.03,
+        "down_wire_Bps": 3322.67
+      },
+      {
+        "source": "n1/P_f5_o60_s2",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1257.8,
+        "up_payload_Bps": 385.86,
+        "up_wire_Bps": 622.24,
+        "down_payload_Bps": 1934.1,
+        "down_wire_Bps": 3315.17
+      },
+      {
+        "source": "n1/P_f5_o60_s2",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 1257.8,
+        "up_payload_Bps": 238.85,
+        "up_wire_Bps": 382.48,
+        "down_payload_Bps": 919.56,
+        "down_wire_Bps": 1572.45
+      },
+      {
+        "source": "n1/P_f5_o60_s2",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 1257.8,
+        "up_payload_Bps": 501.6,
+        "up_wire_Bps": 807.31,
+        "down_payload_Bps": 1931.91,
+        "down_wire_Bps": 3317.17
+      },
+      {
+        "source": "n1/P_f5_o60_s2",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1257.8,
+        "up_payload_Bps": 301.52,
+        "up_wire_Bps": 498.15,
+        "down_payload_Bps": 1933.34,
+        "down_wire_Bps": 3311.58
+      },
+      {
+        "source": "n1/P_f5_o60_s3",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1008.6,
+        "up_payload_Bps": 93.65,
+        "up_wire_Bps": 157.08,
+        "down_payload_Bps": 425.23,
+        "down_wire_Bps": 726.74
+      },
+      {
+        "source": "n1/P_f5_o60_s3",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1008.6,
+        "up_payload_Bps": 383.57,
+        "up_wire_Bps": 642.51,
+        "down_payload_Bps": 1224.14,
+        "down_wire_Bps": 2214.44
+      },
+      {
+        "source": "n1/P_f5_o60_s3",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 1008.6,
+        "up_payload_Bps": 530.63,
+        "up_wire_Bps": 869.66,
+        "down_payload_Bps": 1226.09,
+        "down_wire_Bps": 2208.82
+      },
+      {
+        "source": "n1/P_f5_o60_s3",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 1008.6,
+        "up_payload_Bps": 165.68,
+        "up_wire_Bps": 284.58,
+        "down_payload_Bps": 1215.66,
+        "down_wire_Bps": 2177.26
+      },
+      {
+        "source": "n1/P_f5_o60_s3",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1008.6,
+        "up_payload_Bps": 105.33,
+        "up_wire_Bps": 182.93,
+        "down_payload_Bps": 1217.25,
+        "down_wire_Bps": 2170.06
+      },
+      {
+        "source": "n1/P_f5_o60_s4",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1011.8,
+        "up_payload_Bps": 91.43,
+        "up_wire_Bps": 153.56,
+        "down_payload_Bps": 416.94,
+        "down_wire_Bps": 712.49
+      },
+      {
+        "source": "n1/P_f5_o60_s4",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1011.8,
+        "up_payload_Bps": 384.67,
+        "up_wire_Bps": 644.17,
+        "down_payload_Bps": 1225.72,
+        "down_wire_Bps": 2213.99
+      },
+      {
+        "source": "n1/P_f5_o60_s4",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 1011.8,
+        "up_payload_Bps": 538.5,
+        "up_wire_Bps": 882.36,
+        "down_payload_Bps": 1227.49,
+        "down_wire_Bps": 2211.8
+      },
+      {
+        "source": "n1/P_f5_o60_s4",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 1011.8,
+        "up_payload_Bps": 162.27,
+        "up_wire_Bps": 278.42,
+        "down_payload_Bps": 1217.58,
+        "down_wire_Bps": 2176.7
+      },
+      {
+        "source": "n1/P_f5_o60_s4",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1011.8,
+        "up_payload_Bps": 105.03,
+        "up_wire_Bps": 182.39,
+        "down_payload_Bps": 1218.87,
+        "down_wire_Bps": 2169.77
+      },
+      {
+        "source": "n1/P_f5_o60_s5",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 984.6,
+        "up_payload_Bps": 444.1,
+        "up_wire_Bps": 717.31,
+        "down_payload_Bps": 1869.92,
+        "down_wire_Bps": 3221.36
+      },
+      {
+        "source": "n1/P_f5_o60_s5",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 984.6,
+        "up_payload_Bps": 175.44,
+        "up_wire_Bps": 282.64,
+        "down_payload_Bps": 872.7,
+        "down_wire_Bps": 1483.66
+      },
+      {
+        "source": "n1/P_f5_o60_s5",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 984.6,
+        "up_payload_Bps": 519.03,
+        "up_wire_Bps": 838.63,
+        "down_payload_Bps": 1870.15,
+        "down_wire_Bps": 3225.03
+      },
+      {
+        "source": "n1/P_f5_o60_s5",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 984.6,
+        "up_payload_Bps": 488.42,
+        "up_wire_Bps": 793.87,
+        "down_payload_Bps": 1862.89,
+        "down_wire_Bps": 3204.85
+      },
+      {
+        "source": "n1/P_f5_o60_s5",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 984.6,
+        "up_payload_Bps": 269.13,
+        "up_wire_Bps": 450.83,
+        "down_payload_Bps": 1868.74,
+        "down_wire_Bps": 3216.79
+      },
+      {
+        "source": "n1/P_f5_o60_s6",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1111.6,
+        "up_payload_Bps": 511.38,
+        "up_wire_Bps": 821.91,
+        "down_payload_Bps": 1894.47,
+        "down_wire_Bps": 3256.45
+      },
+      {
+        "source": "n1/P_f5_o60_s6",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1111.6,
+        "up_payload_Bps": 380.57,
+        "up_wire_Bps": 618.11,
+        "down_payload_Bps": 1894.72,
+        "down_wire_Bps": 3255.63
+      },
+      {
+        "source": "n1/P_f5_o60_s6",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 1111.6,
+        "up_payload_Bps": 229.02,
+        "up_wire_Bps": 368.21,
+        "down_payload_Bps": 908.68,
+        "down_wire_Bps": 1551.85
+      },
+      {
+        "source": "n1/P_f5_o60_s6",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 1111.6,
+        "up_payload_Bps": 506.52,
+        "up_wire_Bps": 818.51,
+        "down_payload_Bps": 1888.87,
+        "down_wire_Bps": 3247.86
+      },
+      {
+        "source": "n1/P_f5_o60_s6",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1111.6,
+        "up_payload_Bps": 287.91,
+        "up_wire_Bps": 480.25,
+        "down_payload_Bps": 1893.22,
+        "down_wire_Bps": 3250.44
+      },
+      {
+        "source": "n1/P_f5_o60_s7",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 1147.4,
+        "up_payload_Bps": 102.2,
+        "up_wire_Bps": 170.26,
+        "down_payload_Bps": 452.08,
+        "down_wire_Bps": 773.98
+      },
+      {
+        "source": "n1/P_f5_o60_s7",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 1147.4,
+        "up_payload_Bps": 412.0,
+        "up_wire_Bps": 682.1,
+        "down_payload_Bps": 1324.88,
+        "down_wire_Bps": 2367.99
+      },
+      {
+        "source": "n1/P_f5_o60_s7",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 1147.4,
+        "up_payload_Bps": 529.97,
+        "up_wire_Bps": 862.03,
+        "down_payload_Bps": 1326.12,
+        "down_wire_Bps": 2361.85
+      },
+      {
+        "source": "n1/P_f5_o60_s7",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 1147.4,
+        "up_payload_Bps": 188.62,
+        "up_wire_Bps": 323.76,
+        "down_payload_Bps": 1318.46,
+        "down_wire_Bps": 2342.83
+      },
+      {
+        "source": "n1/P_f5_o60_s7",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 1147.4,
+        "up_payload_Bps": 144.56,
+        "up_wire_Bps": 249.17,
+        "down_payload_Bps": 1318.89,
+        "down_wire_Bps": 2336.06
+      },
+      {
+        "source": "n1/P_f5_o60_s8",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 997.0,
+        "up_payload_Bps": 92.73,
+        "up_wire_Bps": 155.3,
+        "down_payload_Bps": 425.36,
+        "down_wire_Bps": 724.72
+      },
+      {
+        "source": "n1/P_f5_o60_s8",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 997.0,
+        "up_payload_Bps": 380.83,
+        "up_wire_Bps": 637.49,
+        "down_payload_Bps": 1228.01,
+        "down_wire_Bps": 2216.43
+      },
+      {
+        "source": "n1/P_f5_o60_s8",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 997.0,
+        "up_payload_Bps": 539.33,
+        "up_wire_Bps": 881.3,
+        "down_payload_Bps": 1231.35,
+        "down_wire_Bps": 2215.5
+      },
+      {
+        "source": "n1/P_f5_o60_s8",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 997.0,
+        "up_payload_Bps": 166.43,
+        "up_wire_Bps": 285.95,
+        "down_payload_Bps": 1221.6,
+        "down_wire_Bps": 2183.39
+      },
+      {
+        "source": "n1/P_f5_o60_s8",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 997.0,
+        "up_payload_Bps": 105.57,
+        "up_wire_Bps": 183.51,
+        "down_payload_Bps": 1221.11,
+        "down_wire_Bps": 2173.12
+      },
+      {
+        "source": "n1/P_f5_o60_s9",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 983.7,
+        "up_payload_Bps": 452.13,
+        "up_wire_Bps": 733.61,
+        "down_payload_Bps": 1432.65,
+        "down_wire_Bps": 2523.84
+      },
+      {
+        "source": "n1/P_f5_o60_s9",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 983.7,
+        "up_payload_Bps": 144.02,
+        "up_wire_Bps": 236.29,
+        "down_payload_Bps": 695.01,
+        "down_wire_Bps": 1183.53
+      },
+      {
+        "source": "n1/P_f5_o60_s9",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 983.7,
+        "up_payload_Bps": 520.23,
+        "up_wire_Bps": 841.08,
+        "down_payload_Bps": 1431.2,
+        "down_wire_Bps": 2520.03
+      },
+      {
+        "source": "n1/P_f5_o60_s9",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 983.7,
+        "up_payload_Bps": 234.33,
+        "up_wire_Bps": 390.13,
+        "down_payload_Bps": 1425.64,
+        "down_wire_Bps": 2504.76
+      },
+      {
+        "source": "n1/P_f5_o60_s9",
+        "fleet": 5,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 983.7,
+        "up_payload_Bps": 107.01,
+        "up_wire_Bps": 185.99,
+        "down_payload_Bps": 1428.27,
+        "down_wire_Bps": 2503.39
+      },
+      {
+        "source": "n1/P_f8_o60_s0",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 578.5,
+        "up_payload_Bps": 503.31,
+        "up_wire_Bps": 818.31,
+        "down_payload_Bps": 3395.94,
+        "down_wire_Bps": 5643.46
+      },
+      {
+        "source": "n1/P_f8_o60_s0",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 578.5,
+        "up_payload_Bps": 493.93,
+        "up_wire_Bps": 804.31,
+        "down_payload_Bps": 3397.86,
+        "down_wire_Bps": 5633.61
+      },
+      {
+        "source": "n1/P_f8_o60_s0",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 578.5,
+        "up_payload_Bps": 489.03,
+        "up_wire_Bps": 786.24,
+        "down_payload_Bps": 3391.7,
+        "down_wire_Bps": 5615.65
+      },
+      {
+        "source": "n1/P_f8_o60_s0",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 578.5,
+        "up_payload_Bps": 487.19,
+        "up_wire_Bps": 783.91,
+        "down_payload_Bps": 3388.4,
+        "down_wire_Bps": 5610.4
+      },
+      {
+        "source": "n1/P_f8_o60_s0",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 578.5,
+        "up_payload_Bps": 496.73,
+        "up_wire_Bps": 802.9,
+        "down_payload_Bps": 3383.34,
+        "down_wire_Bps": 5608.78
+      },
+      {
+        "source": "n1/P_f8_o60_s0",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 578.5,
+        "up_payload_Bps": 357.11,
+        "up_wire_Bps": 595.03,
+        "down_payload_Bps": 3159.88,
+        "down_wire_Bps": 5264.34
+      },
+      {
+        "source": "n1/P_f8_o60_s0",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 578.5,
+        "up_payload_Bps": 493.62,
+        "up_wire_Bps": 806.82,
+        "down_payload_Bps": 3378.31,
+        "down_wire_Bps": 5599.73
+      },
+      {
+        "source": "n1/P_f8_o60_s0",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 578.5,
+        "up_payload_Bps": 125.55,
+        "up_wire_Bps": 208.88,
+        "down_payload_Bps": 3371.41,
+        "down_wire_Bps": 5577.93
+      },
+      {
+        "source": "n1/P_f8_o60_s1",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 465.5,
+        "up_payload_Bps": 140.83,
+        "up_wire_Bps": 234.96,
+        "down_payload_Bps": 1047.4,
+        "down_wire_Bps": 1734.73
+      },
+      {
+        "source": "n1/P_f8_o60_s1",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 465.5,
+        "up_payload_Bps": 536.2,
+        "up_wire_Bps": 904.27,
+        "down_payload_Bps": 3107.87,
+        "down_wire_Bps": 5212.68
+      },
+      {
+        "source": "n1/P_f8_o60_s1",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 465.5,
+        "up_payload_Bps": 522.13,
+        "up_wire_Bps": 867.99,
+        "down_payload_Bps": 3103.15,
+        "down_wire_Bps": 5178.19
+      },
+      {
+        "source": "n1/P_f8_o60_s1",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 465.5,
+        "up_payload_Bps": 488.2,
+        "up_wire_Bps": 798.18,
+        "down_payload_Bps": 3096.0,
+        "down_wire_Bps": 5149.0
+      },
+      {
+        "source": "n1/P_f8_o60_s1",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 465.5,
+        "up_payload_Bps": 526.03,
+        "up_wire_Bps": 865.21,
+        "down_payload_Bps": 3091.61,
+        "down_wire_Bps": 5154.38
+      },
+      {
+        "source": "n1/P_f8_o60_s1",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 465.5,
+        "up_payload_Bps": 408.92,
+        "up_wire_Bps": 704.11,
+        "down_payload_Bps": 3116.7,
+        "down_wire_Bps": 5214.61
+      },
+      {
+        "source": "n1/P_f8_o60_s1",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 465.5,
+        "up_payload_Bps": 541.21,
+        "up_wire_Bps": 913.28,
+        "down_payload_Bps": 3094.42,
+        "down_wire_Bps": 5173.47
+      },
+      {
+        "source": "n1/P_f8_o60_s1",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 465.5,
+        "up_payload_Bps": 156.29,
+        "up_wire_Bps": 264.07,
+        "down_payload_Bps": 3073.12,
+        "down_wire_Bps": 5090.97
+      },
+      {
+        "source": "n1/P_f8_o60_s2",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 646.1,
+        "up_payload_Bps": 499.46,
+        "up_wire_Bps": 812.38,
+        "down_payload_Bps": 3398.65,
+        "down_wire_Bps": 5658.16
+      },
+      {
+        "source": "n1/P_f8_o60_s2",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 646.1,
+        "up_payload_Bps": 486.39,
+        "up_wire_Bps": 791.62,
+        "down_payload_Bps": 3401.11,
+        "down_wire_Bps": 5646.55
+      },
+      {
+        "source": "n1/P_f8_o60_s2",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 646.1,
+        "up_payload_Bps": 487.94,
+        "up_wire_Bps": 782.98,
+        "down_payload_Bps": 3396.03,
+        "down_wire_Bps": 5632.27
+      },
+      {
+        "source": "n1/P_f8_o60_s2",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 646.1,
+        "up_payload_Bps": 486.18,
+        "up_wire_Bps": 780.79,
+        "down_payload_Bps": 3391.55,
+        "down_wire_Bps": 5624.74
+      },
+      {
+        "source": "n1/P_f8_o60_s2",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 646.1,
+        "up_payload_Bps": 489.39,
+        "up_wire_Bps": 792.47,
+        "down_payload_Bps": 3389.29,
+        "down_wire_Bps": 5627.29
+      },
+      {
+        "source": "n1/P_f8_o60_s2",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 646.1,
+        "up_payload_Bps": 371.37,
+        "up_wire_Bps": 614.71,
+        "down_payload_Bps": 3178.69,
+        "down_wire_Bps": 5299.44
+      },
+      {
+        "source": "n1/P_f8_o60_s2",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 646.1,
+        "up_payload_Bps": 487.42,
+        "up_wire_Bps": 797.27,
+        "down_payload_Bps": 3380.28,
+        "down_wire_Bps": 5611.64
+      },
+      {
+        "source": "n1/P_f8_o60_s2",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 646.1,
+        "up_payload_Bps": 133.15,
+        "up_wire_Bps": 224.01,
+        "down_payload_Bps": 3374.65,
+        "down_wire_Bps": 5595.54
+      },
+      {
+        "source": "n1/P_f8_o60_s3",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 617.3,
+        "up_payload_Bps": 156.97,
+        "up_wire_Bps": 268.04,
+        "down_payload_Bps": 1122.89,
+        "down_wire_Bps": 1880.69
+      },
+      {
+        "source": "n1/P_f8_o60_s3",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 617.3,
+        "up_payload_Bps": 537.95,
+        "up_wire_Bps": 899.94,
+        "down_payload_Bps": 3103.82,
+        "down_wire_Bps": 5207.46
+      },
+      {
+        "source": "n1/P_f8_o60_s3",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 617.3,
+        "up_payload_Bps": 512.37,
+        "up_wire_Bps": 839.13,
+        "down_payload_Bps": 3098.01,
+        "down_wire_Bps": 5167.61
+      },
+      {
+        "source": "n1/P_f8_o60_s3",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 617.3,
+        "up_payload_Bps": 493.68,
+        "up_wire_Bps": 806.23,
+        "down_payload_Bps": 3091.15,
+        "down_wire_Bps": 5146.88
+      },
+      {
+        "source": "n1/P_f8_o60_s3",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 617.3,
+        "up_payload_Bps": 508.96,
+        "up_wire_Bps": 838.08,
+        "down_payload_Bps": 3088.03,
+        "down_wire_Bps": 5153.28
+      },
+      {
+        "source": "n1/P_f8_o60_s3",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 617.3,
+        "up_payload_Bps": 377.06,
+        "up_wire_Bps": 633.64,
+        "down_payload_Bps": 3105.41,
+        "down_wire_Bps": 5180.77
+      },
+      {
+        "source": "n1/P_f8_o60_s3",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 617.3,
+        "up_payload_Bps": 535.13,
+        "up_wire_Bps": 896.91,
+        "down_payload_Bps": 3088.8,
+        "down_wire_Bps": 5168.5
+      },
+      {
+        "source": "n1/P_f8_o60_s3",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 617.3,
+        "up_payload_Bps": 152.44,
+        "up_wire_Bps": 266.28,
+        "down_payload_Bps": 3070.53,
+        "down_wire_Bps": 5112.49
+      },
+      {
+        "source": "n1/P_f8_o60_s4",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 617.3,
+        "up_payload_Bps": 152.97,
+        "up_wire_Bps": 261.78,
+        "down_payload_Bps": 1095.32,
+        "down_wire_Bps": 1836.22
+      },
+      {
+        "source": "n1/P_f8_o60_s4",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 617.3,
+        "up_payload_Bps": 539.57,
+        "up_wire_Bps": 902.02,
+        "down_payload_Bps": 3099.06,
+        "down_wire_Bps": 5201.38
+      },
+      {
+        "source": "n1/P_f8_o60_s4",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 617.3,
+        "up_payload_Bps": 513.62,
+        "up_wire_Bps": 842.21,
+        "down_payload_Bps": 3094.86,
+        "down_wire_Bps": 5165.62
+      },
+      {
+        "source": "n1/P_f8_o60_s4",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 617.3,
+        "up_payload_Bps": 493.66,
+        "up_wire_Bps": 806.21,
+        "down_payload_Bps": 3086.36,
+        "down_wire_Bps": 5140.76
+      },
+      {
+        "source": "n1/P_f8_o60_s4",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 617.3,
+        "up_payload_Bps": 507.37,
+        "up_wire_Bps": 835.59,
+        "down_payload_Bps": 3081.68,
+        "down_wire_Bps": 5144.69
+      },
+      {
+        "source": "n1/P_f8_o60_s4",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 617.3,
+        "up_payload_Bps": 374.52,
+        "up_wire_Bps": 631.1,
+        "down_payload_Bps": 3100.61,
+        "down_wire_Bps": 5174.64
+      },
+      {
+        "source": "n1/P_f8_o60_s4",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 617.3,
+        "up_payload_Bps": 535.27,
+        "up_wire_Bps": 897.08,
+        "down_payload_Bps": 3084.8,
+        "down_wire_Bps": 5163.61
+      },
+      {
+        "source": "n1/P_f8_o60_s4",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 617.3,
+        "up_payload_Bps": 153.13,
+        "up_wire_Bps": 267.44,
+        "down_payload_Bps": 3068.09,
+        "down_wire_Bps": 5110.54
+      },
+      {
+        "source": "n1/P_f8_o60_s5",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 920.8,
+        "up_payload_Bps": 514.42,
+        "up_wire_Bps": 833.63,
+        "down_payload_Bps": 3280.56,
+        "down_wire_Bps": 5485.9
+      },
+      {
+        "source": "n1/P_f8_o60_s5",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 920.8,
+        "up_payload_Bps": 483.19,
+        "up_wire_Bps": 789.47,
+        "down_payload_Bps": 3278.1,
+        "down_wire_Bps": 5468.28
+      },
+      {
+        "source": "n1/P_f8_o60_s5",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 920.8,
+        "up_payload_Bps": 492.51,
+        "up_wire_Bps": 793.83,
+        "down_payload_Bps": 3275.0,
+        "down_wire_Bps": 5460.44
+      },
+      {
+        "source": "n1/P_f8_o60_s5",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 920.8,
+        "up_payload_Bps": 490.97,
+        "up_wire_Bps": 791.99,
+        "down_payload_Bps": 3272.38,
+        "down_wire_Bps": 5456.28
+      },
+      {
+        "source": "n1/P_f8_o60_s5",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 920.8,
+        "up_payload_Bps": 489.79,
+        "up_wire_Bps": 797.76,
+        "down_payload_Bps": 3268.69,
+        "down_wire_Bps": 5455.19
+      },
+      {
+        "source": "n1/P_f8_o60_s5",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 920.8,
+        "up_payload_Bps": 409.63,
+        "up_wire_Bps": 684.58,
+        "down_payload_Bps": 3280.14,
+        "down_wire_Bps": 5479.33
+      },
+      {
+        "source": "n1/P_f8_o60_s5",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 920.8,
+        "up_payload_Bps": 217.08,
+        "up_wire_Bps": 353.5,
+        "down_payload_Bps": 1505.48,
+        "down_wire_Bps": 2498.92
+      },
+      {
+        "source": "n1/P_f8_o60_s5",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 920.8,
+        "up_payload_Bps": 248.72,
+        "up_wire_Bps": 417.08,
+        "down_payload_Bps": 3258.63,
+        "down_wire_Bps": 5435.6
+      },
+      {
+        "source": "n1/P_f8_o60_s6",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 553.7,
+        "up_payload_Bps": 503.06,
+        "up_wire_Bps": 819.07,
+        "down_payload_Bps": 3382.36,
+        "down_wire_Bps": 5620.39
+      },
+      {
+        "source": "n1/P_f8_o60_s6",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 553.7,
+        "up_payload_Bps": 494.67,
+        "up_wire_Bps": 805.86,
+        "down_payload_Bps": 3385.2,
+        "down_wire_Bps": 5611.43
+      },
+      {
+        "source": "n1/P_f8_o60_s6",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 553.7,
+        "up_payload_Bps": 488.26,
+        "up_wire_Bps": 785.67,
+        "down_payload_Bps": 3379.57,
+        "down_wire_Bps": 5593.46
+      },
+      {
+        "source": "n1/P_f8_o60_s6",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 553.7,
+        "up_payload_Bps": 486.37,
+        "up_wire_Bps": 783.29,
+        "down_payload_Bps": 3377.0,
+        "down_wire_Bps": 5589.35
+      },
+      {
+        "source": "n1/P_f8_o60_s6",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 553.7,
+        "up_payload_Bps": 497.38,
+        "up_wire_Bps": 804.17,
+        "down_payload_Bps": 3373.48,
+        "down_wire_Bps": 5590.96
+      },
+      {
+        "source": "n1/P_f8_o60_s6",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 553.7,
+        "up_payload_Bps": 351.1,
+        "up_wire_Bps": 586.69,
+        "down_payload_Bps": 3132.92,
+        "down_wire_Bps": 5219.95
+      },
+      {
+        "source": "n1/P_f8_o60_s6",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 553.7,
+        "up_payload_Bps": 491.02,
+        "up_wire_Bps": 804.72,
+        "down_payload_Bps": 3366.45,
+        "down_wire_Bps": 5578.2
+      },
+      {
+        "source": "n1/P_f8_o60_s6",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 553.7,
+        "up_payload_Bps": 131.24,
+        "up_wire_Bps": 218.31,
+        "down_payload_Bps": 3358.37,
+        "down_wire_Bps": 5554.05
+      },
+      {
+        "source": "n1/P_f8_o60_s7",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 618.0,
+        "up_payload_Bps": 191.99,
+        "up_wire_Bps": 321.66,
+        "down_payload_Bps": 1369.35,
+        "down_wire_Bps": 2288.08
+      },
+      {
+        "source": "n1/P_f8_o60_s7",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 618.0,
+        "up_payload_Bps": 539.7,
+        "up_wire_Bps": 903.83,
+        "down_payload_Bps": 2902.83,
+        "down_wire_Bps": 4891.83
+      },
+      {
+        "source": "n1/P_f8_o60_s7",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 618.0,
+        "up_payload_Bps": 513.82,
+        "up_wire_Bps": 845.25,
+        "down_payload_Bps": 2898.28,
+        "down_wire_Bps": 4857.19
+      },
+      {
+        "source": "n1/P_f8_o60_s7",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 618.0,
+        "up_payload_Bps": 497.5,
+        "up_wire_Bps": 816.43,
+        "down_payload_Bps": 2891.4,
+        "down_wire_Bps": 4837.3
+      },
+      {
+        "source": "n1/P_f8_o60_s7",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 618.0,
+        "up_payload_Bps": 281.38,
+        "up_wire_Bps": 488.71,
+        "down_payload_Bps": 2890.25,
+        "down_wire_Bps": 4853.76
+      },
+      {
+        "source": "n1/P_f8_o60_s7",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 618.0,
+        "up_payload_Bps": 384.54,
+        "up_wire_Bps": 654.29,
+        "down_payload_Bps": 2902.62,
+        "down_wire_Bps": 4871.01
+      },
+      {
+        "source": "n1/P_f8_o60_s7",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 618.0,
+        "up_payload_Bps": 537.96,
+        "up_wire_Bps": 902.85,
+        "down_payload_Bps": 2890.72,
+        "down_wire_Bps": 4859.43
+      },
+      {
+        "source": "n1/P_f8_o60_s7",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 618.0,
+        "up_payload_Bps": 154.66,
+        "up_wire_Bps": 270.53,
+        "down_payload_Bps": 2871.56,
+        "down_wire_Bps": 4799.62
+      },
+      {
+        "source": "n1/P_f8_o60_s8",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 621.0,
+        "up_payload_Bps": 154.41,
+        "up_wire_Bps": 263.92,
+        "down_payload_Bps": 1105.65,
+        "down_wire_Bps": 1850.26
+      },
+      {
+        "source": "n1/P_f8_o60_s8",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 621.0,
+        "up_payload_Bps": 530.93,
+        "up_wire_Bps": 881.51,
+        "down_payload_Bps": 3089.09,
+        "down_wire_Bps": 5184.08
+      },
+      {
+        "source": "n1/P_f8_o60_s8",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 621.0,
+        "up_payload_Bps": 495.42,
+        "up_wire_Bps": 807.18,
+        "down_payload_Bps": 3082.12,
+        "down_wire_Bps": 5139.59
+      },
+      {
+        "source": "n1/P_f8_o60_s8",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 621.0,
+        "up_payload_Bps": 493.62,
+        "up_wire_Bps": 804.93,
+        "down_payload_Bps": 3077.47,
+        "down_wire_Bps": 5131.75
+      },
+      {
+        "source": "n1/P_f8_o60_s8",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 621.0,
+        "up_payload_Bps": 507.96,
+        "up_wire_Bps": 834.19,
+        "down_payload_Bps": 3075.09,
+        "down_wire_Bps": 5138.59
+      },
+      {
+        "source": "n1/P_f8_o60_s8",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 621.0,
+        "up_payload_Bps": 375.02,
+        "up_wire_Bps": 628.87,
+        "down_payload_Bps": 3092.33,
+        "down_wire_Bps": 5166.15
+      },
+      {
+        "source": "n1/P_f8_o60_s8",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 621.0,
+        "up_payload_Bps": 519.67,
+        "up_wire_Bps": 867.81,
+        "down_payload_Bps": 3072.09,
+        "down_wire_Bps": 5141.05
+      },
+      {
+        "source": "n1/P_f8_o60_s8",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 621.0,
+        "up_payload_Bps": 155.46,
+        "up_wire_Bps": 270.95,
+        "down_payload_Bps": 3059.25,
+        "down_wire_Bps": 5101.99
+      },
+      {
+        "source": "n1/P_f8_o60_s9",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_01",
+        "sim_s": 727.1,
+        "up_payload_Bps": 528.45,
+        "up_wire_Bps": 868.96,
+        "down_payload_Bps": 2967.86,
+        "down_wire_Bps": 4991.6
+      },
+      {
+        "source": "n1/P_f8_o60_s9",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_02",
+        "sim_s": 727.1,
+        "up_payload_Bps": 491.09,
+        "up_wire_Bps": 805.53,
+        "down_payload_Bps": 2965.76,
+        "down_wire_Bps": 4964.56
+      },
+      {
+        "source": "n1/P_f8_o60_s9",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_03",
+        "sim_s": 727.1,
+        "up_payload_Bps": 494.36,
+        "up_wire_Bps": 800.83,
+        "down_payload_Bps": 2961.83,
+        "down_wire_Bps": 4954.03
+      },
+      {
+        "source": "n1/P_f8_o60_s9",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_04",
+        "sim_s": 727.1,
+        "up_payload_Bps": 492.72,
+        "up_wire_Bps": 798.8,
+        "down_payload_Bps": 2956.55,
+        "down_wire_Bps": 4945.26
+      },
+      {
+        "source": "n1/P_f8_o60_s9",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "go2_05",
+        "sim_s": 727.1,
+        "up_payload_Bps": 325.01,
+        "up_wire_Bps": 543.69,
+        "down_payload_Bps": 2957.14,
+        "down_wire_Bps": 4959.39
+      },
+      {
+        "source": "n1/P_f8_o60_s9",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_01",
+        "sim_s": 727.1,
+        "up_payload_Bps": 393.1,
+        "up_wire_Bps": 651.49,
+        "down_payload_Bps": 2965.58,
+        "down_wire_Bps": 4961.82
+      },
+      {
+        "source": "n1/P_f8_o60_s9",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_02",
+        "sim_s": 727.1,
+        "up_payload_Bps": 207.85,
+        "up_wire_Bps": 344.25,
+        "down_payload_Bps": 1469.81,
+        "down_wire_Bps": 2444.45
+      },
+      {
+        "source": "n1/P_f8_o60_s9",
+        "fleet": 8,
+        "phase": "routine",
+        "robot": "summit_03",
+        "sim_s": 727.1,
+        "up_payload_Bps": 132.53,
+        "up_wire_Bps": 231.16,
+        "down_payload_Bps": 2942.46,
+        "down_wire_Bps": 4921.72
+      }
+    ]
+  },
+  "patterns_g10": {
+    "P1": {
+      "messages": 304,
+      "payload_mean": 682.3,
+      "payload_p95": 1409.0,
+      "wire_mean": 1581.7,
+      "wire_accounted": true,
+      "nl_share": 0.0498,
+      "schemas": [
+        "envelope",
+        "envelope_reply"
+      ]
+    },
+    "P2": {
+      "messages": 1004,
+      "payload_mean": 354.0,
+      "payload_p95": 1096.45,
+      "wire_mean": 1195.2,
+      "wire_accounted": true,
+      "nl_share": 0.0,
+      "schemas": [
+        "report",
+        "report_ack"
+      ]
+    },
+    "P4": {
+      "messages": 41816,
+      "payload_mean": 464.7,
+      "payload_p95": 496.0,
+      "wire_mean": 756.9,
+      "wire_accounted": true,
+      "nl_share": 0.0,
+      "schemas": [
+        "envelope_summary",
+        "robot_state",
+        "state",
+        "state_reply"
+      ]
+    },
+    "P5": {
+      "messages": 15889,
+      "payload_mean": 53.9,
+      "payload_p95": 54.0,
+      "wire_mean": 343.9,
+      "wire_accounted": true,
+      "nl_share": 0.0,
+      "schemas": [
+        "heartbeat",
+        "robot_status"
+      ]
+    },
+    "P7": {
+      "messages": 10,
+      "payload_mean": 472.2,
+      "payload_p95": 481.0,
+      "wire_mean": 1384.2,
+      "wire_accounted": true,
+      "nl_share": 0.0,
+      "schemas": [
+        "report"
+      ]
+    },
+    "P10": {
+      "messages": 96,
+      "payload_mean": 329.8,
+      "payload_p95": 977.0,
+      "wire_mean": 329.8,
+      "wire_accounted": true,
+      "nl_share": 0.0,
+      "schemas": [
+        "kb_resolve_place",
+        "kb_resolve_place_reply",
+        "kb_route_compliance",
+        "kb_route_compliance_reply",
+        "nearest_shelter",
+        "nearest_shelter_reply",
+        "plan_route",
+        "plan_route_reply"
+      ]
+    }
+  },
+  "model_calls": {
+    "fidelity": "functional (cloud endpoint; latency includes the Internet round trip)",
+    "sources": [
+      "orders_unseen_gpt-5-nano_20261026T145219Z.json",
+      "orders_unseen_gpt-5-nano_20261026T151144Z.json"
+    ],
+    "by_role_function": {
+      "coordinator_llm/AgentPlan": {
+        "calls": 81,
+        "input_tokens_mean": 2086.6,
+        "output_tokens_mean": 880.9,
+        "latency_ms_p50": 9008.4,
+        "latency_ms_p95": 17567.0
+      },
+      "coordinator_llm/ChatIntent": {
+        "calls": 96,
+        "input_tokens_mean": 334.7,
+        "output_tokens_mean": 274.7,
+        "latency_ms_p50": 4890.55,
+        "latency_ms_p95": 7219.675
+      },
+      "coordinator_llm/Diagnosis": {
+        "calls": 1,
+        "input_tokens_mean": 1317.0,
+        "output_tokens_mean": 519.0,
+        "latency_ms_p50": 5730.1,
+        "latency_ms_p95": 5730.1
+      },
+      "coordinator_llm/Plan": {
+        "calls": 20,
+        "input_tokens_mean": 1080.0,
+        "output_tokens_mean": 513.9,
+        "latency_ms_p50": 6257.6,
+        "latency_ms_p95": 10203.895
+      },
+      "coordinator_llm/PlanCheck": {
+        "calls": 47,
+        "input_tokens_mean": 882.8,
+        "output_tokens_mean": 905.7,
+        "latency_ms_p50": 12129.0,
+        "latency_ms_p95": 25147.01
+      }
+    }
+  },
+  "checkpoints": {
+    "runs": 10,
+    "coordinator_checkpointer": "postgres",
+    "robot_checkpointer": "sqlite (local)",
+    "totals": {
+      "coordinator": {
+        "writes": 5594,
+        "bytes": {
+          "n": 5594,
+          "median": 16837.0,
+          "p95": 48058.8,
+          "mean": 19987.565
+        },
+        "ms": {
+          "n": 5594,
+          "median": 4.745,
+          "p95": 25.845,
+          "mean": 7.741
+        }
+      },
+      "robot": {
+        "writes": 4556,
+        "bytes": {
+          "n": 4556,
+          "median": 4080.0,
+          "p95": 8896.25,
+          "mean": 3968.824
+        },
+        "ms": {
+          "n": 4556,
+          "median": 10.476,
+          "p95": 36.264,
+          "mean": 15.02
+        }
+      }
+    },
+    "by_event": {
+      "coordinator": {
+        "put:chat": {
+          "bytes": {
+            "n": 90,
+            "median": 48562.5,
+            "p95": 55650.1,
+            "mean": 49134.256
+          },
+          "ms": {
+            "n": 90,
+            "median": 7.433,
+            "p95": 35.563,
+            "mean": 12.8
+          }
+        },
+        "put:goal": {
+          "bytes": {
+            "n": 120,
+            "median": 12448.0,
+            "p95": 19319.1,
+            "mean": 11607.025
+          },
+          "ms": {
+            "n": 120,
+            "median": 2.897,
+            "p95": 57.621,
+            "mean": 9.823
+          }
+        },
+        "put:posture": {
+          "bytes": {
+            "n": 120,
+            "median": 35161.0,
+            "p95": 39929.1,
+            "mean": 33477.433
+          },
+          "ms": {
+            "n": 120,
+            "median": 4.942,
+            "p95": 44.584,
+            "mean": 11.851
+          }
+        },
+        "put:report": {
+          "bytes": {
+            "n": 2008,
+            "median": 34822.5,
+            "p95": 51283.95,
+            "mean": 32977.783
+          },
+          "ms": {
+            "n": 2008,
+            "median": 3.084,
+            "p95": 7.228,
+            "mean": 3.73
+          }
+        },
+        "put:robot_lost": {
+          "bytes": {
+            "n": 297,
+            "median": 36066.0,
+            "p95": 44921.2,
+            "mean": 31470.492
+          },
+          "ms": {
+            "n": 297,
+            "median": 1.762,
+            "p95": 10.41,
+            "mean": 4.076
+          }
+        },
+        "put:robot_lost_long": {
+          "bytes": {
+            "n": 171,
+            "median": 39004.0,
+            "p95": 42796.5,
+            "mean": 39395.351
+          },
+          "ms": {
+            "n": 171,
+            "median": 3.243,
+            "p95": 12.716,
+            "mean": 4.378
+          }
+        },
+        "put:robot_recovered": {
+          "bytes": {
+            "n": 297,
+            "median": 36916.0,
+            "p95": 46774.6,
+            "mean": 33278.131
+          },
+          "ms": {
+            "n": 297,
+            "median": 5.613,
+            "p95": 14.591,
+            "mean": 6.379
+          }
+        },
+        "put_writes:chat": {
+          "bytes": {
+            "n": 80,
+            "median": 10624.5,
+            "p95": 13368.0,
+            "mean": 7516.325
+          },
+          "ms": {
+            "n": 80,
+            "median": 26.689,
+            "p95": 49.806,
+            "mean": 30.79
+          }
+        },
+        "put_writes:goal": {
+          "bytes": {
+            "n": 110,
+            "median": 2603.0,
+            "p95": 10539.0,
+            "mean": 4207.764
+          },
+          "ms": {
+            "n": 110,
+            "median": 47.233,
+            "p95": 72.841,
+            "mean": 38.47
+          }
+        },
+        "put_writes:posture": {
+          "bytes": {
+            "n": 110,
+            "median": 6016.5,
+            "p95": 14847.0,
+            "mean": 7051.691
+          },
+          "ms": {
+            "n": 110,
+            "median": 44.971,
+            "p95": 57.468,
+            "mean": 38.202
+          }
+        },
+        "put_writes:report": {
+          "bytes": {
+            "n": 1531,
+            "median": 747.0,
+            "p95": 9266.5,
+            "mean": 3174.903
+          },
+          "ms": {
+            "n": 1531,
+            "median": 5.145,
+            "p95": 18.896,
+            "mean": 6.565
+          }
+        },
+        "put_writes:robot_lost": {
+          "bytes": {
+            "n": 264,
+            "median": 6620.0,
+            "p95": 9566.0,
+            "mean": 4968.314
+          },
+          "ms": {
+            "n": 264,
+            "median": 9.789,
+            "p95": 15.126,
+            "mean": 10.397
+          }
+        },
+        "put_writes:robot_lost_long": {
+          "bytes": {
+            "n": 132,
+            "median": 76.0,
+            "p95": 11035.0,
+            "mean": 3557.303
+          },
+          "ms": {
+            "n": 132,
+            "median": 6.31,
+            "p95": 24.113,
+            "mean": 9.109
+          }
+        },
+        "put_writes:robot_recovered": {
+          "bytes": {
+            "n": 264,
+            "median": 6767.0,
+            "p95": 9698.95,
+            "mean": 4962.352
+          },
+          "ms": {
+            "n": 264,
+            "median": 11.189,
+            "p95": 23.809,
+            "mean": 12.534
+          }
+        }
+      },
+      "robot": {
+        "put:coordinator": {
+          "bytes": {
+            "n": 2,
+            "median": 5948.0,
+            "p95": 6086.6,
+            "mean": 5948.0
+          },
+          "ms": {
+            "n": 2,
+            "median": 6.787,
+            "p95": 7.746,
+            "mean": 6.787
+          }
+        },
+        "put:envelope": {
+          "bytes": {
+            "n": 1064,
+            "median": 7654.0,
+            "p95": 10071.95,
+            "mean": 7243.268
+          },
+          "ms": {
+            "n": 1064,
+            "median": 3.638,
+            "p95": 33.432,
+            "mean": 9.434
+          }
+        },
+        "put:flush": {
+          "bytes": {
+            "n": 40,
+            "median": 4026.5,
+            "p95": 5347.4,
+            "mean": 4008.15
+          },
+          "ms": {
+            "n": 40,
+            "median": 5.929,
+            "p95": 13.765,
+            "mean": 6.548
+          }
+        },
+        "put:interaction_end": {
+          "bytes": {
+            "n": 50,
+            "median": 3609.5,
+            "p95": 4092.2,
+            "mean": 3737.1
+          },
+          "ms": {
+            "n": 50,
+            "median": 2.044,
+            "p95": 10.621,
+            "mean": 4.369
+          }
+        },
+        "put:link_change": {
+          "bytes": {
+            "n": 648,
+            "median": 6661.0,
+            "p95": 9001.1,
+            "mean": 6530.593
+          },
+          "ms": {
+            "n": 648,
+            "median": 2.074,
+            "p95": 27.48,
+            "mean": 7.072
+          }
+        },
+        "put:other": {
+          "bytes": {
+            "n": 20,
+            "median": 4419.5,
+            "p95": 5280.6,
+            "mean": 4072.4
+          },
+          "ms": {
+            "n": 20,
+            "median": 7.197,
+            "p95": 31.776,
+            "mean": 15.474
+          }
+        },
+        "put:skill_result": {
+          "bytes": {
+            "n": 600,
+            "median": 6131.0,
+            "p95": 9229.9,
+            "mean": 6664.008
+          },
+          "ms": {
+            "n": 600,
+            "median": 4.89,
+            "p95": 24.583,
+            "mean": 8.531
+          }
+        },
+        "put:utterance": {
+          "bytes": {
+            "n": 50,
+            "median": 1418.0,
+            "p95": 2551.05,
+            "mean": 1424.62
+          },
+          "ms": {
+            "n": 50,
+            "median": 6.889,
+            "p95": 19.54,
+            "mean": 8.261
+          }
+        },
+        "put_writes:envelope": {
+          "bytes": {
+            "n": 912,
+            "median": 665.5,
+            "p95": 3470.0,
+            "mean": 1127.238
+          },
+          "ms": {
+            "n": 912,
+            "median": 25.797,
+            "p95": 42.615,
+            "mean": 28.249
+          }
+        },
+        "put_writes:flush": {
+          "bytes": {
+            "n": 30,
+            "median": 10.0,
+            "p95": 19.0,
+            "mean": 10.667
+          },
+          "ms": {
+            "n": 30,
+            "median": 10.096,
+            "p95": 14.332,
+            "mean": 10.693
+          }
+        },
+        "put_writes:interaction_end": {
+          "bytes": {
+            "n": 40,
+            "median": 104.0,
+            "p95": 453.0,
+            "mean": 241.225
+          },
+          "ms": {
+            "n": 40,
+            "median": 9.419,
+            "p95": 16.242,
+            "mean": 9.833
+          }
+        },
+        "put_writes:link_change": {
+          "bytes": {
+            "n": 540,
+            "median": 43.0,
+            "p95": 2411.0,
+            "mean": 533.344
+          },
+          "ms": {
+            "n": 540,
+            "median": 12.484,
+            "p95": 37.112,
+            "mean": 19.651
+          }
+        },
+        "put_writes:other": {
+          "bytes": {
+            "n": 30,
+            "median": 44.0,
+            "p95": 1611.55,
+            "mean": 508.8
+          },
+          "ms": {
+            "n": 30,
+            "median": 15.555,
+            "p95": 27.571,
+            "mean": 16.643
+          }
+        },
+        "put_writes:skill_result": {
+          "bytes": {
+            "n": 480,
+            "median": 560.0,
+            "p95": 2637.6,
+            "mean": 583.827
+          },
+          "ms": {
+            "n": 480,
+            "median": 18.433,
+            "p95": 30.176,
+            "mean": 18.729
+          }
+        },
+        "put_writes:utterance": {
+          "bytes": {
+            "n": 50,
+            "median": 69.0,
+            "p95": 855.0,
+            "mean": 232.46
+          },
+          "ms": {
+            "n": 50,
+            "median": 16.486,
+            "p95": 34.589,
+            "mean": 17.966
+          }
+        }
+      }
+    },
+    "latest_checkpoint_bytes": {
+      "coordinator": {
+        "n": 10,
+        "median": 49093.5,
+        "p95": 53271.5,
+        "mean": 49326.3
+      },
+      "robot": {
+        "n": 40,
+        "median": 5960.0,
+        "p95": 6405.8,
+        "mean": 5463.575
+      }
+    },
+    "versions_per_thread": {
+      "coordinator": {
+        "n": 10,
+        "median": 307.5,
+        "p95": 357.0,
+        "mean": 310.3
+      },
+      "robot": {
+        "n": 40,
+        "median": 60.0,
+        "p95": 129.3,
+        "mean": 61.85
+      }
+    }
+  },
+  "inputs": {
+    "g10": [
+      "var/runs/g10_n2/seed0",
+      "var/runs/g10_n2/seed1",
+      "var/runs/g10_n2/seed2",
+      "var/runs/g10_n2/seed3",
+      "var/runs/g10_n2/seed4",
+      "var/runs/g10_n2/seed5",
+      "var/runs/g10_n2/seed6",
+      "var/runs/g10_n2/seed7",
+      "var/runs/g10_n2/seed8",
+      "var/runs/g10_n2/seed9"
+    ],
+    "n1": [
+      "var/runs/n1_outage/P_f3_o60_s0",
+      "var/runs/n1_outage/P_f3_o60_s1",
+      "var/runs/n1_outage/P_f3_o60_s2",
+      "var/runs/n1_outage/P_f3_o60_s3",
+      "var/runs/n1_outage/P_f3_o60_s4",
+      "var/runs/n1_outage/P_f3_o60_s5",
+      "var/runs/n1_outage/P_f3_o60_s6",
+      "var/runs/n1_outage/P_f3_o60_s7",
+      "var/runs/n1_outage/P_f3_o60_s8",
+      "var/runs/n1_outage/P_f3_o60_s9",
+      "var/runs/n1_outage/P_f5_o60_s0",
+      "var/runs/n1_outage/P_f5_o60_s1",
+      "var/runs/n1_outage/P_f5_o60_s2",
+      "var/runs/n1_outage/P_f5_o60_s3",
+      "var/runs/n1_outage/P_f5_o60_s4",
+      "var/runs/n1_outage/P_f5_o60_s5",
+      "var/runs/n1_outage/P_f5_o60_s6",
+      "var/runs/n1_outage/P_f5_o60_s7",
+      "var/runs/n1_outage/P_f5_o60_s8",
+      "var/runs/n1_outage/P_f5_o60_s9",
+      "var/runs/n1_outage/P_f8_o60_s0",
+      "var/runs/n1_outage/P_f8_o60_s1",
+      "var/runs/n1_outage/P_f8_o60_s2",
+      "var/runs/n1_outage/P_f8_o60_s3",
+      "var/runs/n1_outage/P_f8_o60_s4",
+      "var/runs/n1_outage/P_f8_o60_s5",
+      "var/runs/n1_outage/P_f8_o60_s6",
+      "var/runs/n1_outage/P_f8_o60_s7",
+      "var/runs/n1_outage/P_f8_o60_s8",
+      "var/runs/n1_outage/P_f8_o60_s9"
+    ],
+    "model_results": [
+      "e5_kpi11_fake+capacity22_20261027T191520Z.json",
+      "e5_kpi11_fake_20261018T185457Z.json",
+      "e5_kpi11_fake_20261026T141839Z.json",
+      "e5_kpi11_fake_20261027T191202Z.json",
+      "e5_kpi11_gpt-5-nano+robots_20261018T185050Z.json",
+      "e5_kpi11_gpt-5-nano+robots_20261026T142718Z.json",
+      "orders_unseen_gpt-5-nano_20261022T144439Z.json",
+      "orders_unseen_gpt-5-nano_20261022T150159Z.json",
+      "orders_unseen_gpt-5-nano_20261022T155256Z.json",
+      "orders_unseen_gpt-5-nano_20261026T143322Z.json",
+      "orders_unseen_gpt-5-nano_20261026T145219Z.json",
+      "orders_unseen_gpt-5-nano_20261026T151144Z.json"
+    ]
+  },
+  "manifest": {
+    "commit": "70469116e87186c284ae8f00b5aed23ab62ab4e3",
+    "dirty": false,
+    "command": "a6g bench overhead --persistence postgres",
+    "config_dir": "config",
+    "config_sha256": {
+      "allocator.yaml": "61f02e4b8bea56ed",
+      "bench/manual_round.yaml": "da07a9c882d38634",
+      "bench/protocols.yaml": "f5155b079176b8a7",
+      "campus/upv_vera_cpi.yaml": "6c1fe74165aa1832",
+      "comms.yaml": "a037a5d6d9172c95",
+      "fleet.yaml": "8e5885270fb4b0f1",
+      "gazebo/fleet.yaml": "6ef9a1346ca29fba",
+      "interactions.yaml": "0e776ba4683c7062",
+      "knowledge.yaml": "c222a4844dc2ab45",
+      "models.yaml": "b44f9a6ecfcd63e5",
+      "network.yaml": "97150ba6cf52a159",
+      "profiles/gazebo.yaml": "11eb4c94b3a9a2ff",
+      "profiles/real.yaml": "bc6d5823ca4a95e1",
+      "profiles/sim.yaml": "52291f229063d99b",
+      "robots/go2_01.yaml": "f877cde419645d48",
+      "robots/go2_02.yaml": "c4bfed9582bfd02c",
+      "robots/go2_03.yaml": "bcce48836640f943",
+      "robots/go2_04.yaml": "0a9ca6c013020bad",
+      "robots/go2_05.yaml": "77a6e53af6c8cb0c",
+      "robots/summit_01.yaml": "5469b3e0d34469a6",
+      "robots/summit_02.yaml": "05fef14e455bfece",
+      "robots/summit_03.yaml": "631138048e1f0d66",
+      "sim/fleet.yaml": "30cb0df00a680c76"
+    },
+    "seeds": null,
+    "models": {
+      "all": {
+        "model": "fake",
+        "fidelity": "offline"
+      }
+    },
+    "network": "stand-in",
+    "mode": "always_grant",
+    "coverage_source": "radio_dt",
+    "coverage_calibration": "plots",
+    "provenance": {
+      "cell": "UPV network document, 2026-10-26 (5G_UPV Nodo2, NRCELL-9)",
+      "ul_capacity": "measured TCP goodput of one device in the velodrome, 20 MHz (UPV)",
+      "coverage_calibration": "RSRP/SINR read from UPV's velodrome plots (no CSV)",
+      "sinr": "downlink SINR from the plots; uplink quality assumed to follow it",
+      "link_profiles_good_rtt": "measured n40 one-way 9.76 DL + 8.89 UL ms (UPV)",
+      "other": "Nexus n40 cell (Building 6G), LTE B7, n258 and n78 not modelled"
+    },
+    "time_factor": "as recorded by the runs",
+    "host": {
+      "name": "iterate-Inspiron-14-5410",
+      "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+      "python": "3.11.16",
+      "cpus": 8
+    },
+    "written": "2026-10-27T20:46:20.515598+00:00"
+  }
+}

@@ -1,0 +1,2041 @@
+{
+  "kpi": "UC2-KPI-11",
+  "definition": "posture change to emergency written to the twin -> reconciled envelopes published (wall clock); acknowledged_*: until every robot has answered",
+  "simulator": "2D",
+  "model": "gpt-5-nano+robots",
+  "decompose_mode": {
+    "routine": "model",
+    "interactive": "model",
+    "emergency": "template_then_model"
+  },
+  "seeds": 20,
+  "failed_runs": 0,
+  "p50_s": 0.029,
+  "p95_s": 0.035,
+  "max_s": 0.036,
+  "mean_s": 0.029,
+  "acknowledged_p50_s": 1.962,
+  "acknowledged_p95_s": 4.058,
+  "target_p95_s": 3.0,
+  "meets_target": true,
+  "runs": [
+    {
+      "seed": 0,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 5874.6,
+          "in": 1052,
+          "out": 393,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1417.1,
+          "in": 684,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1430.2,
+          "in": 684,
+          "out": 59,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2880.5,
+          "in": 684,
+          "out": 67,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1182.8,
+          "in": 684,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1880.0,
+          "in": 684,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1818.6,
+          "in": 684,
+          "out": 60,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1828.1,
+          "in": 684,
+          "out": 68,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1209.9,
+          "in": 684,
+          "out": 69,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1336.0,
+          "in": 686,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1348.0,
+          "in": 690,
+          "out": 74,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1257.0,
+          "in": 686,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 11372.8,
+          "in": 1124,
+          "out": 899,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 511.3,
+      "kpi11_s": 0.028,
+      "acknowledged_s": 1.454,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 17.561
+    },
+    {
+      "seed": 1,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 4262.5,
+          "in": 1052,
+          "out": 400,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1195.4,
+          "in": 684,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1458.8,
+          "in": 684,
+          "out": 64,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1609.0,
+          "in": 684,
+          "out": 79,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1395.5,
+          "in": 688,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1495.2,
+          "in": 686,
+          "out": 70,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 8653.0,
+          "in": 1124,
+          "out": 563,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 106.6,
+      "kpi11_s": 0.024,
+      "acknowledged_s": 1.572,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 10.282
+    },
+    {
+      "seed": 2,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 6128.8,
+          "in": 1052,
+          "out": 453,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1265.2,
+          "in": 684,
+          "out": 67,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2100.0,
+          "in": 684,
+          "out": 83,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2120.7,
+          "in": 684,
+          "out": 67,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 3929.1,
+          "in": 684,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1330.1,
+          "in": 684,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1731.4,
+          "in": 684,
+          "out": 64,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 3018.5,
+          "in": 684,
+          "out": 62,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1661.1,
+          "in": 684,
+          "out": 64,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1489.1,
+          "in": 690,
+          "out": 77,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2313.8,
+          "in": 686,
+          "out": 61,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 9501.0,
+          "in": 1124,
+          "out": 860,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 574.9,
+      "kpi11_s": 0.025,
+      "acknowledged_s": 2.382,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 14.699
+    },
+    {
+      "seed": 3,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 5209.0,
+          "in": 1052,
+          "out": 400,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1306.4,
+          "in": 684,
+          "out": 59,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1598.2,
+          "in": 684,
+          "out": 70,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1611.1,
+          "in": 684,
+          "out": 67,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1433.4,
+          "in": 684,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1211.1,
+          "in": 688,
+          "out": 67,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1216.7,
+          "in": 686,
+          "out": 70,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1719.4,
+          "in": 690,
+          "out": 78,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 6762.8,
+          "in": 1127,
+          "out": 645,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 165.6,
+      "kpi11_s": 0.032,
+      "acknowledged_s": 1.809,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 9.009
+    },
+    {
+      "seed": 4,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 6902.5,
+          "in": 1052,
+          "out": 486,
+          "outcome": "ok"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1497.9,
+          "in": 684,
+          "out": 71,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1498.1,
+          "in": 684,
+          "out": 62,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1556.9,
+          "in": 684,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1309.5,
+          "in": 684,
+          "out": 77,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1194.4,
+          "in": 690,
+          "out": 78,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1264.8,
+          "in": 688,
+          "out": 79,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 5918.8,
+          "in": 686,
+          "out": 78,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 11136.7,
+          "in": 1127,
+          "out": 667,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 164.5,
+      "kpi11_s": 0.035,
+      "acknowledged_s": 6.021,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 17.464
+    },
+    {
+      "seed": 5,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 5549.8,
+          "in": 1052,
+          "out": 546,
+          "outcome": "ok"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1077.8,
+          "in": 684,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1125.3,
+          "in": 684,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2613.8,
+          "in": 684,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1068.4,
+          "in": 684,
+          "out": 70,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1186.5,
+          "in": 684,
+          "out": 64,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1094.1,
+          "in": 686,
+          "out": 67,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1703.9,
+          "in": 688,
+          "out": 80,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 7831.6,
+          "in": 1124,
+          "out": 818,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 385.1,
+      "kpi11_s": 0.024,
+      "acknowledged_s": 1.797,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 10.3
+    },
+    {
+      "seed": 6,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 8481.0,
+          "in": 1052,
+          "out": 363,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1336.4,
+          "in": 684,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1528.0,
+          "in": 684,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 3629.9,
+          "in": 684,
+          "out": 69,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1013.4,
+          "in": 684,
+          "out": 60,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1040.7,
+          "in": 684,
+          "out": 62,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1145.1,
+          "in": 690,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 3703.1,
+          "in": 686,
+          "out": 74,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 7970.3,
+          "in": 1124,
+          "out": 770,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 482.2,
+      "kpi11_s": 0.025,
+      "acknowledged_s": 3.89,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 12.296
+    },
+    {
+      "seed": 7,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 7171.5,
+          "in": 1052,
+          "out": 339,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1010.2,
+          "in": 684,
+          "out": 59,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1396.5,
+          "in": 684,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1396.5,
+          "in": 684,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2691.9,
+          "in": 684,
+          "out": 71,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1078.1,
+          "in": 686,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1398.8,
+          "in": 688,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1620.5,
+          "in": 690,
+          "out": 68,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 3781.0,
+          "in": 1127,
+          "out": 496,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 214.6,
+      "kpi11_s": 0.036,
+      "acknowledged_s": 1.71,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 6.024
+    },
+    {
+      "seed": 8,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 3353.9,
+          "in": 1052,
+          "out": 373,
+          "outcome": "ok"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1153.6,
+          "in": 684,
+          "out": 67,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1514.7,
+          "in": 684,
+          "out": 77,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1520.5,
+          "in": 684,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1374.0,
+          "in": 684,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1001.4,
+          "in": 686,
+          "out": 62,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1145.5,
+          "in": 690,
+          "out": 76,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 3426.0,
+          "in": 688,
+          "out": 74,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 12328.4,
+          "in": 1127,
+          "out": 665,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 159.2,
+      "kpi11_s": 0.035,
+      "acknowledged_s": 3.53,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 16.363
+    },
+    {
+      "seed": 9,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 3473.9,
+          "in": 1052,
+          "out": 451,
+          "outcome": "ok"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1187.7,
+          "in": 684,
+          "out": 60,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1307.4,
+          "in": 684,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1599.6,
+          "in": 684,
+          "out": 77,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1179.7,
+          "in": 684,
+          "out": 59,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1350.6,
+          "in": 688,
+          "out": 74,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1751.3,
+          "in": 690,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2881.5,
+          "in": 686,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 8019.1,
+          "in": 1127,
+          "out": 986,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 293.9,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 2.967,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 11.053
+    },
+    {
+      "seed": 10,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 3340.7,
+          "in": 1052,
+          "out": 413,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1003.0,
+          "in": 684,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1266.8,
+          "in": 684,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1605.8,
+          "in": 684,
+          "out": 70,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1668.4,
+          "in": 684,
+          "out": 75,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1012.4,
+          "in": 684,
+          "out": 61,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1107.0,
+          "in": 688,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1160.0,
+          "in": 686,
+          "out": 80,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 8363.4,
+          "in": 1124,
+          "out": 572,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 355.7,
+      "kpi11_s": 0.025,
+      "acknowledged_s": 1.243,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 10.67
+    },
+    {
+      "seed": 11,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 11341.7,
+          "in": 1052,
+          "out": 477,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1391.8,
+          "in": 684,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1439.9,
+          "in": 684,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2515.5,
+          "in": 684,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1486.8,
+          "in": 684,
+          "out": 67,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1268.7,
+          "in": 690,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1665.7,
+          "in": 688,
+          "out": 79,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1992.7,
+          "in": 686,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 5584.9,
+          "in": 1127,
+          "out": 385,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 287.9,
+      "kpi11_s": 0.032,
+      "acknowledged_s": 2.073,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 7.752
+    },
+    {
+      "seed": 12,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 5474.0,
+          "in": 1052,
+          "out": 525,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1202.0,
+          "in": 684,
+          "out": 59,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1220.0,
+          "in": 684,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1905.9,
+          "in": 684,
+          "out": 61,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1816.9,
+          "in": 684,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1337.4,
+          "in": 688,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1344.1,
+          "in": 690,
+          "out": 69,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2400.5,
+          "in": 686,
+          "out": 74,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 10605.3,
+          "in": 1127,
+          "out": 490,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 300.5,
+      "kpi11_s": 0.035,
+      "acknowledged_s": 2.498,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 13.188
+    },
+    {
+      "seed": 13,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 5788.3,
+          "in": 1052,
+          "out": 405,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1439.1,
+          "in": 684,
+          "out": 71,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1434.4,
+          "in": 684,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1436.9,
+          "in": 684,
+          "out": 79,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1336.5,
+          "in": 684,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1079.3,
+          "in": 690,
+          "out": 69,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1099.9,
+          "in": 686,
+          "out": 70,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1374.7,
+          "in": 688,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 12508.3,
+          "in": 1127,
+          "out": 872,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 177.6,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 1.464,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 14.061
+    },
+    {
+      "seed": 14,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 4723.1,
+          "in": 1052,
+          "out": 403,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1296.9,
+          "in": 684,
+          "out": 62,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1607.0,
+          "in": 684,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2321.7,
+          "in": 684,
+          "out": 68,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1180.4,
+          "in": 688,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1777.1,
+          "in": 686,
+          "out": 64,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 12269.2,
+          "in": 1124,
+          "out": 839,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 90.9,
+      "kpi11_s": 0.023,
+      "acknowledged_s": 1.85,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 14.254
+    },
+    {
+      "seed": 15,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 10115.1,
+          "in": 1052,
+          "out": 447,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1177.7,
+          "in": 684,
+          "out": 70,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2059.7,
+          "in": 684,
+          "out": 77,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 3488.9,
+          "in": 684,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1447.5,
+          "in": 684,
+          "out": 75,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1194.4,
+          "in": 684,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1170.9,
+          "in": 684,
+          "out": 72,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1465.4,
+          "in": 684,
+          "out": 74,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1121.9,
+          "in": 690,
+          "out": 69,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1326.6,
+          "in": 686,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1320.6,
+          "in": 690,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 10943.1,
+          "in": 1124,
+          "out": 807,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 580.2,
+      "kpi11_s": 0.025,
+      "acknowledged_s": 1.425,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 14.967
+    },
+    {
+      "seed": 16,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 5238.8,
+          "in": 1052,
+          "out": 393,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1252.8,
+          "in": 684,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1657.0,
+          "in": 684,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1970.9,
+          "in": 684,
+          "out": 69,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1402.7,
+          "in": 684,
+          "out": 61,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1227.4,
+          "in": 686,
+          "out": 63,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1247.0,
+          "in": 688,
+          "out": 86,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1545.7,
+          "in": 690,
+          "out": 71,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 8322.8,
+          "in": 1127,
+          "out": 588,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 236.1,
+      "kpi11_s": 0.031,
+      "acknowledged_s": 1.734,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 10.14
+    },
+    {
+      "seed": 17,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 6398.8,
+          "in": 1052,
+          "out": 481,
+          "outcome": "ok"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1341.4,
+          "in": 684,
+          "out": 67,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2263.7,
+          "in": 684,
+          "out": 68,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 6259.8,
+          "in": 684,
+          "out": 69,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1266.7,
+          "in": 684,
+          "out": 64,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2632.4,
+          "in": 684,
+          "out": 70,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1176.6,
+          "in": 686,
+          "out": 66,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 3302.0,
+          "in": 688,
+          "out": 75,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 11022.7,
+          "in": 1124,
+          "out": 872,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 327.5,
+      "kpi11_s": 0.028,
+      "acknowledged_s": 3.395,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 16.954
+    },
+    {
+      "seed": 18,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 11892.7,
+          "in": 1052,
+          "out": 408,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1361.4,
+          "in": 684,
+          "out": 68,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1393.5,
+          "in": 684,
+          "out": 59,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1472.3,
+          "in": 684,
+          "out": 60,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2497.5,
+          "in": 684,
+          "out": 75,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1398.4,
+          "in": 688,
+          "out": 75,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 2669.1,
+          "in": 690,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 3350.3,
+          "in": 686,
+          "out": 71,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 9326.2,
+          "in": 1127,
+          "out": 642,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 133.3,
+      "kpi11_s": 0.032,
+      "acknowledged_s": 3.43,
+      "robots": [
+        "go2_01",
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 14.98
+    },
+    {
+      "seed": 19,
+      "model_calls": [
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 6315.9,
+          "in": 1052,
+          "out": 552,
+          "outcome": "ok"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1220.8,
+          "in": 684,
+          "out": 69,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1552.3,
+          "in": 684,
+          "out": 74,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1609.3,
+          "in": 684,
+          "out": 68,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1311.9,
+          "in": 684,
+          "out": 75,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1253.6,
+          "in": 684,
+          "out": 70,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1320.9,
+          "in": 684,
+          "out": 68,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "summit_01",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 1083.6,
+          "in": 686,
+          "out": 65,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "go2_02",
+          "role": "onboard_vlm",
+          "function": "deliberation",
+          "ms": 3876.0,
+          "in": 690,
+          "out": 77,
+          "outcome": "proposed"
+        },
+        {
+          "agent": "coordinator",
+          "role": "coordinator_llm",
+          "function": "Plan",
+          "ms": 9869.1,
+          "in": 1124,
+          "out": 867,
+          "outcome": "ok"
+        }
+      ],
+      "alert_after_s_sim": 416.0,
+      "kpi11_s": 0.026,
+      "acknowledged_s": 3.955,
+      "robots": [
+        "go2_02",
+        "summit_01"
+      ],
+      "model_plan_published_after_s": 14.976
+    }
+  ],
+  "stamp": "2026-10-27T20:56:12.476479+00:00",
+  "manifest": {
+    "commit": "70469116e87186c284ae8f00b5aed23ab62ab4e3",
+    "dirty": false,
+    "command": "a6g bench kpi11 --seeds 20 --model --robot-model",
+    "config_dir": "config",
+    "config_sha256": {
+      "allocator.yaml": "61f02e4b8bea56ed",
+      "bench/manual_round.yaml": "da07a9c882d38634",
+      "bench/protocols.yaml": "f5155b079176b8a7",
+      "campus/upv_vera_cpi.yaml": "6c1fe74165aa1832",
+      "comms.yaml": "a037a5d6d9172c95",
+      "fleet.yaml": "8e5885270fb4b0f1",
+      "gazebo/fleet.yaml": "6ef9a1346ca29fba",
+      "interactions.yaml": "0e776ba4683c7062",
+      "knowledge.yaml": "c222a4844dc2ab45",
+      "models.yaml": "b44f9a6ecfcd63e5",
+      "network.yaml": "97150ba6cf52a159",
+      "profiles/gazebo.yaml": "11eb4c94b3a9a2ff",
+      "profiles/real.yaml": "bc6d5823ca4a95e1",
+      "profiles/sim.yaml": "52291f229063d99b",
+      "robots/go2_01.yaml": "f877cde419645d48",
+      "robots/go2_02.yaml": "c4bfed9582bfd02c",
+      "robots/go2_03.yaml": "bcce48836640f943",
+      "robots/go2_04.yaml": "0a9ca6c013020bad",
+      "robots/go2_05.yaml": "77a6e53af6c8cb0c",
+      "robots/summit_01.yaml": "5469b3e0d34469a6",
+      "robots/summit_02.yaml": "05fef14e455bfece",
+      "robots/summit_03.yaml": "631138048e1f0d66",
+      "sim/fleet.yaml": "30cb0df00a680c76"
+    },
+    "seeds": 20,
+    "models": {
+      "coordinator_llm": {
+        "model": "gpt-5-nano",
+        "fidelity": "functional",
+        "endpoint": "cloud"
+      },
+      "onboard_vlm": {
+        "model": "gpt-5-nano",
+        "fidelity": "functional",
+        "endpoint": "cloud"
+      }
+    },
+    "network": "stand-in",
+    "mode": "always_grant",
+    "coverage_source": "radio_dt",
+    "coverage_calibration": "plots",
+    "provenance": {
+      "cell": "UPV network document, 2026-10-26 (5G_UPV Nodo2, NRCELL-9)",
+      "ul_capacity": "measured TCP goodput of one device in the velodrome, 20 MHz (UPV)",
+      "coverage_calibration": "RSRP/SINR read from UPV's velodrome plots (no CSV)",
+      "sinr": "downlink SINR from the plots; uplink quality assumed to follow it",
+      "link_profiles_good_rtt": "measured n40 one-way 9.76 DL + 8.89 UL ms (UPV)",
+      "other": "Nexus n40 cell (Building 6G), LTE B7, n258 and n78 not modelled"
+    },
+    "time_factor": "up to 50x",
+    "host": {
+      "name": "iterate-Inspiron-14-5410",
+      "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+      "python": "3.11.16",
+      "cpus": 8
+    },
+    "written": "2026-10-27T20:56:12.478201+00:00"
+  }
+}
