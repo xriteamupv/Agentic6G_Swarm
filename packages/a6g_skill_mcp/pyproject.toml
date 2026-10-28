@@ -1,0 +1,27 @@
+[project]
+name = "a6g-skill-mcp"
+version = "0.1.0"
+description = "MCP skill server, SkillBackend interface, SimBackend and the Go2/Summit backends."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-common",
+    "a6g-observability",
+    "a6g-sim",
+    "mcp>=2.3,<3",
+    "httpx>=0.28,<1",
+    "uvicorn>=0.54,<1",
+    "pillow>=11,<13",
+]
+
+[project.scripts]
+a6g-skill-mcp = "a6g_skill_mcp.serve:main"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-common = { workspace = true }
+a6g-observability = { workspace = true }
+a6g-sim = { workspace = true }
+

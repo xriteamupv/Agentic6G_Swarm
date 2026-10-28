@@ -1,0 +1,256 @@
+"""Coverage levels from the network twin: the 38.901 model and its
+calibration, the radio-DT import, the serving cell, hysteresis and dwell, and the simulator."""
+
+import json
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+import pytest
+from a6g_common import coverage as cv
+from a6g_common.config import load_config
+from a6g_common.netconfig import NetworkConfig
+
+T0 = datetime(2026, 1, 1, 8, tzinfo=UTC)
+
+
+def _cfg(source: str = "model"):
+    return load_config("config", env={"A6G_COVERAGE_SOURCE": source}, fleet_file="sim/fleet.yaml")
+
+
+def test_coverage_comes_from_the_radio_dt_by_default_and_the_network_grants() -> None:
+    """There are no shadow polygons; coverage comes from UPV's radio DT export, levels by
+    RSRP."""
+    cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
+    assert cfg.network.mode == "always_grant" and cfg.network.coverage.source == "radio_dt"
+    assert cfg.network.coverage.levels_by == "rsrp"
+    assert cfg.campus.link_shadows == []
+
+
+def test_derived_rates_of_the_campus_cell() -> None:
+    """TS 38.306 peaks and the anchored uplink rates per level edge."""
+    net = _cfg().network
+    d = net.derived()
+    assert d["prb"] == 51
+    assert d["ul_peak_1layer_64qam_mbps"] == pytest.approx(26.3, abs=0.1)
+    assert d["dl_peak_4layer_256qam_mbps"] == pytest.approx(305.6, abs=0.5)
+    assert net.uplink_rate.rate_mbps(25) == pytest.approx(22.0)
+    assert net.uplink_rate.rate_mbps(13) == pytest.approx(11.6, abs=0.1)
+    assert net.uplink_rate.rate_mbps(5) == pytest.approx(5.4, abs=0.1)
+    assert net.uplink_rate.rate_mbps(-5) == pytest.approx(1.0, abs=0.1)
+    assert net.uplink_rate.rate_mbps(40) == pytest.approx(22.0)  # capped at the anchor
+
+
+def test_pathloss_grows_with_distance_and_nlos() -> None:
+    near = cv.pathloss_uma(50, 20, 1.5, 2.38, los=True)
+    far = cv.pathloss_uma(300, 20, 1.5, 2.38, los=True)
+    assert far > near
+    assert cv.pathloss_uma(300, 20, 1.5, 2.38, los=False) > far
+
+
+def test_calibration_and_the_map_are_deterministic() -> None:
+    cfg = _cfg()
+    a = cv.calibrate(cfg.campus, cfg.network)
+    b = cv.calibrate(cfg.campus, cfg.network)
+    assert a == b and a["spread_ok"]
+    # the offset is fitted to the plotted min, median and max together
+    plotted = a["rsrp_dbm"]["plotted"]
+    errors = [a["rsrp_dbm"][k] - plotted[k] for k in ("min", "median", "max")]
+    assert abs(sum(errors)) < 0.5
+    m1 = cv.build_model_map(cfg.campus, cfg.network, a)
+    m2 = cv.build_model_map(cfg.campus, cfg.network, b)
+    assert json.dumps(m1.to_json()) == json.dumps(m2.to_json())
+    assert m1.meta["source"] == "model" and "38.901" in m1.meta["label"]
+
+
+def test_the_sector_points_at_the_campus_and_the_back_is_weaker() -> None:
+    """One sector at 300 degrees (UPV): behind it the 38.901 pattern takes up to 30 dB."""
+    ant = _cfg().network.cells[0].antenna
+    assert ant.azimuth_deg == 300
+    assert ant.pattern_db(300, ant.tilt_deg or 0) == pytest.approx(0.0)
+    assert ant.pattern_db(120, ant.tilt_deg or 0) == pytest.approx(-ant.front_back_db)
+
+
+def test_trees_lower_the_level_under_them() -> None:
+    cfg = _cfg()
+    model = cv.radio_model(cfg.campus, cfg.network)
+    walk = cfg.campus.vegetation_areas[0]["paths"][0]
+    x, y = walk[len(walk) // 2]
+    assert model.foliage_db(x, y) >= cfg.network.coverage.vegetation["under_canopy_db"]
+    site = cfg.campus.network_sites[0]
+    assert model.foliage_db(site["x"] - 10, site["y"]) == 0.0  # by Building 8G: no trees
+
+
+def test_levels_from_rsrp() -> None:
+    """UPV thresholds: > -80 good, -100..-80 medium, -120..-100 low, < -120 lost."""
+    net = NetworkConfig()
+    assert cv.level_of(net, 0, rsrp=-79) == "good"
+    assert cv.level_of(net, 0, rsrp=-80) == "medium"
+    assert cv.level_of(net, 0, rsrp=-100) == "medium"
+    assert cv.level_of(net, 0, rsrp=-101) == "low"
+    assert cv.level_of(net, 0, rsrp=-120) == "low"
+    assert cv.level_of(net, 0, rsrp=-120.5) == "lost"
+
+
+def test_levels_from_sinr() -> None:
+    net = NetworkConfig()
+    net.coverage.levels_by = "sinr"
+    assert cv.level_of(net, 20) == "good"
+    assert cv.level_of(net, 8) == "medium"
+    assert cv.level_of(net, 0) == "low"
+    assert cv.level_of(net, -8) == "lost"
+    assert cv.level_of(net, 20, rsrp=-125) == "lost"
+
+
+def test_radio_dt_import_keeps_the_pilot_area_and_skips_points_without_power(
+    tmp_path: Path,
+) -> None:
+    """UPV's export: points outside the pilot area and without an estimated power are
+    ignored; each sample takes the median RSRP nearby; levels by RSRP."""
+    cfg = _cfg("radio_dt")
+    geo = cv.campus_geo(cfg.campus)
+    area = cfg.campus.pilot_area
+    cx = sum(p[0] for p in area) / len(area)
+    cy = sum(p[1] for p in area) / len(area)
+    d = cfg.campus.datum
+    lat0, lon0 = d["lat_deg"], d["lon_deg"]
+    # a dense lattice of WGS84 points around the pilot area centre, constant -90 dBm
+    rows = ["latitude_wgs84_deg,longitude_wgs84_deg,rsrp_dbm,has_estimated_power"]
+    x0, y0 = geo(lat0, lon0)
+    dlat = 1 / 111_000
+    dlon = 1 / (111_000 * 0.771)
+    for i in range(-150, 151):
+        for j in range(-150, 151):
+            lat = lat0 + (cy - y0 + i) * dlat
+            lon = lon0 + (cx - x0 + j) * dlon
+            if (i + j) % 2 == 0:
+                rows.append(f"{lat:.7f},{lon:.7f},-90,1")
+            else:
+                rows.append(f"{lat:.7f},{lon:.7f},,0")  # no estimated power: no data
+    csv_file = tmp_path / "rsrp.csv"
+    csv_file.write_text("\n".join(rows) + "\n")
+    m = cv.build_radio_dt_map(cfg.campus, cfg.network, csv_file, geo)
+    assert m.samples and m.meta["source"] == "radio_dt"
+    assert m.meta["export_points_in_pilot_area"] < (len(rows) - 1) // 2
+    assert all(s["rsrp"] == pytest.approx(-90.0) and s["level"] == "medium" for s in m.samples)
+    assert {s["cell"] for s in m.samples} == {cfg.network.cells[0].id}
+
+
+def test_the_campus_radio_dt_map() -> None:
+    """The UPV export on the campus: the whole pilot area outdoors has data."""
+    cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
+    m = cv.load_or_build(cfg)
+    assert m.meta["source"] == "radio_dt" and m.meta["samples_without_data"] < 200
+    assert len(m.area_samples) > 8000
+    assert set(m.summary(cfg.campus)["area"]["share_by_level"]) == set(cv.LEVELS)
+
+
+def test_nearest_sample_lookup() -> None:
+    m = cv.CoverageMap(
+        samples=[
+            {"edge": "a", "x": 0.0, "y": 0.0, "level": "good", "sinr": 20, "cell": "c"},
+            {"edge": "b", "x": 30.0, "y": 0.0, "level": "lost", "sinr": -9, "cell": "c"},
+        ]
+    )
+    assert m.nearest(2, 1)["edge"] == "a"
+    assert m.nearest(28, -1)["edge"] == "b"
+
+
+def test_hysteresis_and_minimum_dwell() -> None:
+    net = NetworkConfig()  # levels by SINR: good >= 13 dB, hysteresis 3 dB, dwell 2 s
+    net.coverage.levels_by = "sinr"
+
+    def s(sinr: float, level: str) -> dict:
+        return {"sinr": sinr, "level": level, "cell": "c"}
+
+    t = cv.LevelTracker(net)
+    assert t.update(s(20, "good"), T0) == "good"
+    # just below the good threshold, inside the hysteresis band: stays good
+    assert t.update(s(12, "medium"), T0 + timedelta(seconds=1)) == "good"
+    # well below: the change waits for the dwell
+    assert t.update(s(9, "medium"), T0 + timedelta(seconds=2)) == "good"
+    assert t.update(s(9, "medium"), T0 + timedelta(seconds=3)) == "good"
+    assert t.update(s(9, "medium"), T0 + timedelta(seconds=4.1)) == "medium"
+    # back up needs the threshold plus the margin, then the dwell
+    assert t.update(s(14, "good"), T0 + timedelta(seconds=5)) == "medium"
+    assert t.update(s(16, "good"), T0 + timedelta(seconds=6)) == "medium"
+    assert t.update(s(16, "good"), T0 + timedelta(seconds=8.1)) == "good"
+
+
+async def test_the_simulator_reports_level_and_cell(tmp_path: Path) -> None:
+    from a6g_devstack import SimStack
+
+    stack = SimStack(_cfg(), tmp_path / "s")
+    await stack.start()
+    try:
+        state = stack.world.state("go2_01")
+    finally:
+        await stack.stop()
+    # the staging area is at the end of the tree-lined north-west walk
+    assert state.link_level != "lost" and state.cell_id == "n40_nodo2_cell9"
+    assert state.link_quality.value == "ok" and state.rsrp_dbm is not None
+
+
+@pytest.mark.scenario
+async def test_g10_passes_with_the_coverage_map(tmp_path: Path) -> None:
+    """The scenario tests also pass with the new map (shadows override: the G10 link loss
+    is an injected shadow, a stress case)."""
+    from a6g_devstack import scenario_g10 as G
+
+    result = await G.run(_cfg(), tmp_path / "run", seed=0, timeout_s=300)
+    assert result["error"] is None, result["error"]
+    for name in ("interventions", "guidance", "link_loss", "forget", "invariants"):
+        assert result["checks"][name]["ok"], (name, result["checks"][name])
+
+
+def test_the_whole_pilot_area_is_covered_outdoors() -> None:
+    """Coverage on any outdoor point of the pilot area, not only footpaths."""
+    from a6g_common.geometry import point_in_polygon
+
+    cfg = _cfg()
+    m = cv.build_model_map(cfg.campus, cfg.network, cv.calibrate(cfg.campus, cfg.network))
+    area = m.area_samples
+    assert len(area) > 1000
+    assert all(point_in_polygon((s["x"], s["y"]), cfg.campus.pilot_area) for s in area)
+    assert not any(
+        point_in_polygon((s["x"], s["y"]), b) for s in area[::25] for b in cfg.campus.obstacles
+    )
+    summary = m.summary(cfg.campus)
+    assert summary["area"]["samples"] == len(area)
+    assert summary["footpath_m"] == pytest.approx(len(m.path_samples) * 2.0)
+
+
+def test_a_point_near_a_footpath_takes_the_footpath_level() -> None:
+    m = cv.CoverageMap(
+        samples=[
+            {"kind": "path", "edge": "a", "x": 0.0, "y": 0.0, "level": "good", "sinr": 20},
+            {"kind": "area", "edge": None, "x": 1.0, "y": 0.0, "level": "lost", "sinr": -9},
+            {"kind": "area", "edge": None, "x": 40.0, "y": 0.0, "level": "medium", "sinr": 7},
+        ]
+    )
+    assert m.nearest(1.2, 0.0)["level"] == "good"  # within 3 m of the path
+    assert m.nearest(39.0, 0.0)["level"] == "medium"  # open ground: the area grid
+
+
+def test_line_of_sight_uses_building_heights() -> None:
+    """3D buildings: a ray over a roof is clear, one through a wall is not."""
+    box = [(10.0, -5.0), (20.0, -5.0), (20.0, 5.0), (10.0, 5.0)]
+    fp = cv.Footprints([box, [(40.0, -1.0), (41.0, -1.0), (41.0, 1.0)]], [8.0, None])
+    assert fp.blocked((0.0, 0.0), (30.0, 0.0), h_a=6.0, h_b=1.5)  # below the 8 m roof
+    assert not fp.blocked((0.0, 0.0), (30.0, 0.0), h_a=30.0, h_b=1.5)  # well above it
+    assert not fp.blocked((35.0, 0.0), (45.0, 0.0), h_a=2.0, h_b=1.5)  # a tree: no obstruction
+
+
+def test_the_gnb_height_is_its_rooftop_plus_the_mast() -> None:
+    site = _cfg().campus.network_sites[0]
+    assert site["host_building"] is not None and site["height_source"].startswith("rooftop")
+    assert site["height_m"] > 3.0
+
+
+def test_smoothing_removes_an_island_and_keeps_a_wide_zone() -> None:
+    """A spatial median over 6 m; a lone cell takes its neighbours' value."""
+    pts = [(x * 2.0, y * 2.0, -80.0 if x < 10 else -105.0) for x in range(20) for y in range(10)]
+    pts[45] = (pts[45][0], pts[45][1], -125.0)  # an island (x=4) inside the -80 zone
+    out = cv.smooth_rsrp(pts, 6.0)
+    assert out[45] == -80.0
+    assert out[0] == -80.0 and out[-1] == -105.0  # far from the boundary: unchanged
+    assert cv.smooth_rsrp(pts, 0.0) == [p[2] for p in pts]

@@ -1,0 +1,33 @@
+[project]
+name = "a6g-robot-agent"
+version = "0.1.0"
+description = "LangGraph robot agent, A2A server and perception."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-kb",
+    "a6g-interactions",
+    "a6g-common",
+    "a6g-observability",
+    "a6g-allocator",
+    "a6g-transport",
+    "mcp>=2.3,<3",
+    "langgraph>=1.2,<2",
+    "langgraph-checkpoint-sqlite>=3.1,<4",
+    "aiosqlite>=0.22,<1",
+    "uvicorn>=0.54,<1",
+]
+
+[project.scripts]
+a6g-robot-agent = "a6g_robot_agent.serve:main"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-kb = { workspace = true }
+a6g-interactions = { workspace = true }
+a6g-common = { workspace = true }
+a6g-observability = { workspace = true }
+a6g-allocator = { workspace = true }
+a6g-transport = { workspace = true }

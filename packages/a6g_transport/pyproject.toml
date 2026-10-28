@@ -1,0 +1,20 @@
+[project]
+name = "a6g-transport"
+version = "0.1.0"
+description = "A2A client/server helpers, MQTT telemetry and bandwidth budget."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-common",
+    "a6g-observability",
+    "a2a-sdk>=1.2,<2",
+    "aiomqtt>=2.5,<3",
+    "httpx>=0.28,<1",
+]
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-common = { workspace = true }
+a6g-observability = { workspace = true }

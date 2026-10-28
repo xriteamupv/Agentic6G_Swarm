@@ -1,0 +1,284 @@
+# Nav2 (Jazzy) for the Summit: everything under /robot with robot_ frame prefixes, as on the
+# real robot. The Summit reverses only short and slow, into space its costmap knows
+# (manifest reverse_limits: 0.15 m/s, 0.5 m):
+# - MPPI with vx_min -0.15 and a heavy PreferForwardCritic that switches off only within
+#   0.5 m of the goal (final corrections); CostCritic checks every candidate trajectory,
+#   reverse ones included, against the costmap (static map + obstacles seen earlier);
+# - the behaviour trees have every BackUp node removed (deploy/summit/bt): no blind
+#   multi-metre backing out of dead ends;
+# - behavior_server loads no BackUp / DriveOnHeading plugin; velocity smoother min vx -0.15.
+# The rear ~96 deg of the derived 2D scan is a blind spot (GPS mast), as on the robot.
+# Node keys are relative; the launch file nests them under the robot namespace.
+amcl:
+  ros__parameters:
+    base_frame_id: robot_base_footprint
+    odom_frame_id: robot_odom
+    global_frame_id: robot_map
+    scan_topic: top_3d_laser/scan
+    robot_model_type: nav2_amcl::DifferentialMotionModel
+    alpha1: 0.2
+    alpha2: 0.2
+    alpha3: 0.2
+    alpha4: 0.2
+    alpha5: 0.2
+    laser_model_type: likelihood_field
+    laser_likelihood_max_dist: 2.0
+    laser_max_range: 60.0
+    laser_min_range: 0.2
+    max_beams: 90
+    max_particles: 2000
+    min_particles: 500
+    sigma_hit: 0.1          # the prior map is exact in simulation (generated from OSM)
+    z_hit: 0.8
+    z_max: 0.05
+    z_rand: 0.2
+    z_short: 0.05
+    lambda_short: 0.1
+    pf_err: 0.05
+    pf_z: 0.99
+    recovery_alpha_fast: 0.0
+    recovery_alpha_slow: 0.0
+    resample_interval: 1
+    save_pose_rate: 0.5
+    tf_broadcast: true
+    transform_tolerance: 1.0
+    update_min_a: 0.1
+    update_min_d: 0.1
+    set_initial_pose: true
+    map_topic: map_loc  # outlines only (see map_server_loc)
+
+map_server:
+  ros__parameters:
+    frame_id: robot_map
+    topic_name: map
+
+# AMCL's map: the same footprints as outlines with unknown interiors (a6g campus build
+# maps/<campus>_loc.yaml). Costmaps keep the filled map so nothing plans through buildings.
+map_server_loc:
+  ros__parameters:
+    frame_id: robot_map
+    topic_name: map_loc
+
+bt_navigator:
+  ros__parameters:
+    global_frame: robot_map
+    robot_base_frame: robot_base_footprint
+    odom_topic: robotnik_base_control/odom
+    bt_loop_duration: 10
+    default_server_timeout: 200  # ms; the planner on the full campus map can be slow to ack
+    wait_for_service_timeout: 1000
+    action_server_result_timeout: 3600.0
+    navigators: [navigate_to_pose, navigate_through_poses]
+    navigate_to_pose:
+      plugin: nav2_bt_navigator::NavigateToPoseNavigator
+    navigate_through_poses:
+      plugin: nav2_bt_navigator::NavigateThroughPosesNavigator
+    error_code_names: [compute_path_error_code, follow_path_error_code, spin_error_code]
+
+controller_server:
+  ros__parameters:
+    odom_topic: robotnik_base_control/odom
+    controller_frequency: 10.0
+    costmap_update_timeout: 0.30
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.5
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 0.5
+    progress_checker_plugins: [progress_checker]
+    goal_checker_plugins: [general_goal_checker]
+    controller_plugins: [FollowPath]
+    progress_checker:  # turning in place counts as progress (heading at waypoints)
+      plugin: nav2_controller::PoseProgressChecker
+      required_movement_angle: 0.3
+      required_movement_radius: 0.3
+      movement_time_allowance: 15.0
+    general_goal_checker:
+      plugin: nav2_controller::SimpleGoalChecker
+      stateful: true
+      # Gazebo: G1 asks <= 0.30 m to ground truth; manifests keep the robots' 0.25. 0.05
+      # made the Summit rock in place for ever a few cm from goals on GNSS-EKF (scaled
+      # worlds): RTK jitter flips the goal direction and rotate-to-heading never settles.
+      xy_goal_tolerance: 0.15
+      yaw_goal_tolerance: 0.25
+    FollowPath:
+      plugin: nav2_mppi_controller::MPPIController
+      motion_model: DiffDrive
+      time_steps: 40            # 4 s horizon at model_dt 0.1 (= 1 / controller_frequency)
+      model_dt: 0.1
+      batch_size: 1000          # CPU-bound Gazebo host: half the stock 2000
+      iteration_count: 1
+      temperature: 0.3
+      gamma: 0.015
+      vx_max: 0.50
+      vx_min: -0.15             # manifest reverse_limits.max_speed_mps
+      vy_max: 0.0
+      wz_max: 0.80
+      ax_max: 0.6
+      ax_min: -0.8
+      ay_max: 0.0
+      az_max: 1.5
+      vx_std: 0.2
+      vy_std: 0.0
+      wz_std: 0.4
+      prune_distance: 1.7
+      transform_tolerance: 0.2
+      enforce_path_inversion: false
+      visualize: false
+      critics: [ConstraintCritic, CostCritic, GoalCritic, GoalAngleCritic, PathAlignCritic,
+                PathFollowCritic, PathAngleCritic, PreferForwardCritic]
+      ConstraintCritic: {enabled: true, cost_power: 1, cost_weight: 4.0}
+      CostCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.81
+        critical_cost: 300.0
+        consider_footprint: true   # the whole footprint, rear included, on every trajectory
+        near_collision_cost: 253   # Jazzy: lethal trajectories are discarded outright
+        near_goal_distance: 1.0
+        trajectory_point_step: 2
+      GoalCritic: {enabled: true, cost_power: 1, cost_weight: 5.0, threshold_to_consider: 1.4}
+      # The goal heading only counts once in position (= xy_goal_tolerance): within 0.5 m it
+      # made a goal 0.3 m to the side a local minimum (turning to it cost more than standing
+      # still) and the Summit stopped short of posts and waypoints for good.
+      GoalAngleCritic: {enabled: true, cost_power: 1, cost_weight: 3.0, threshold_to_consider: 0.15}
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 14.0
+        max_path_occupancy_ratio: 0.05
+        trajectory_point_step: 4
+        threshold_to_consider: 0.5
+        offset_from_furthest: 20
+        use_path_orientations: false
+      PathFollowCritic: {enabled: true, cost_power: 1, cost_weight: 5.0, offset_from_furthest: 5, threshold_to_consider: 1.4}
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        offset_from_furthest: 4
+        threshold_to_consider: 0.5
+        max_angle_to_furthest: 1.0
+        mode: 0                 # forward preference: turn to the path, don't back along it
+      PreferForwardCritic:      # reversing costs far more than turning, except near the goal
+        enabled: true
+        cost_power: 1
+        cost_weight: 50.0       # stock 5.0
+        threshold_to_consider: 0.5  # manifest reverse_limits.max_distance_m
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      global_frame: robot_odom
+      robot_base_frame: robot_base_footprint
+      rolling_window: true
+      width: 6
+      height: 6
+      resolution: 0.05
+      footprint: "[[0.37, 0.31], [0.37, -0.31], [-0.37, -0.31], [-0.37, 0.31]]"
+      footprint_padding: 0.10  # margin used to decide that turning in place would collide
+      plugins: [obstacle_layer, inflation_layer]
+      obstacle_layer:
+        plugin: nav2_costmap_2d::ObstacleLayer
+        observation_sources: scan
+        scan:
+          topic: /robot/top_3d_laser/scan  # absolute: costmap nodes live in a sub-namespace
+          data_type: LaserScan
+          clearing: true
+          marking: true
+          raytrace_max_range: 6.0
+          obstacle_max_range: 5.0
+          obstacle_min_range: 0.2
+      inflation_layer:
+        plugin: nav2_costmap_2d::InflationLayer
+        cost_scaling_factor: 4.0
+        inflation_radius: 0.65
+      always_send_full_costmap: true
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      resolution: 0.10  # campus-scale planning; the local costmap keeps 0.05
+      update_frequency: 1.0
+      publish_frequency: 0.5
+      global_frame: robot_map
+      robot_base_frame: robot_base_footprint
+      footprint: "[[0.37, 0.31], [0.37, -0.31], [-0.37, -0.31], [-0.37, 0.31]]"
+      footprint_padding: 0.10  # margin used to decide that turning in place would collide
+      track_unknown_space: true
+      plugins: [static_layer, obstacle_layer, inflation_layer]
+      static_layer:
+        plugin: nav2_costmap_2d::StaticLayer
+        map_subscribe_transient_local: true
+      obstacle_layer:
+        plugin: nav2_costmap_2d::ObstacleLayer
+        observation_sources: scan
+        scan:
+          topic: /robot/top_3d_laser/scan  # absolute: costmap nodes live in a sub-namespace
+          data_type: LaserScan
+          clearing: true
+          marking: true
+          raytrace_max_range: 6.0
+          obstacle_max_range: 5.0
+          obstacle_min_range: 0.2
+      inflation_layer:
+        plugin: nav2_costmap_2d::InflationLayer
+        cost_scaling_factor: 3.0
+        inflation_radius: 1.0
+      always_send_full_costmap: false
+
+planner_server:
+  ros__parameters:
+    expected_planner_frequency: 1.0
+    planner_plugins: [GridBased]
+    costmap_update_timeout: 1.0
+    GridBased:
+      plugin: nav2_navfn_planner::NavfnPlanner
+      tolerance: 0.5
+      use_astar: true
+      allow_unknown: true
+
+smoother_server:
+  ros__parameters:
+    smoother_plugins: [simple_smoother]
+    simple_smoother:
+      plugin: nav2_smoother::SimpleSmoother
+      tolerance: 1.0e-10
+      max_its: 1000
+      do_refinement: true
+
+behavior_server:
+  ros__parameters:
+    local_costmap_topic: local_costmap/costmap_raw
+    global_costmap_topic: global_costmap/costmap_raw
+    local_footprint_topic: local_costmap/published_footprint
+    global_footprint_topic: global_costmap/published_footprint
+    cycle_frequency: 10.0
+    behavior_plugins: [spin, wait]
+    spin:
+      plugin: nav2_behaviors::Spin
+    wait:
+      plugin: nav2_behaviors::Wait
+    local_frame: robot_odom
+    global_frame: robot_map
+    robot_base_frame: robot_base_footprint
+    transform_tolerance: 0.2
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 0.5
+    min_rotational_vel: 0.2
+    rotational_acc_lim: 1.0
+
+velocity_smoother:
+  ros__parameters:
+    smoothing_frequency: 20.0
+    scale_velocities: false
+    feedback: OPEN_LOOP
+    max_velocity: [0.50, 0.0, 0.80]
+    min_velocity: [-0.15, 0.0, -0.80]  # reverse_limits.max_speed_mps
+    max_accel: [0.6, 0.0, 1.5]
+    max_decel: [-0.8, 0.0, -1.5]
+    odom_topic: robotnik_base_control/odom
+    odom_duration: 0.1
+    deadband_velocity: [0.0, 0.0, 0.0]
+    velocity_timeout: 1.0

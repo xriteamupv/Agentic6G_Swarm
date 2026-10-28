@@ -1,0 +1,24 @@
+# Operator chat UI (agent-chat-ui production build).
+# Install as a user unit:
+#   deploy/ui/build.sh
+#   cp deploy/ui/a6g-chat-ui.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now a6g-chat-ui
+# Adjust WorkingDirectory/ExecStart if the repository is not in ~/LangChain/a6g-swarm.
+[Unit]
+Description=a6g operator chat UI (agent-chat-ui, production build)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/LangChain/a6g-swarm/var/chat-ui
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=0.0.0.0
+# Optional runtime secrets for the /api passthrough (LANGGRAPH_API_URL, LANGSMITH_API_KEY).
+EnvironmentFile=-%h/.config/a6g/chat-ui.env
+ExecStart=%h/LangChain/a6g-swarm/var/chat-ui/start.sh
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

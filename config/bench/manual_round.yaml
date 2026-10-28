@@ -1,0 +1,6 @@
+# A manual inspection round, to compare with the robots' work.
+# Assumed figures, pending the campus security service's.
+walking_speed_mps: 1.2        # a guard walking the round
+minutes_per_poi: 3.0          # time spent at each inspected point
+operator_minutes_per_command: 1.0   # operator time per command given to the swarm
+cost_per_hour_eur: 25.0       # person-hour cost

@@ -1,0 +1,182 @@
+"""hold_then_recover (2D simulator).
+
+A robot finishes a task inside a coverage shadow, holds for link_loss_hold_s, then drives to
+the nearest reachable link recovery point, reconnects and flushes its queued reports.
+"""
+
+from datetime import timedelta
+from pathlib import Path
+
+import pytest
+from a6g_common.config import load_config
+from a6g_common.geometry import point_in_polygon
+from a6g_common.schemas import (
+    DecisionKind,
+    Envelope,
+    EnvelopeBudgets,
+    LinkQuality,
+    Pose2D,
+    PoseTarget,
+    ReportKind,
+    TaskKind,
+    TaskSpec,
+)
+from a6g_devstack import SimStack
+from a6g_devstack.scenario_g10 import outage_polygon
+from conftest import WHOLE_CAMPUS, wait_for
+
+pytestmark = pytest.mark.scenario
+SHADOW_TASK = "t_guard_in_shadow"
+
+
+@pytest.fixture
+async def stack(tmp_path: Path):
+    cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
+    s = SimStack(cfg, tmp_path / "stack")
+    await s.start()
+    # coverage is emulated (no shadow polygons): an injected outage zone
+    s.outage_zone(outage_polygon(cfg))
+    try:
+        yield s
+    finally:
+        await s.stop()
+
+
+def _inside_shadow(stack: SimStack) -> Pose2D:
+    """The footpath spot nearest the middle of the campus's first coverage shadow (the
+    robots walk the footpaths only)."""
+    from a6g_common.footpaths import walker_for
+
+    campus = stack.cfg.campus
+    shadow = stack.world.outage_zones[0]
+    x = sum(p[0] for p in shadow) / len(shadow)
+    y = sum(p[1] for p in shadow) / len(shadow)
+    x, y = walker_for(campus.route_graph).project((x, y)).point
+    assert point_in_polygon((x, y), shadow)
+    return Pose2D(x=x, y=y)
+
+
+def fallbacks(stack: SimStack) -> list:
+    return [
+        d
+        for d in stack.log.read("m_lr")
+        if d.kind is DecisionKind.FALLBACK and d.actor == "go2_01.agent" and "step" in d.output
+    ]
+
+
+async def test_robot_leaves_shadow_for_recovery_point_after_hold(stack: SimStack) -> None:
+    now = stack.world.clock.now()
+    task = TaskSpec(
+        task_id=SHADOW_TASK,
+        kind=TaskKind.HOLD_POST,
+        target=PoseTarget(pose=_inside_shadow(stack)),
+        required_capabilities=["hold_post"],
+        est_duration_s=5,
+    )
+    envelope = Envelope(
+        envelope_id="env_lr",
+        robot_id="go2_01",
+        mission_id="m_lr",
+        tasks=[task],
+        region=WHOLE_CAMPUS,
+        valid_from=now,
+        valid_until=now + timedelta(hours=2),
+        budgets=EnvelopeBudgets(battery_floor_pct=20, uplink_mbps=3),
+        swappable=True,
+    )
+    agent = stack.robots["go2_01"].agent
+    assert (await agent.handle_envelope(envelope)).decision == "accept"
+
+    # 1. It finishes the task inside the shadow, then holds.
+    await wait_for(lambda: [d for d in fallbacks(stack) if d.output["step"] == "hold"], timeout=60)
+    hold = next(d for d in fallbacks(stack) if d.output["step"] == "hold")
+    robot = stack.world.robot("go2_01")
+    assert stack.world.link_quality("go2_01") is LinkQuality.LOST
+
+    async def task_done() -> bool:  # the decision is logged mid-run; state lands at run end
+        return (await agent.state("env_lr"))["tasks"][SHADOW_TASK]["status"] == "succeeded"
+
+    await wait_for(task_done, timeout=10)
+
+    # 2. After the hold it drives to the nearest reachable recovery point.
+    await wait_for(
+        lambda: [d for d in fallbacks(stack) if d.output["step"] == "seek_coverage"], timeout=60
+    )
+    seek = next(d for d in fallbacks(stack) if d.output["step"] == "seek_coverage")
+    held_for = (seek.stamp - hold.stamp).total_seconds()
+    assert 30.0 <= held_for < 35.0, held_for
+    assert seek.output["recovery_point"] == "lrp_staging"  # the only one
+
+    # 3. It leaves the shadow, reconnects and flushes the queued reports.
+    async def reconnected() -> bool:
+        s = await agent.state("env_lr")
+        return (
+            s.get("link_quality") in ("ok", "degraded")  # staging: low coverage (radio DT)
+            and not s.get("outbox")
+            and s.get("current_task_id") is None
+        )
+
+    await wait_for(reconnected, timeout=60)
+    assert stack.world.link_quality("go2_01") is not LinkQuality.LOST
+    shadow = stack.world.outage_zones[0]
+    assert not point_in_polygon((robot.x, robot.y), shadow)  # out of the coverage shadow
+    delivered = [r for r in stack.delivered if r.robot_id == "go2_01"]
+    assert any(
+        r.kind is ReportKind.SKILL_RESULT and r.payload["task_id"] == SHADOW_TASK for r in delivered
+    )
+    restored = [
+        d
+        for d in stack.log.read("m_lr")
+        if d.kind is DecisionKind.FALLBACK and d.output.get("link_quality") in ("ok", "degraded")
+    ]
+    assert restored, "link restoration is a logged decision"
+    assert not any(d.output.get("step") == "return_home" for d in fallbacks(stack))
+
+
+async def test_still_lost_at_the_recovery_point_the_robot_returns_home(stack: SimStack) -> None:
+    """A robot that reaches a recovery point out of coverage does not stay there: the
+    navigation result is not dropped as if a new envelope had preempted it (the recovery
+    drive is not an envelope task), so "return home" follows."""
+    now = stack.world.clock.now()
+    task = TaskSpec(
+        task_id=SHADOW_TASK,
+        kind=TaskKind.HOLD_POST,
+        target=PoseTarget(pose=_inside_shadow(stack)),
+        required_capabilities=["hold_post"],
+        est_duration_s=5,
+    )
+    envelope = Envelope(
+        envelope_id="env_lr",
+        robot_id="go2_01",
+        mission_id="m_lr",
+        tasks=[task],
+        region=WHOLE_CAMPUS,
+        valid_from=now,
+        valid_until=now + timedelta(hours=2),
+        budgets=EnvelopeBudgets(battery_floor_pct=20, uplink_mbps=3),
+        swappable=True,
+    )
+    agent = stack.robots["go2_01"].agent
+    assert (await agent.handle_envelope(envelope)).decision == "accept"
+
+    def steps() -> list[str]:
+        return [d.output["step"] for d in fallbacks(stack)]
+
+    await wait_for(lambda: "hold" in steps(), timeout=60)
+    xs = [p[0] for p in stack.cfg.campus.pilot_area]
+    ys = [p[1] for p in stack.cfg.campus.pilot_area]
+    m = 50.0
+    # after the hold starts, no coverage anywhere: the recovery point is lost too
+    stack.outage_zone(
+        [
+            (min(xs) - m, min(ys) - m),
+            (max(xs) + m, min(ys) - m),
+            (max(xs) + m, max(ys) + m),
+            (min(xs) - m, max(ys) + m),
+        ]
+    )
+
+    await wait_for(lambda: "seek_coverage" in steps(), timeout=120)
+    await wait_for(lambda: "return_home" in steps(), timeout=180)
+    back = next(d for d in fallbacks(stack) if d.output["step"] == "return_home")
+    assert back.output["reason"] == "still no link at the recovery point"

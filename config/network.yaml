@@ -1,0 +1,77 @@
+# The campus 5G cell, coverage levels, link profiles and the capacity model of the network
+# stand-in. Emulated, never "measured on the campus network".
+# Defaults keep the behaviour the test suite relies on; benches select the new modes:
+#   A6G_NETWORK_MODE=capacity A6G_COVERAGE_SOURCE=model uv run a6g bench ...
+network:
+  mode: ${A6G_NETWORK_MODE:-always_grant}     # always_grant (tests, default) | capacity
+  cells:
+    - id: n40_nodo2_cell9       # 5G_UPV (Nodo2), BTS 267, MRBTS-267/NRBTS-1 NRCELL-9
+      site: site_8g
+      band: n40
+      pci: 41
+      nci: 4374537
+      nrarfcn: 476000           # 2380.000 MHz
+      bandwidth_mhz: 20         # the cell can be reconfigured to 30 MHz
+      duplex: tdd
+      ul_slot_share: 0.3        # UL:DL logical data slot ratio 3:7
+      scs_khz: 30               # assumed (51 PRB at 30 kHz; 106 PRB at 15 kHz)
+      max_output_power_dbm: 26.5      # assumed; total or per port unconfirmed
+      # one sector, towards the centre of the campus (UPV); 38.901 element pattern
+      antenna: {ports: 4, gain_dbi: 10, azimuth_deg: 300, tilt_deg: 6, h_beamwidth_deg: 65,
+                v_beamwidth_deg: 65, front_back_db: 30, setback_m: 5}   # gain, tilt, setback assumed
+      dl_mimo: "4x4 or 4x2 closed-loop spatial multiplexing"
+  coverage:
+    source: ${A6G_COVERAGE_SOURCE:-radio_dt}  # radio_dt (default) | model (38.901 emulation) | shadows (legacy)
+    radio_dt_file: ../sim_gazebo/data/network/n40_centroides_rsrp.csv   # UPV radio DT export, 0.3 m above ground (relative to config/)
+    model: {pathloss: 3gpp_38901_uma, h_ut_m: 1.5, los_from_footprints: true, shadow_fading: false}
+    calibration: plots          # no measurement CSV: values read from UPV's velodrome plots
+    calibration_targets:
+      loop: osm                 # Velódromo UPV, OSM way 23389345 (campus calibration_loops)
+      rsrp_dbm: {median: -86, min: -95, max: -77}
+      sinr_db: {min: 8, max: 26}
+    sinr_from_rsrp: {offset_db: 101, clip_db: [-10, 26]}   # read from the plots
+    sample_step_m: 2            # along the footpaths, where the robots work
+    grid_step_m: 2              # and over the rest of the pilot area, outdoors (any point)
+    smoothing_radius_m: 6       # radio DT: median of the samples within 6 m (consistent zones, less ping-pong)
+    levels_by: rsrp
+    thresholds_rsrp_dbm: {good: -90, medium: -100, low: -110}   # > -90 good, -100..-90 medium, -110..-100 low, below: lost
+    thresholds_sinr_db: {good: 13, medium: 5, low: -5}   # used when levels_by: sinr
+    lost_rsrp_dbm: -110         # = thresholds_rsrp_dbm.low
+    hysteresis_db: 3            # dB on the levels_by quantity
+    vegetation: {loss_db_per_m: 0.4, max_loss_db: 15, canopy_height_m: 8, under_canopy_db: 8}   # campus vegetation_areas; model assumptions
+    min_dwell_s: 2              # simulated seconds before a level change takes effect
+    shadows_override: true      # campus coverage_shadows, if any, stay `lost`
+    map_file: ../sim_gazebo/src/a6g_gz_worlds/sim/{campus}_coverage_{source}.json   # next to the route graph
+  uplink_rate:                  # maximum uplink rate of one robot at a location
+    anchor: {ul_mbps: 22, sinr_db: 25}   # measured single-UE TCP goodput, velodrome, 20 MHz
+    spectral_efficiency: {alpha: 0.6, se_max_bps_hz: 5.55}
+  link_profiles:                # per level, for the protocol micro-benchmark (netem)
+    good:      {ul_mbps: derived, dl_mbps: 100, rtt_ms: 19, jitter_ms: 5,  loss_pct: 0.1}
+    medium:    {ul_mbps: derived, dl_mbps: 20,  rtt_ms: 45, jitter_ms: 15, loss_pct: 1}   # rtt, jitter, loss assumed
+    low:       {ul_mbps: derived, dl_mbps: 5,   rtt_ms: 80, jitter_ms: 30, loss_pct: 3}   # assumed
+    lost:      {outage: true}
+  capacity:
+    cells:
+      n40_nodo2_cell9:
+        ul_capacity_mbps: ${A6G_UL_CAPACITY_MBPS:-22}   # measured 20 MHz goodput; swept in G13
+    cost: spectral_efficiency
+    flow_requirements:          # assumed, pending the uplink survey
+      telemetry:          {ul_mbps: 0.0, always: true}
+      survey_uplink:      {ul_mbps: 1.0, best_effort: true}
+      verification_burst: {ul_mbps: 8.0, max_s: 30}
+      conversational:     {ul_mbps: 0.1, max_rtt_ms: 150}
+      video_control:      {ul_mbps: 4.0, guaranteed: true}
+      telemetry_plus:     {ul_mbps: 0.3, guaranteed: true}
+  reconcile:
+    mode: ${A6G_RECONCILE_MODE:-on}   # on | off (experiment baseline) | relocate
+    relocate_radius_m: 20
+    recharge_reassign_min_priority: 80
+  post_sensing_mode: ${A6G_POST_SENSING:-}   # video in G13; empty: posts on telemetry_plus
+  stub_llm: false
+  provenance:
+    cell: "UPV network document, 2026-10-26 (5G_UPV Nodo2, NRCELL-9)"
+    ul_capacity: "measured TCP goodput of one device in the velodrome, 20 MHz (UPV)"
+    coverage_calibration: "RSRP/SINR read from UPV's velodrome plots (no CSV)"
+    sinr: "downlink SINR from the plots; uplink quality assumed to follow it"
+    link_profiles_good_rtt: "measured n40 one-way 9.76 DL + 8.89 UL ms (UPV)"
+    other: "Nexus n40 cell (Building 6G), LTE B7, n258 and n78 not modelled"

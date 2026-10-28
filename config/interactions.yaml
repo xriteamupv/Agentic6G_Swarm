@@ -1,0 +1,16 @@
+# Human interactions: the InteractionStore and constraint-aware guidance.
+# What people say, their declared constraint and the mobility profile derived from it live
+# only in the store (in memory, never on disk) and in the memory of the agents taking part;
+# the twin holds only the interaction_id. The stacks host the store in-process;
+# `a6g-interactions` serves it at the edge.
+url: ${A6G_INTERACTIONS_URL:-http://127.0.0.1:8410}
+interaction_ttl_min: 60          # assumed, to agree with the DPO and D6.1
+languages: [es, ca-valencia, en] # assumed
+# Development only: the operator's chat shows the declared
+# constraint. Unset: on in the sim and gazebo profiles, off in real. With it on, the chat
+# thread (checkpointer) holds the constraint text: the final version turns it off.
+# show_constraints_to_operator: true
+confirm_timeout_s: 120           # the person confirms the request within this (wall-clock s)
+arrival_confirm_s: 30            # ... and the arrival (wall-clock s); then it ends as arrived
+image_retention_h: 24            # assumed, to agree with the data management plan of D6.1
+timeout_s: 3

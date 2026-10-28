@@ -1,0 +1,41 @@
+[project]
+name = "a6g-devstack"
+version = "0.1.0"
+description = "Simulated deployments for tests and demos: the 2D stack (a6g-sim-stack) and the Gazebo stack (a6g-gz-stack)."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-interactions",
+    "a6g-kb",
+    "a6g-common",
+    "a6g-observability",
+    "a6g-sim",
+    "a6g-skill-mcp",
+    "a6g-robot-agent",
+    "a6g-coordinator",
+    "a6g-transport",
+    "a6g-memory",
+    "uvicorn>=0.54,<1",
+    "amqtt>=0.12,<0.13",
+    "httpx>=0.28,<1",
+    "cbor2>=6.1.5",
+]
+
+[project.scripts]
+a6g-sim-stack = "a6g_devstack.serve:main"
+a6g-gz-stack = "a6g_devstack.serve_gz:main"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-interactions = { workspace = true }
+a6g-kb = { workspace = true }
+a6g-common = { workspace = true }
+a6g-observability = { workspace = true }
+a6g-sim = { workspace = true }
+a6g-skill-mcp = { workspace = true }
+a6g-robot-agent = { workspace = true }
+a6g-coordinator = { workspace = true }
+a6g-transport = { workspace = true }
+a6g-memory = { workspace = true }

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://langgra.ph/schema.json",
+  "python_version": "3.11",
+  "dependencies": ["."],
+  "graphs": {
+    "coordinator": "./packages/a6g_coordinator/src/a6g_coordinator/server.py:graph"
+  },
+  "http": {
+    "app": "./packages/a6g_coordinator/src/a6g_coordinator/gateway.py:app"
+  },
+  "env": {
+    "A6G_FLEET_FILE": "sim/fleet.yaml"
+  }
+}

@@ -1,0 +1,108 @@
+# Pilot campus, schema v2. Geometry is defined ONCE here, in WGS84;
+# the 2D simulator, the Gazebo world, the Nav2 prior map and the allocator derive from it
+# (a6g campus build). Buildings come from the cached OpenStreetMap extract (ODbL).
+#
+# Pilot area: the rotated rectangle (SE, NE, NW, SW corners) given by UPV around the open
+# plaza of Ciudad Politecnica de la Innovacion (UPV, Campus de Vera), ~312 m x 157 m, long
+# axis at -20.6 deg from east. Patrol zones follow the OSM footpaths; POIs, shadows and
+# recovery points are placeholders (POIs, staging and recovery points sit on a footpath).
+# They are assumed, pending the real pilot definitions and survey.
+schema_version: 3              # v3 = v2 + campus knowledge base; outdoors only
+campus_id: upv_vera_cpi
+datum:                         # origin of campus_map (ENU): centre of the pilot rectangle
+  lat_deg: 39.4788828
+  lon_deg: -0.3349505
+  alt_m: 10.0
+  heading_deg: 0.0
+pilot_sector:
+  polygon_wgs84: [[39.477725, -0.333575], [39.479026, -0.332948], [39.480068, -0.336314], [39.478712, -0.336965]]
+  bbox_wgs84: [39.477425, -0.337265, 39.480368, -0.332648]   # envelope + ~30 m: OSM extract and world extent
+world:
+  osm_cache: ../../sim_gazebo/data/osm/upv_vera_cpi.json   # paths relative to this file
+  output_dir: ../../sim_gazebo/src/a6g_gz_worlds
+  map_resolution_m: 0.05
+  default_building_height_m: 10.0
+  level_height_m: 3.0
+staging_area: {lat: 39.4785533, lon: -0.3346788, yaw_deg: 0.0, half_size_m: 10.0}   # on a footpath
+# Footpaths only: the robots walk on the OSM footpaths and nowhere
+# else (low fences and obstacles elsewhere are not mapped). The patrol zones are derived from
+# the route graph: each path goes to the zone whose seed is nearest along the network,
+# balanced by length; `a6g campus zones` shows the split. To adjust it, list path edge ids
+# under a sector's `edges` (they stay in that zone).
+patrol_zones:
+  mode: footpaths              # footpaths | polygons (sectors as drawn)
+  margin_m: 3                  # zone polygon around its paths
+  simplify_m: 1.0              # survey route within this of the paths
+  corridor_m: 2.0              # walkable half-width around a path (sim guard, Nav2 keepout)
+  transit_off_zone_factor: 3   # robots between tasks prefer the patrol paths (other footways cost 3x)
+  exclude_edges: [w1108806158.0:0, w1113048096.0:0, w1113048096.0:1, w1113048097.0:0,
+                  w1113726614.0:0, w1284938129.0:0, w1289707415.0:0, w143426026.0:0, w143426026.0:1,
+                  w185121690.0:0, w185121698.0:0, w185125477.0:0, w185125477.0:1, w185125478.0:0,
+                  w185125478.0:1, w185125478.0:2, w185125480.0:0, w185125482.0:0, w185125988.0:0,
+                  w36964763.0:0, w36964763.0:1, w36964763.0:2, w36964763.0:3, w36964763.0:4,
+                  w36964763.0:5, w36966644.0:0]
+sectors:
+  - id: sec_north
+    name: North-west walk
+    aliases: [paseo noroeste, passeig nord-oest, northwest walk, nw walk]
+    seed_wgs84: [39.4792431, -0.3358222]
+    edges: [w185125480.0:1, w36966642.0:0, w36966642.0:1]
+  - id: sec_south
+    name: South plaza
+    aliases: [plaza sur, plaça sud, south square]
+    seed_wgs84: [39.4786486, -0.3352527]
+    edges: [w185125480.0:2, w185431592.0:0, w185431592.0:1, w301653197.0:0]
+  - id: sec_east
+    name: East corridor
+    aliases: [pasillo este, corredor este, corredor est, passadís est]
+    seed_wgs84: [39.4789954, -0.3343113]
+    edges: [w1108806157.0:0, w301780869.0:0, w301780869.0:1, w301780869.0:2, w301780870.0:0]
+pois:
+  - {id: poi_kiosk, name: Building 8K door, lat: 39.4787576, lon: -0.3367423, yaw_deg: 90, kind: [inspect, escort_dest], exposed: false,
+     building: "8K", aliases: [puerta del edificio 8K, porta de l'edifici 8K, edificio 8K, edifici 8K, 8K, building 8K]}
+  - {id: poi_library_door, name: Building 9B door, lat: 39.4790622, lon: -0.3344434, yaw_deg: 90, kind: [inspect, exposed, escort_dest], exposed: true,
+     building: "9B", aliases: [puerta del edificio 9B, porta de l'edifici 9B, edificio 9B, edifici 9B, 9B, library door],
+     flood: {gain_m_per_mm: 0.01, drain_rate_per_min: 0.1, risk_levels_m: {elevated: 0.05, high: 0.15, critical: 0.3}}}
+  - {id: poi_bike_rack, name: Bike rack, lat: 39.4786812, lon: -0.3354168, yaw_deg: 180, kind: [inspect, exposed], exposed: true,
+     aliases: [aparcabicis, aparcament de bicicletes, bike parking],
+     flood: {gain_m_per_mm: 0.01, drain_rate_per_min: 0.1, risk_levels_m: {elevated: 0.05, high: 0.15, critical: 0.3}}}
+  - {id: poi_bus_stop, name: Bus stop, lat: 39.4782751, lon: -0.3348212, yaw_deg: -90, kind: [inspect, exposed, escort_dest], exposed: true,
+     aliases: [parada de autobús, parada d'autobús, parada del bus, bus],
+     flood: {gain_m_per_mm: 0.01, drain_rate_per_min: 0.1, risk_levels_m: {elevated: 0.05, high: 0.15, critical: 0.3}}}
+  # Shelters (v3): where escorts end in bad weather; assumed sheltered spots.
+  - {id: poi_shelter_9b, name: Campus east access, lat: 39.4788032, lon: -0.3332472, kind: [shelter], exposed: false,
+     aliases: [acceso este del campus, accés est del campus, east access, campus east entrance]}
+  - {id: poi_shelter_south, name: Parking 8B, lat: 39.4782048, lon: -0.3334278, kind: [shelter], exposed: false,
+     building: "8B", aliases: [aparcamiento 8B, aparcament 8B, 8B parking, parking 8B]}
+coverage_shadows: []           # none: coverage is emulated from the network twin
+link_recovery_points:            # reachable spots with 5G coverage, where a robot that lost the link drives
+  - {id: lrp_staging, lat: 39.4785533, lon: -0.3346788, note: "staging area: the recovery point"}
+network_sites:                   # the n40 gNB of 5G_UPV Nodo2 (radio: config/network.yaml)
+  - {id: site_8g, name: "n40 gNB (Building 8G)", lat: 39.4784439, lon: -0.3338678, mast_m: 3}   # rooftop: Building 8G's height + mast (mast assumed)
+vegetation_areas:                # trees that attenuate the radio (not in OSM)
+  - {id: nw_walk_trees, name: North-west walk trees, sector: sec_north,
+     note: "the walk is lined with trees (UPV, 2026-10-26); TODO(UPV): draw the tree line"}
+calibration_loops:               # UPV's velodrome coverage plots were taken along this loop
+  - id: velodrome
+    name: Velódromo UPV
+    source: "OpenStreetMap way 23389345 (ODbL), sim_gazebo/data/osm/upv_vera_cpi.velodrome.json"
+    polygon_wgs84: [[39.4791462, -0.3360186], [39.4789305, -0.3352788], [39.478909, -0.3351912], [39.478901, -0.3351291], [39.4789033, -0.3350826], [39.4789198, -0.3350209], [39.4789441, -0.3349803], [39.4789752, -0.3349484], [39.4790229, -0.3349268], [39.479059, -0.3349215], [39.4790989, -0.3349326], [39.4791289, -0.3349524], [39.4791505, -0.3349743], [39.4791744, -0.3350108], [39.4791944, -0.3350518], [39.4794385, -0.3358855], [39.4794453, -0.3359434], [39.4794427, -0.3360035], [39.479425, -0.3360636], [39.4793896, -0.3361128], [39.4793517, -0.3361423], [39.4793095, -0.3361543], [39.4792623, -0.3361499], [39.4792184, -0.3361259], [39.4791864, -0.3360953], [39.4791636, -0.3360614]]
+
+# --------------------------------------------------------------------------- knowledge base (v3)
+# Outdoor pedestrian graph (UC2 runs outdoors only): OSM footways of the pilot
+# box (cached by `a6g campus build` next to osm_cache, *.paths.json) + manual additions.
+# Footways not surveyed: missing links and accessibility metadata are not added.
+route_graph:
+  source: osm+manual
+  open_space_max_m: 0       # footpaths only: no links through open space
+  nodes: []
+  edges: []
+people_routing_profiles:          # non-identifying; a declared constraint maps to one of these
+  step_free:    {exclude: [stairs], require: [step_free]}
+  avoid_slopes: {max_slope_pct: 6}
+  default:      {}
+documents:
+  - {id: doc_kiosk_hours, kind: description, lang: en, applies_to: [poi_kiosk], source: operator,
+     text: "The Building 8K door is open on weekdays from 08:00 to 20:00."}
+  - {id: doc_kiosk_hours_es, kind: description, lang: es, applies_to: [poi_kiosk], source: operator,
+     text: "La puerta del edificio 8K está abierta los días laborables de 08:00 a 20:00."}

@@ -1,0 +1,1508 @@
+{
+ "campus_id": "upv_vera_cpi",
+ "edges": [
+  {
+   "exposed": true,
+   "exposed_poi": "poi_bike_rack",
+   "from": "poi:poi_bike_rack",
+   "geometry": [
+    [
+     -40.12,
+     -22.382
+    ],
+    [
+     -40.12,
+     -22.379
+    ]
+   ],
+   "id": "c:poi:poi_bike_rack",
+   "length_m": 0.003,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "connector",
+   "stairs": false,
+   "step_free": true,
+   "to": "x:poi:poi_bike_rack",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_bus_stop",
+   "from": "poi:poi_bus_stop",
+   "geometry": [
+    [
+     11.125,
+     -67.47
+    ],
+    [
+     11.564,
+     -67.659
+    ]
+   ],
+   "id": "c:poi:poi_bus_stop",
+   "length_m": 0.478,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "connector",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3057369872",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "poi:poi_kiosk",
+   "geometry": [
+    [
+     -154.166,
+     -13.899
+    ],
+    [
+     -154.398,
+     -13.865
+    ]
+   ],
+   "id": "c:poi:poi_kiosk",
+   "length_m": 0.234,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "connector",
+   "stairs": false,
+   "step_free": true,
+   "to": "n429843156",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_library_door",
+   "from": "poi:poi_library_door",
+   "geometry": [
+    [
+     43.631,
+     19.918
+    ],
+    [
+     43.656,
+     19.996
+    ]
+   ],
+   "id": "c:poi:poi_library_door",
+   "length_m": 0.082,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "connector",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3059132682",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "poi:poi_shelter_9b",
+   "geometry": [
+    [
+     146.551,
+     -8.836
+    ],
+    [
+     146.809,
+     -8.037
+    ]
+   ],
+   "id": "c:poi:poi_shelter_9b",
+   "length_m": 0.84,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "connector",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3059132686",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "poi:poi_shelter_south",
+   "geometry": [
+    [
+     131.014,
+     -75.274
+    ],
+    [
+     130.773,
+     -75.895
+    ]
+   ],
+   "id": "c:poi:poi_shelter_south",
+   "length_m": 0.666,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "connector",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1960329037",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "staging",
+   "geometry": [
+    [
+     23.377,
+     -36.583
+    ],
+    [
+     23.721,
+     -35.672
+    ]
+   ],
+   "id": "c:staging",
+   "length_m": 0.974,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "connector",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1960329038",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n10144814117",
+   "geometry": [
+    [
+     60.151,
+     -50.083
+    ],
+    [
+     81.471,
+     5.674
+    ]
+   ],
+   "id": "w1108806157.0:0",
+   "length_m": 59.694,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n10144752716",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1960329037",
+   "geometry": [
+    [
+     130.773,
+     -75.895
+    ],
+    [
+     150.836,
+     -22.903
+    ]
+   ],
+   "id": "w1108806158.0:0",
+   "length_m": 56.663,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n10144814122",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n10183466484",
+   "geometry": [
+    [
+     158.408,
+     -12.167
+    ],
+    [
+     158.614,
+     -10.213
+    ]
+   ],
+   "id": "w1113048096.0:0",
+   "length_m": 1.965,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n10183466487",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n10183466487",
+   "geometry": [
+    [
+     158.614,
+     -10.213
+    ],
+    [
+     158.864,
+     -7.937
+    ]
+   ],
+   "id": "w1113048096.0:1",
+   "length_m": 2.29,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n10183466486",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n10183466486",
+   "geometry": [
+    [
+     158.864,
+     -7.937
+    ],
+    [
+     159.13,
+     -6.105
+    ]
+   ],
+   "id": "w1113048097.0:0",
+   "length_m": 1.851,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n14251972711",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n10189044205",
+   "geometry": [
+    [
+     -129.738,
+     90.02
+    ],
+    [
+     -125.031,
+     91.141
+    ]
+   ],
+   "id": "w1113726614.0:0",
+   "length_m": 4.839,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n10189044206",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956905753",
+   "geometry": [
+    [
+     -99.823,
+     22.883
+    ],
+    [
+     -114.32,
+     28.223
+    ],
+    [
+     -126.822,
+     -6.583
+    ]
+   ],
+   "id": "w1284938129.0:0",
+   "length_m": 52.432,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956905763",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n11958813356",
+   "geometry": [
+    [
+     -164.473,
+     0.712
+    ],
+    [
+     -159.913,
+     2.944
+    ],
+    [
+     -155.189,
+     4.354
+    ]
+   ],
+   "id": "w1289707415.0:0",
+   "length_m": 10.007,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956948874",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956948868",
+   "geometry": [
+    [
+     -64.486,
+     73.155
+    ],
+    [
+     64.96,
+     24.903
+    ]
+   ],
+   "id": "w143426026.0:0",
+   "length_m": 138.147,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956948878",
+   "width_m": 1.5
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956948878",
+   "geometry": [
+    [
+     64.96,
+     24.903
+    ],
+    [
+     133.396,
+     -0.265
+    ],
+    [
+     137.775,
+     -1.92
+    ],
+    [
+     144.4,
+     -3.585
+    ],
+    [
+     155.276,
+     -5.583
+    ],
+    [
+     159.13,
+     -6.105
+    ]
+   ],
+   "id": "w143426026.0:1",
+   "length_m": 99.377,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n14251972711",
+   "width_m": 1.5
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956905757",
+   "geometry": [
+    [
+     -112.953,
+     -11.812
+    ],
+    [
+     -99.823,
+     22.883
+    ]
+   ],
+   "id": "w185121690.0:0",
+   "length_m": 37.096,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956905753",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956905753",
+   "geometry": [
+    [
+     -99.823,
+     22.883
+    ],
+    [
+     -70.707,
+     11.824
+    ],
+    [
+     -56.27,
+     6.44
+    ],
+    [
+     -41.884,
+     0.877
+    ],
+    [
+     -27.412,
+     -4.463
+    ],
+    [
+     -17.096,
+     -8.427
+    ],
+    [
+     -10.609,
+     -10.392
+    ]
+   ],
+   "id": "w185121698.0:0",
+   "length_m": 95.233,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n10189044188",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956948874",
+   "geometry": [
+    [
+     -155.189,
+     4.354
+    ],
+    [
+     -131.641,
+     -4.74
+    ],
+    [
+     -126.822,
+     -6.583
+    ]
+   ],
+   "id": "w185125477.0:0",
+   "length_m": 30.402,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956905763",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956905763",
+   "geometry": [
+    [
+     -126.822,
+     -6.583
+    ],
+    [
+     -112.953,
+     -11.812
+    ]
+   ],
+   "id": "w185125477.0:1",
+   "length_m": 14.822,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956905757",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956948912",
+   "geometry": [
+    [
+     -66.0,
+     69.191
+    ],
+    [
+     -64.486,
+     73.155
+    ]
+   ],
+   "id": "w185125478.0:0",
+   "length_m": 4.243,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956948868",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956948868",
+   "geometry": [
+    [
+     -64.486,
+     73.155
+    ],
+    [
+     -58.24,
+     89.087
+    ],
+    [
+     -56.691,
+     91.385
+    ],
+    [
+     -54.221,
+     92.395
+    ],
+    [
+     -50.797,
+     92.006
+    ],
+    [
+     67.859,
+     47.319
+    ],
+    [
+     70.397,
+     44.788
+    ],
+    [
+     70.63,
+     41.579
+    ],
+    [
+     64.96,
+     24.903
+    ]
+   ],
+   "id": "w185125478.0:1",
+   "length_m": 177.206,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956948878",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956948878",
+   "geometry": [
+    [
+     64.96,
+     24.903
+    ],
+    [
+     63.359,
+     20.518
+    ]
+   ],
+   "id": "w185125478.0:2",
+   "length_m": 4.668,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956948873",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_library_door",
+   "from": "n1956948872",
+   "geometry": [
+    [
+     47.158,
+     27.024
+    ],
+    [
+     45.558,
+     23.049
+    ],
+    [
+     43.656,
+     19.996
+    ]
+   ],
+   "id": "w185125480.0:0",
+   "length_m": 7.882,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3059132682",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_library_door",
+   "from": "n3059132682",
+   "geometry": [
+    [
+     43.656,
+     19.996
+    ],
+    [
+     24.711,
+     -32.564
+    ],
+    [
+     23.721,
+     -35.672
+    ]
+   ],
+   "id": "w185125480.0:1",
+   "length_m": 59.132,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1960329038",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_bus_stop",
+   "from": "n1960329038",
+   "geometry": [
+    [
+     23.721,
+     -35.672
+    ],
+    [
+     11.564,
+     -67.659
+    ]
+   ],
+   "id": "w185125480.0:2",
+   "length_m": 34.219,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3057369872",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956948900",
+   "geometry": [
+    [
+     -160.636,
+     6.874
+    ],
+    [
+     -155.189,
+     4.354
+    ]
+   ],
+   "id": "w185125482.0:0",
+   "length_m": 6.002,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956948874",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n10189044188",
+   "geometry": [
+    [
+     -10.609,
+     -10.392
+    ],
+    [
+     -4.225,
+     -10.203
+    ],
+    [
+     2.986,
+     -6.328
+    ],
+    [
+     9.705,
+     0.178
+    ],
+    [
+     20.606,
+     29.477
+    ],
+    [
+     22.465,
+     32.208
+    ],
+    [
+     24.564,
+     33.53
+    ],
+    [
+     27.438,
+     34.396
+    ]
+   ],
+   "id": "w185125988.0:0",
+   "length_m": 63.973,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956905792",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1960329038",
+   "geometry": [
+    [
+     23.721,
+     -35.672
+    ],
+    [
+     60.151,
+     -50.083
+    ]
+   ],
+   "id": "w185431592.0:0",
+   "length_m": 39.177,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n10144814117",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n10144814117",
+   "geometry": [
+    [
+     60.151,
+     -50.083
+    ],
+    [
+     130.773,
+     -75.895
+    ]
+   ],
+   "id": "w185431592.0:1",
+   "length_m": 75.191,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1960329037",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_bus_stop",
+   "from": "n3057369872",
+   "geometry": [
+    [
+     11.564,
+     -67.659
+    ],
+    [
+     4.156,
+     -64.45
+    ],
+    [
+     -1.11,
+     -62.596
+    ],
+    [
+     -7.305,
+     -61.774
+    ],
+    [
+     -13.19,
+     -61.574
+    ],
+    [
+     -21.218,
+     -61.43
+    ]
+   ],
+   "id": "w301653197.0:0",
+   "length_m": 33.823,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3057369877",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_library_door",
+   "from": "n3059132682",
+   "geometry": [
+    [
+     43.656,
+     19.996
+    ],
+    [
+     81.471,
+     5.674
+    ]
+   ],
+   "id": "w301780869.0:0",
+   "length_m": 40.436,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n10144752716",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n10144752716",
+   "geometry": [
+    [
+     81.471,
+     5.674
+    ],
+    [
+     103.566,
+     -2.719
+    ]
+   ],
+   "id": "w301780869.0:1",
+   "length_m": 23.635,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3059132683",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n3059132683",
+   "geometry": [
+    [
+     103.566,
+     -2.719
+    ],
+    [
+     101.165,
+     -9.126
+    ]
+   ],
+   "id": "w301780869.0:2",
+   "length_m": 6.842,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3059132684",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n3059132683",
+   "geometry": [
+    [
+     103.566,
+     -2.719
+    ],
+    [
+     143.919,
+     -17.085
+    ],
+    [
+     146.809,
+     -8.037
+    ]
+   ],
+   "id": "w301780870.0:0",
+   "length_m": 52.332,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3059132686",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n10189044206",
+   "geometry": [
+    [
+     -125.031,
+     91.141
+    ],
+    [
+     -66.0,
+     69.191
+    ]
+   ],
+   "id": "w36964763.0:0",
+   "length_m": 62.98,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956948912",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956948912",
+   "geometry": [
+    [
+     -66.0,
+     69.191
+    ],
+    [
+     27.438,
+     34.396
+    ]
+   ],
+   "id": "w36964763.0:1",
+   "length_m": 99.706,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956905792",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_library_door",
+   "from": "n1956905792",
+   "geometry": [
+    [
+     27.438,
+     34.396
+    ],
+    [
+     47.158,
+     27.024
+    ]
+   ],
+   "id": "w36964763.0:2",
+   "length_m": 21.053,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956948872",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_library_door",
+   "from": "n1956948872",
+   "geometry": [
+    [
+     47.158,
+     27.024
+    ],
+    [
+     63.359,
+     20.518
+    ]
+   ],
+   "id": "w36964763.0:3",
+   "length_m": 17.459,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1956948873",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n1956948873",
+   "geometry": [
+    [
+     63.359,
+     20.518
+    ],
+    [
+     135.598,
+     -6.039
+    ],
+    [
+     146.809,
+     -8.037
+    ]
+   ],
+   "id": "w36964763.0:4",
+   "length_m": 88.354,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n3059132686",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n3059132686",
+   "geometry": [
+    [
+     146.809,
+     -8.037
+    ],
+    [
+     150.337,
+     -8.67
+    ],
+    [
+     154.708,
+     -9.28
+    ],
+    [
+     158.614,
+     -10.213
+    ]
+   ],
+   "id": "w36964763.0:5",
+   "length_m": 12.014,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n10183466487",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n429843156",
+   "geometry": [
+    [
+     -154.398,
+     -13.865
+    ],
+    [
+     -108.393,
+     -19.773
+    ]
+   ],
+   "id": "w36966642.0:0",
+   "length_m": 46.383,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n429843157",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_bike_rack",
+   "from": "n429843157",
+   "geometry": [
+    [
+     -108.393,
+     -19.773
+    ],
+    [
+     -79.905,
+     -21.561
+    ],
+    [
+     -40.12,
+     -22.379
+    ]
+   ],
+   "id": "w36966642.0:1a",
+   "length_m": 68.337,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "x:poi:poi_bike_rack",
+   "width_m": null
+  },
+  {
+   "exposed": true,
+   "exposed_poi": "poi_bike_rack",
+   "from": "x:poi:poi_bike_rack",
+   "geometry": [
+    [
+     -40.12,
+     -22.379
+    ],
+    [
+     -10.824,
+     -22.982
+    ],
+    [
+     23.721,
+     -35.672
+    ]
+   ],
+   "id": "w36966642.0:1b",
+   "length_m": 66.104,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n1960329038",
+   "width_m": null
+  },
+  {
+   "exposed": false,
+   "exposed_poi": null,
+   "from": "n429843157",
+   "geometry": [
+    [
+     -108.393,
+     -19.773
+    ],
+    [
+     -117.126,
+     -22.704
+    ]
+   ],
+   "id": "w36966644.0:0",
+   "length_m": 9.212,
+   "sheltered": false,
+   "slope_pct": null,
+   "source": "osm",
+   "stairs": false,
+   "step_free": true,
+   "to": "n429843162",
+   "width_m": 1.5
+  }
+ ],
+ "frame": "campus_map",
+ "nodes": [
+  {
+   "id": "n10144752716",
+   "kind": "junction",
+   "x": 81.471,
+   "y": 5.674
+  },
+  {
+   "id": "n10144814117",
+   "kind": "junction",
+   "x": 60.151,
+   "y": -50.083
+  },
+  {
+   "id": "n10144814122",
+   "kind": "junction",
+   "x": 150.836,
+   "y": -22.903
+  },
+  {
+   "id": "n10183466484",
+   "kind": "junction",
+   "x": 158.408,
+   "y": -12.167
+  },
+  {
+   "id": "n10183466486",
+   "kind": "junction",
+   "x": 158.864,
+   "y": -7.937
+  },
+  {
+   "id": "n10183466487",
+   "kind": "junction",
+   "x": 158.614,
+   "y": -10.213
+  },
+  {
+   "id": "n10189044188",
+   "kind": "junction",
+   "x": -10.609,
+   "y": -10.392
+  },
+  {
+   "id": "n10189044205",
+   "kind": "junction",
+   "x": -129.738,
+   "y": 90.02
+  },
+  {
+   "id": "n10189044206",
+   "kind": "junction",
+   "x": -125.031,
+   "y": 91.141
+  },
+  {
+   "id": "n11958813356",
+   "kind": "junction",
+   "x": -164.473,
+   "y": 0.712
+  },
+  {
+   "id": "n14251972711",
+   "kind": "junction",
+   "x": 159.13,
+   "y": -6.105
+  },
+  {
+   "id": "n1956905753",
+   "kind": "junction",
+   "x": -99.823,
+   "y": 22.883
+  },
+  {
+   "id": "n1956905757",
+   "kind": "junction",
+   "x": -112.953,
+   "y": -11.812
+  },
+  {
+   "id": "n1956905763",
+   "kind": "junction",
+   "x": -126.822,
+   "y": -6.583
+  },
+  {
+   "id": "n1956905792",
+   "kind": "junction",
+   "x": 27.438,
+   "y": 34.396
+  },
+  {
+   "id": "n1956948868",
+   "kind": "junction",
+   "x": -64.486,
+   "y": 73.155
+  },
+  {
+   "id": "n1956948872",
+   "kind": "junction",
+   "x": 47.158,
+   "y": 27.024
+  },
+  {
+   "id": "n1956948873",
+   "kind": "junction",
+   "x": 63.359,
+   "y": 20.518
+  },
+  {
+   "id": "n1956948874",
+   "kind": "junction",
+   "x": -155.189,
+   "y": 4.354
+  },
+  {
+   "id": "n1956948878",
+   "kind": "junction",
+   "x": 64.96,
+   "y": 24.903
+  },
+  {
+   "id": "n1956948900",
+   "kind": "junction",
+   "x": -160.636,
+   "y": 6.874
+  },
+  {
+   "id": "n1956948912",
+   "kind": "junction",
+   "x": -66.0,
+   "y": 69.191
+  },
+  {
+   "id": "n1960329037",
+   "kind": "junction",
+   "x": 130.773,
+   "y": -75.895
+  },
+  {
+   "id": "n1960329038",
+   "kind": "junction",
+   "x": 23.721,
+   "y": -35.672
+  },
+  {
+   "id": "n3057369872",
+   "kind": "junction",
+   "x": 11.564,
+   "y": -67.659
+  },
+  {
+   "id": "n3057369877",
+   "kind": "junction",
+   "x": -21.218,
+   "y": -61.43
+  },
+  {
+   "id": "n3059132682",
+   "kind": "junction",
+   "x": 43.656,
+   "y": 19.996
+  },
+  {
+   "id": "n3059132683",
+   "kind": "junction",
+   "x": 103.566,
+   "y": -2.719
+  },
+  {
+   "id": "n3059132684",
+   "kind": "junction",
+   "x": 101.165,
+   "y": -9.126
+  },
+  {
+   "id": "n3059132686",
+   "kind": "junction",
+   "x": 146.809,
+   "y": -8.037
+  },
+  {
+   "id": "n429843156",
+   "kind": "junction",
+   "x": -154.398,
+   "y": -13.865
+  },
+  {
+   "id": "n429843157",
+   "kind": "junction",
+   "x": -108.393,
+   "y": -19.773
+  },
+  {
+   "id": "n429843162",
+   "kind": "junction",
+   "x": -117.126,
+   "y": -22.704
+  },
+  {
+   "id": "poi:poi_bike_rack",
+   "kind": "poi",
+   "x": -40.12,
+   "y": -22.382
+  },
+  {
+   "id": "poi:poi_bus_stop",
+   "kind": "poi",
+   "x": 11.125,
+   "y": -67.47
+  },
+  {
+   "id": "poi:poi_kiosk",
+   "kind": "poi",
+   "x": -154.166,
+   "y": -13.899
+  },
+  {
+   "id": "poi:poi_library_door",
+   "kind": "poi",
+   "x": 43.631,
+   "y": 19.918
+  },
+  {
+   "id": "poi:poi_shelter_9b",
+   "kind": "poi",
+   "x": 146.551,
+   "y": -8.836
+  },
+  {
+   "id": "poi:poi_shelter_south",
+   "kind": "poi",
+   "x": 131.014,
+   "y": -75.274
+  },
+  {
+   "id": "staging",
+   "kind": "staging",
+   "x": 23.377,
+   "y": -36.583
+  },
+  {
+   "id": "x:poi:poi_bike_rack",
+   "kind": "junction",
+   "x": -40.12,
+   "y": -22.379
+  }
+ ],
+ "notes": [],
+ "open_space_max_m": 0.0
+}

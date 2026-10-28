@@ -1,0 +1,47 @@
+# Fleet configuration. Hosts may be overridden by environment variables (${VAR:-default}).
+# No secrets here: the Postgres DSN is read from the env var named in edge.postgres_dsn_env.
+schema_version: "1.0"
+fleet_id: upv_pilot
+campus: campus/upv_vera_cpi.yaml
+
+edge:
+  host: ${A6G_EDGE_HOST:-127.0.0.1}           # edge hostname, GPU, UPF placement assumed
+  mqtt:
+    host: ${A6G_MQTT_HOST:-127.0.0.1}
+    port: 1883
+  postgres_dsn_env: A6G_PG_DSN
+  coordinator_a2a_url: ${A6G_COORDINATOR_URL:-http://127.0.0.1:8100}
+  otlp_endpoint: ${A6G_OTLP_ENDPOINT:-}
+  decision_log_path: ${A6G_DECISION_LOG:-var/decisions.jsonl}
+
+defaults:
+  budget:                                     # assumed, not yet from measured 5G uplink per CPE
+    sustained_mbps: 3.0
+    burst_mbps: 8.0
+  coordinator_timeout_s: 10
+  a2a_failures_for_loss: 2
+  link_loss_policy: hold_then_recover   # or finish_current_then_hold, return_home
+  cfp_deadline_ms: 1500
+  state_publish_hz: 1.0
+  agent:
+    link_loss_hold_s: 30              # hold_then_recover: wait before seeking coverage
+    inspect_dwell_s: 10
+    triage_confidence_threshold: 0.6   # below this (or novel) -> edge confirmation
+    state_poll_interval_s: 1.0
+    max_queued_reports: 1000           # offline report queue bound (oldest bulk dropped first)
+    llm_justifications: true           # false -> template justifications only
+
+robots:
+  - robot_id: go2_01
+    manifest: robots/go2_01.yaml
+    # Agent runs on board the Go2 EDU dock (192.168.123.18). The internal PC (.161) is off-limits.
+    a2a_url: ${A6G_GO2_01_A2A:-http://192.168.123.18:8101}
+    mcp_url: ${A6G_GO2_01_MCP:-http://192.168.123.18:8201/mcp}
+    peers: [summit_01]
+
+  - robot_id: summit_01
+    manifest: robots/summit_01.yaml
+    # Agent runs on the edge as a proxy; it reaches the Summit's skill_mcp over streamable HTTP.
+    a2a_url: ${A6G_SUMMIT_01_A2A:-http://127.0.0.1:8102}
+    mcp_url: ${A6G_SUMMIT_01_MCP:-http://192.168.0.200:8202/mcp}
+    peers: [go2_01]

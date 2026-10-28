@@ -1,0 +1,32 @@
+[project]
+name = "a6g-cli"
+version = "0.1.0"
+description = "The a6g operator CLI."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-interactions",
+    "a6g-kb",
+    "a6g-common",
+    "a6g-observability",
+    "typer>=0.27,<0.28",
+    "httpx>=0.28,<1",
+    "a6g-transport",
+    "mcp>=2.3,<3",
+    "langgraph-sdk>=0.4,<0.5",
+    "a6g-campus-tools",
+]
+
+[project.scripts]
+a6g = "a6g_cli.main:app"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-interactions = { workspace = true }
+a6g-kb = { workspace = true }
+a6g-common = { workspace = true }
+a6g-observability = { workspace = true }
+a6g-transport = { workspace = true }
+a6g-campus-tools = { workspace = true }

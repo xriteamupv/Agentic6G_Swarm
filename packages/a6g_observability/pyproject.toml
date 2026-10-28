@@ -1,0 +1,23 @@
+[project]
+name = "a6g-observability"
+version = "0.1.0"
+description = "Decision log and OpenTelemetry setup."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-common",
+    "opentelemetry-api>=1.45,<2",
+]
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-common = { workspace = true }
+
+
+[project.optional-dependencies]
+otel = [
+    "opentelemetry-sdk>=1.45,<2",
+    "opentelemetry-exporter-otlp-proto-http>=1.45,<2",
+]

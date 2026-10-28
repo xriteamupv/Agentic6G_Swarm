@@ -1,0 +1,20 @@
+[project]
+name = "a6g-campus-tools"
+version = "0.1.0"
+description = "Campus world/map generator: OSM extract -> Gazebo SDF world, Nav2 prior map, 2D-sim obstacles."
+requires-python = ">=3.11"
+dependencies = [
+    "a6g-common",
+    "httpx>=0.28,<1",
+    "numpy>=2.0,<3",
+    "pyyaml>=6.0,<7",
+    "starlette>=0.40,<2",
+    "uvicorn>=0.54,<1",
+]
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+a6g-common = { workspace = true }

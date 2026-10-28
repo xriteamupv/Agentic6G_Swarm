@@ -1,0 +1,45 @@
+# Knowledge-server ablation, decomposition set: operator orders whose destination is
+# said in many ways, and the tasks they must decompose into (kind, target id), order
+# ignored; [] = nothing to plan (the place is not on the map: the operator is told).
+# The verbs are the two the rule-based planner reads ("escort ... to", "send a robot to"),
+# so with fake models the ablation isolates place resolution; with --model any verb works.
+- {text: "Escort the visitor to the bus stop", posture: interactive, expect: [[escort, poi_bus_stop]]}
+- {text: "Escort the visitor to the bus", posture: interactive, expect: [[escort, poi_bus_stop]]}
+- {text: "Escort the visitor to the bus station", posture: interactive, expect: [[escort, poi_bus_stop]]}
+- {text: "Escort the visitor to the parada del bus", posture: interactive, expect: [[escort, poi_bus_stop]]}
+- {text: "Escort the visitor to the bus stpo", posture: interactive, expect: [[escort, poi_bus_stop]]}
+- {text: "Escort the visitor to the building 8K door", posture: interactive, expect: [[escort, poi_kiosk]]}
+- {text: "Escort the visitor to the 8K entrance", posture: interactive, expect: [[escort, poi_kiosk]]}
+- {text: "Escort the visitor to the door of building 8K", posture: interactive, expect: [[escort, poi_kiosk]]}
+- {text: "Escort the visitor to the puerta del edificio 8K", posture: interactive, expect: [[escort, poi_kiosk]]}
+- {text: "Escort the visitor to the library door", posture: interactive, expect: [[escort, poi_library_door]]}
+- {text: "Escort the visitor to the library entrance", posture: interactive, expect: [[escort, poi_library_door]]}
+- {text: "Escort the visitor to the door of building 9B", posture: interactive, expect: [[escort, poi_library_door]]}
+- {text: "Escort the visitor to the Campus east access", posture: interactive, expect: [[escort, poi_shelter_9b]]}
+- {text: "Escort the visitor to the east access of the campus", posture: interactive, expect: [[escort, poi_shelter_9b]]}
+- {text: "Escort the visitor to the acceso este del campus", posture: interactive, expect: [[escort, poi_shelter_9b]]}
+- {text: "Escort the visitor to the 8B parking", posture: interactive, expect: [[escort, poi_shelter_south]]}
+- {text: "Escort the visitor to the 8B car park", posture: interactive, expect: [[escort, poi_shelter_south]]}
+- {text: "Escort the visitor to the aparcamiento 8B", posture: interactive, expect: [[escort, poi_shelter_south]]}
+- {text: "Escort the visitor to the bike rack", posture: interactive, expect: [[escort, poi_bike_rack]]}
+- {text: "Escort the visitor to the bicycle rack", posture: interactive, expect: [[escort, poi_bike_rack]]}
+- {text: "Escort the visitor to the aparcabicis", posture: interactive, expect: [[escort, poi_bike_rack]]}
+- {text: "Escort the visitor to the porta de l'edifici 8K", posture: interactive, expect: [[escort, poi_kiosk]]}
+- {text: "Escort the visitor to the accés est del campus", posture: interactive, expect: [[escort, poi_shelter_9b]]}
+- {text: "Escort the visitor to the cafeteria", posture: interactive, expect: []}
+- {text: "Escort the visitor to the gym", posture: interactive, expect: []}
+- {text: "Escort the visitor to car park P3", posture: interactive, expect: []}
+- {text: "Send a robot to the bus stop", posture: routine, expect: [[go_to, poi_bus_stop]]}
+- {text: "Send a robot to the bus station", posture: routine, expect: [[go_to, poi_bus_stop]]}
+- {text: "Send a robot to the bike parking", posture: routine, expect: [[go_to, poi_bike_rack]]}
+- {text: "Send a robot to the bicycle rack", posture: routine, expect: [[go_to, poi_bike_rack]]}
+- {text: "Send a robot to the building 8K dor", posture: routine, expect: [[go_to, poi_kiosk]]}
+- {text: "Send a robot to the door of building 8K", posture: routine, expect: [[go_to, poi_kiosk]]}
+- {text: "Send a robot to the library door", posture: routine, expect: [[go_to, poi_library_door]]}
+- {text: "Send a robot to the library entrance", posture: routine, expect: [[go_to, poi_library_door]]}
+- {text: "Send a robot to the east access of the campus", posture: routine, expect: [[go_to, poi_shelter_9b]]}
+- {text: "Send a robot to the parking 8B", posture: routine, expect: [[go_to, poi_shelter_south]]}
+- {text: "Send a robot to the aparcabicis", posture: routine, expect: [[go_to, poi_bike_rack]]}
+- {text: "Send a robot to the parada d'autobús", posture: routine, expect: [[go_to, poi_bus_stop]]}
+- {text: "Send a robot to the swimming pool", posture: routine, expect: []}
+- {text: "Send a robot to building 1A", posture: routine, expect: []}
