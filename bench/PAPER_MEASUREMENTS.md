@@ -6,7 +6,7 @@ each bench are in `README.md`, and definitions are in `SPEC.md` §A3.8.*
 
 ## 0. Final measurement run (27–28 Oct 2026) — complete
 
-*Updated as each step finishes. The sections below (1–6) describe the 26 Oct state; where a
+*Commit IDs in this document and in the result manifests predate the 28 Oct history rewrite; see [`COMMIT_MAP.md`](COMMIT_MAP.md) for the published IDs.* *Updated as each step finishes. The sections below (1–6) describe the 26 Oct state; where a
 step here reruns a measurement, its result here replaces the older one.*
 
 **Setup.** One run of `bench/run_final.sh A B C`, started 27 Oct 19:52 at commit `53dcba4`
