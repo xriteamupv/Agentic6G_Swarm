@@ -9,7 +9,7 @@ when the network or the coordinator fails.
 
 The swarm runs in a 2D simulation of the pilot area on the campus of the Universitat
 Politècnica de València (UPV). Its 5G coverage comes from UPV's radio digital twin of the
-campus cell. This repository holds the code, the simulator and the benchmarks behind our
+campus cell, calibrated with measurements on the campus. This repository holds the code, the simulator and the benchmarks behind our
 IEEE Network submission (see [Citation](#citation)).
 
 ![The 2D view during a patrol](docs/img/2d-view-patrol.png)
@@ -26,7 +26,7 @@ The coloured map is the 5G coverage; go2_02 has just entered a lost-coverage zon
 - [Replicating the experiments](#replicating-the-experiments)
 - [Repository layout](#repository-layout)
 - [Future work](#future-work)
-- [Citation](#citation) · [License](#license)
+- [Citation](#citation) · [Acknowledgments](#acknowledgments) · [License](#license)
 
 ## What the swarm can do
 
@@ -171,7 +171,7 @@ Tested on Ubuntu 24.04 (x86-64, 8 cores, 16 GB RAM).
 - [uv](https://docs.astral.sh/uv/) installs Python 3.11 and every dependency.
 - An OpenAI API key is optional: without one, the coordinator uses deterministic templates.
 - Docker is needed only for the Postgres-backed benchmark.
-- Node.js with pnpm is needed only for the chat UI.
+- Node.js (20 or later) with pnpm is needed only for the chat UI.
 
 ```bash
 git clone https://github.com/xriteamupv/Agentic6G_Swarm.git
@@ -187,6 +187,44 @@ uv run pytest                            # all tests (about 12 minutes); never c
 > `env -u PYTHONPATH` so that ROS's Python packages do not leak into the project's
 > environment.
 
+### The operator chat UI
+
+The chat UI in `chat-ui/` runs as a production build (a self-contained Next.js server):
+
+```bash
+cp chat-ui/.env.example chat-ui/.env     # points the UI at http://localhost:2024, assistant `coordinator`
+deploy/ui/build.sh                       # installs its dependencies and builds it into var/chat-ui/
+```
+
+Rebuild after changing the UI or its `.env`: the coordinator's URL is fixed at build time
+(set `NEXT_PUBLIC_API_URL=http://<edge-host>:2024` to use it from another machine). To run
+it as a systemd user service, see [deploy/ui/README.md](deploy/ui/README.md). `pnpm dev`
+inside `chat-ui/` is only for working on the UI itself: it is much slower on long mission
+threads.
+
+### Editing and building the campus map
+
+The campus is defined in `config/campus/upv_vera_cpi.yaml`: points of interest, staging
+area, link-recovery points, patrol zones and the 5G site, in WGS84. Buildings and footpaths
+come from the OpenStreetMap extract in `sim_gazebo/data/osm/`.
+
+```bash
+uv run a6g campus edit       # editor in the browser (http://127.0.0.1:8350): patrol zones,
+                             # move POIs, the staging area and recovery points, then save
+uv run a6g campus zones      # check the patrol zones: length, footpaths, survey route
+uv run a6g campus build      # regenerate the files derived from the campus
+uv run a6g config validate   # check the result
+```
+
+The editor saves to the campus file and keeps a backup of the previous version.
+`campus build` regenerates the Gazebo world, the Nav2 prior map and the 2D simulator's obstacles and route graph in
+`sim_gazebo/src/a6g_gz_worlds/`. Restart the simulated fleet to load the changes.
+
+The 5G coverage map (`sim_gazebo/src/a6g_gz_worlds/sim/`) is built from UPV's radio digital twin export with
+`uv run a6g network import-coverage` (the export itself is UPV data and is not included).
+`uv run a6g network coverage --preview cov.html` summarises the coverage levels per patrol
+zone and point of interest, and draws the map.
+
 ## Running the demo
 
 Use three terminals in the repository folder:
@@ -201,9 +239,8 @@ uv run a6g dev serve                     # A6G_COORDINATOR_LLM=off uv run ... wi
 
 # 3. Talk to it, from the command line ...
 uv run a6g goal "Patrol the campus"
-#    ... or from the chat UI (needs Node.js and pnpm):
-cd chat-ui && cp .env.example .env && pnpm install && pnpm dev
-#    then open http://localhost:3000
+#    ... or from the chat UI (built once, see Installation):
+PORT=3000 var/chat-ui/start.sh           # then open http://localhost:3000
 ```
 
 Things to try in the chat, one message at a time:
@@ -230,8 +267,9 @@ themselves. `uv run a6g dev reset` clears all saved state between sessions.
 
 Every experiment runs on the simulator with fixed random seeds, and writes a JSON result to
 `bench/results/`. Each result carries a manifest: the commit, configuration hashes, seeds,
-models, network mode and host. **All network conditions are emulated**; nothing is measured
-on the live campus network.
+models, network mode and host. The 5G network is in the loop through emulation built on
+measured data: the coverage map of UPV's calibrated radio digital twin, the cell's measured
+uplink capacity and per-level link profiles applied with `tc netem`.
 
 **One command for everything:**
 
@@ -312,9 +350,9 @@ The following parts are started or planned but are **not** used for the results 
   with confirmation at the edge, plus a benchmark script for the Jetson. In the 2D simulator
   the camera is a placeholder and anomalies are injected. Self-hosted models replacing the
   cloud LLM are also future work.
-- **Measured network.** The coverage map comes from the radio digital twin. The medium and
-  low link profiles (delay, jitter, loss) and the admission model are assumptions until UPV's
-  uplink measurements are available. A real network exposure API would replace the stand-in.
+- **Live network.** Running the experiments over the campus 5G network itself, with the
+  network's exposure API in place of the admission stand-in, and the delay, jitter and loss
+  of every coverage level taken from on-site measurements.
 - **Flood risk twin and governance hardening.** These cover:
   - a flood model for the exposed points;
   - tamper-evident logs;
@@ -325,8 +363,13 @@ The following parts are started or planned but are **not** used for the results 
 
 ## Citation
 
-The paper describing this work has been submitted to *IEEE Network*. The citation will be
-added here once it is published.
+The paper describing this work has been submitted to *IEEE Network*.
+
+## Acknowledgments
+
+This work was partially supported by the Smart Networks and Services Joint Undertaking (SNS JU)
+under the European Union's Horizon Europe research and innovation programme through Agentic6G
+project under Grant Agreement No. 101290342.
 
 ## License
 
