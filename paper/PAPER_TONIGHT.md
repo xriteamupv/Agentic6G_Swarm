@@ -6,7 +6,25 @@ the release; line numbers can differ slightly there).*
 
 ## Summary
 
-@@SUMMARY@@
+- **A done.** `admission_only` added and all four scarcity variants rerun at one commit
+  (480 runs, 2–22 Mbps). It behaves exactly as the cost model predicts: 0/3 posts with
+  sensing at 2–8 Mbps, 1/3 (video at the medium post) from 12 Mbps; I1–I3 hold. The other
+  variants reproduce the 28 Oct numbers exactly. `paper/fig_scarcity.csv` and
+  `paper/RESULTS.md` updated (definitions of the variants and of "usable" included).
+- **B1–B4 confirmed**, with two precisions (claims are settled by estimated cost, not
+  completion time; deadline misses are 1.5 s for contract-net and 2.0 s for the other
+  patterns) and an explanation of the duplicates (robots out of coverage presumed lost).
+  **B5 run:** the emulator agrees with the paper's ±3 dB ranges at the sweep resolution.
+- **C done:** `paper/fig_campus_map.pdf` / `.png` (one column) and a double-column variant;
+  the two low posts relocate about 12 m to medium-coverage viewpoints (5.7 and 2.9 dB).
+- **D done** except the GitHub release and the Zenodo DOI, which need your GitHub
+  account (steps below): code, `paper/`, the radio DT export and a "Reproducing the paper"
+  README section are on `main`, tagged `ieee-network-2026`.
+- **Also rerun:** retrieval precision (M3), last run on 20 Oct, before this week's campus
+  changes: identical numbers, now with manifests.
+- `paper/RESULTS.md` now flags a result only when the code it ran changed after its commit
+  (naming the changed parts) and leaves superseded results out (the 18 and 26 Oct M1 and
+  order runs were listed before).
 
 ## A. Admission-only baseline (Fig. 4)
 
@@ -230,7 +248,31 @@ stand-in, scenario), which is that of `af40683`.
 
 ## D. Release
 
-@@D@@
+1. **Repository** `https://github.com/xriteamupv/Agentic6G_Swarm` is public. `main` holds
+   the code of the results, `paper/` (`RESULTS.md`, every CSV, the campus map and its
+   script), the radio DT export (`data/network/n40_centroides_rsrp.csv.gz`, 43 MB) and the
+   README section "Reproducing the paper" (environment, one command per artefact with
+   runtime and outputs, seeds, configuration, model ids, prompt versions, definitions,
+   netem profiles, data). `develop` holds the same plus the development history, raw
+   result files and the measurement log.
+2. **Data release checks.** Radio DT export: approved for publication by UPV (the author's
+   confirmation, 30 Oct); published compressed because the CSV (114 MB) exceeds GitHub's
+   100 MB file limit. OSM data keep their ODbL attribution (`data/osm/ATTRIBUTION.md`). No
+   secrets (scan for API keys, tokens and private keys: none; only `.env.example` files with
+   empty values) and no personal data (all people in the scenarios are simulated; no
+   e-mail addresses in the tree).
+3. **Tag:** `ieee-network-2026` on `main` (@@MAINCOMMIT@@).
+4. **Release and DOI: to do in the GitHub web UI** (the GitHub CLI is not installed here):
+   first enable the repository in Zenodo (zenodo.org → GitHub → switch on
+   `xriteamupv/Agentic6G_Swarm`), then create the release from the tag (Releases → Draft a
+   new release → tag `ieee-network-2026`, title "Code and experiments of the IEEE Network
+   paper", notes below). Zenodo archives the release and mints the DOI only if it was
+   enabled before the release is published.
+   Suggested notes: *"Code, configuration and experiment scripts of the paper submitted to
+   IEEE Network (Oct 2026): LangGraph swarm coordinator and robot agents over A2A v1.0 and
+   MQTT, 2D campus simulator with UPV's n40 radio digital twin, and the benchmarks behind
+   every figure and table (see README, Reproducing the paper). paper/ holds the exported
+   results."*
 
 ## E. Future work (evaluated, not implemented)
 
@@ -279,4 +321,21 @@ no divergence), and mission completion.
 
 ## Contradictions with the paper (Sections V-B to V-D)
 
-@@CONTRA@@
+Nothing contradicts the claims listed in the brief, but these points need a check
+against the text (I do not have Sections V-B to V-D here):
+1. **Claims after an outage (B2):** settled by the lower *estimated cost* (allocator cost
+   function), not strictly by who finishes sooner.
+2. **Duplicates:** if the text attributes them to the claim settlement or to award
+   handling, it should instead say that they come from robots out of coverage presumed
+   lost (by peers during the outage, or by the coordinator after the silence bound) while
+   they keep working.
+3. **Deadline miss:** 1.5 s applies to contract-net rounds (P3) only; other patterns miss
+   at 2.0 s to acknowledgement.
+4. **Fig. 4 without 44 Mbps:** the 28 Oct text mentioned video at 2/3 posts at 44 Mbps
+   with relocation; that point is no longer in the figure. Up to 22 Mbps, video is
+   reached at one post: from 22 Mbps with `reconcile`, from 16 Mbps with relocation.
+5. **Admission alone:** if the text says admission control alone gives "partial
+   sensing", it does not: it gives none up to 8 Mbps and only the medium post's video
+   from 12 Mbps.
+6. **M3 retrieval** numbers are unchanged by the rerun (P@1 0.712 offline, 0.861 with the
+   embedder model).

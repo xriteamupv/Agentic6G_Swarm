@@ -4,6 +4,26 @@
 before the final runs. Source files are under `bench/results/` and `var/runs/`. Details of
 each bench are in `README.md`, and definitions are in `SPEC.md` §A3.8.*
 
+## 00. Paper fixes, night of 29–30 Oct 2026
+
+Requested by the paper-writing session after a co-author's review; full report in
+[paper/PAPER_TONIGHT.md](../paper/PAPER_TONIGHT.md).
+
+- **Admission-only baseline (Fig. 4):** new variant `admission_only` (same admission as
+  `reconcile`, refused flows not adapted). All four variants rerun at `af40683`, 2–22 Mbps
+  (44 Mbps dropped: the paper uses the 20 MHz carrier only), fleets 3 and 5, 10 seeds:
+  480 runs, 0 errors, I1/I2/I3 0. `admission_only`: 0/3 posts with sensing at 2–8 Mbps,
+  1/3 (medium post's video) from 12 Mbps. The other variants reproduce section 0's rerun
+  exactly. `bench/results/n4_scarcity_20261029T232612Z.json`.
+- **SINR sensitivity ±3 dB** (`--sinr-shift`): agrees with the cost model at the sweep
+  resolution (full sensing from 12 / 8 / 8 Mbps at −3 / 0 / +3 dB; video at the medium post
+  never / from 22 / from 16 Mbps). `bench/results/sensitivity/`.
+- **Retrieval precision (M3) rerun:** identical to 20 Oct, now with manifests.
+- **Campus map** for the paper (`paper/plot_campus_map.py`); relocation viewpoints at
+  4 Mbps: bus stop −1.3 → 2.9 dB (11.5 m), Building 9B door −1.2 → 5.7 dB (12.9 m).
+- **Export:** stale flags now only when the code a result ran changed; superseded results
+  left out.
+
 ## 0. Final measurement run (27–28 Oct 2026) — complete
 
 *Commit IDs in this document and in the result manifests predate the 28 Oct history rewrite; see [`COMMIT_MAP.md`](COMMIT_MAP.md) for the published IDs.* *Updated as each step finishes. The sections below (1–6) describe the 26 Oct state; where a
