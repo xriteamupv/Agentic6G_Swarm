@@ -29,7 +29,12 @@ from a6g_common.schemas import DecisionKind
 
 from a6g_devstack.stack import EXTRA_ROBOTS, SimStack
 
-VARIANTS = {"reconcile": "on", "reconcile_off": "off", "reconcile_relocate": "relocate"}
+VARIANTS = {
+    "reconcile": "on",
+    "reconcile_off": "off",
+    "reconcile_relocate": "relocate",
+    "admission_only": "admission_only",
+}
 
 
 def g13_config(config_dir: str, capacity_mbps: float, variant: str) -> A6GConfig:

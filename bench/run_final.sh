@@ -36,6 +36,7 @@ if [[ " $PHASES " == *" A "* ]]; then
   step kpi11_offline_scarcity uv run a6g bench kpi11 --seeds 20 --network capacity
   step n1_outage        uv run a6g bench baselines --jobs 6
   step kb_offline       uv run a6g bench kb
+  step retrieval_offline uv run a6g bench retrieval
   step decompose_offline uv run a6g bench decompose
   step n2_overhead      uv run a6g bench overhead --persistence postgres
 fi
@@ -43,10 +44,12 @@ if [[ " $PHASES " == *" B "* ]]; then
   step kpi11_cloud      uv run a6g bench kpi11 --seeds 20 --model --robot-model
   step kpi11_cloud_scarcity uv run a6g bench kpi11 --seeds 20 --model --robot-model --network capacity
   step kb_cloud         uv run a6g bench kb --model --embedder model
+  step retrieval_cloud  uv run a6g bench retrieval --embedder model
   step decompose_cloud  uv run a6g bench decompose --model --embedder model
   for i in 1 2 3; do step "orders_$i" uv run a6g bench orders; done
 fi
 if [[ " $PHASES " == *" C "* ]]; then
   step n5_protocols     uv run a6g bench protocols
   step n6_export        uv run a6g paper export
+  step campus_map       uv run python paper/plot_campus_map.py
 fi

@@ -4163,7 +4163,8 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
         for s in cmap.path_samples:
             d = math.hypot(s["x"] - px, s["y"] - py)
             r = LEVELS.index(s["level"])
-            if d > radius or r >= rank or cfg.network.uplink_rate.rate_mbps(s["sinr"]) < need:
+            sinr = s["sinr"] + cfg.network.sinr_shift_db
+            if d > radius or r >= rank or cfg.network.uplink_rate.rate_mbps(sinr) < need:
                 continue
             if walls.blocked((s["x"], s["y"]), (px, py), h_a=0.5, h_b=0.5):
                 continue
@@ -4179,6 +4180,8 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
             "level": s["level"],
             "from_level": here["level"] if here else None,
             "distance_m": round(d, 1),
+            "sinr_db": round(s["sinr"] + cfg.network.sinr_shift_db, 2),
+            "from_sinr_db": round(here["sinr"] + cfg.network.sinr_shift_db, 2) if here else None,
         }
 
     async def reconcile(state: CoordState) -> dict[str, Any]:
@@ -4199,9 +4202,12 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
         rounds = 0
         net_cfg = cfg.network
         # The degradation loop (code only); off in the reconcile_off baseline
-        degrade = getattr(deps.network, "mode", "always_grant") == "capacity" and (
+        admission = getattr(deps.network, "mode", "always_grant") == "capacity" and (
             net_cfg.reconcile.mode != "off"
         )
+        # admission_only baseline: the same admission, one request pass, and a refused flow
+        # is not adapted (no switch to telemetry, no further rounds, no relocation)
+        degrade = admission and net_cfg.reconcile.mode != "admission_only"
         if net_cfg.post_sensing_mode:  # posts stream video unless degraded
             for t in tasks.values():
                 if t["spec"]["kind"] == TaskKind.HOLD_POST.value and not t["spec"].get(
@@ -4322,12 +4328,14 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                         state["mission_id"], [f["flow_id"] for f in bad]
                     )
                     continue
+            if admission and not degrade:
+                break
             problems = flow_rules.check(tasks, flows)
             if not problems["i1"] and not problems["i2"]:
                 break
         problems = flow_rules.check(tasks, flows)  # after the last pass, whatever it did
         escalated = []
-        if degrade and problems["i1"]:
+        if admission and problems["i1"]:
             # The last step: a post the network cannot serve at all is held on state
             # telemetry only (no sensing stream, so no flow: I1 holds) and escalated.
             floor = net_cfg.reconcile.recharge_reassign_min_priority

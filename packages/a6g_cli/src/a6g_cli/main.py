@@ -1206,10 +1206,13 @@ def bench_overhead(
 def bench_scarcity(
     capacities: Annotated[
         str, typer.Option("--capacities", help="uplink capacity of the cell, Mbps")
-    ] = "2,4,8,12,16,22,44",
+    ] = "2,4,8,12,16,22",
     variants: Annotated[
-        str, typer.Option("--variants", help="reconcile_off,reconcile,reconcile_relocate")
-    ] = "reconcile_off,reconcile,reconcile_relocate",
+        str,
+        typer.Option(
+            "--variants", help="reconcile_off,reconcile,reconcile_relocate,admission_only"
+        ),
+    ] = "reconcile_off,reconcile,reconcile_relocate,admission_only",
     fleets: Annotated[
         str, typer.Option("--fleets", help="fleet sizes (8 if >= 8 posts)")
     ] = "3,5,8",
@@ -1222,11 +1225,17 @@ def bench_scarcity(
     runs: Annotated[Path, typer.Option("--runs", help="run directories")] = Path(
         "var/runs/n4_scarcity"
     ),
+    sinr_shift: Annotated[
+        float, typer.Option("--sinr-shift", help="dB added to every SINR sample (sensitivity)")
+    ] = 0.0,
     config_dir: ConfigDirOpt = None,
 ) -> None:
     """Scenario G13: an emergency under network scarcity, swept over the cell's
     uplink capacity, the reconciliation variants and the fleet sizes."""
     import asyncio
+    import os
+
+    os.environ["A6G_SINR_SHIFT_DB"] = f"{sinr_shift:g}"  # read by every run's config
 
     from a6g_common import coverage as cv
     from a6g_devstack.bench_scarcity import run, summary, write, write_csv
@@ -1249,6 +1258,7 @@ def bench_scarcity(
     )
     result["manifest"] = _manifest(cfg, seeds, time_factor="up to 200x")
     result["manifest"]["network_derived"] = cfg.network.derived()
+    result["manifest"]["sinr_shift_db"] = cfg.network.sinr_shift_db
     typer.echo(summary(result))
     typer.echo(f"results: {write(result, out)}")
     typer.echo(f"figure data: {write_csv(result, csv_out)}")

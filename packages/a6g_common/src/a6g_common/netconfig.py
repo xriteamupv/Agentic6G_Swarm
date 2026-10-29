@@ -208,8 +208,9 @@ class CapacityConfig(_M):
 
 
 class ReconcileConfig(_M):
-    #: off (experiment baseline), on (degradation loop), relocate (+ viewpoints)
-    mode: Literal["off", "on", "relocate"] = "on"
+    #: off (experiment baseline), on (degradation loop), relocate (+ viewpoints),
+    #: admission_only (baseline: the same admission as on, but a refused flow is not adapted)
+    mode: Literal["off", "on", "relocate", "admission_only"] = "on"
     relocate_radius_m: float = 20.0
     recharge_reassign_min_priority: int = 80
 
@@ -222,6 +223,9 @@ class NetworkConfig(_M):
     link_profiles: dict[str, LinkProfile] = Field(default_factory=dict)
     capacity: CapacityConfig = Field(default_factory=CapacityConfig)
     reconcile: ReconcileConfig = Field(default_factory=ReconcileConfig)
+    #: dB added to every SINR sample of the coverage map where the capacity stand-in reads it
+    #: (admission rate and cost, viewpoints); 0 except in the SINR sensitivity runs
+    sinr_shift_db: float = 0.0
     #: sensing mode of posts without one (scenario G13: video); None keeps telemetry_plus
     post_sensing_mode: Literal["video", "telemetry"] | None = None
 

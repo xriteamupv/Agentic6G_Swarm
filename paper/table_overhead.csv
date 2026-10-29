@@ -1,0 +1,134 @@
+section,group,item,metric,n,median,p95,mean,unit
+traffic,g10|emergency|f3,per robot,up_payload_Bps,30,459.155,472.003,403.967,B/s (sim)
+traffic,g10|emergency|f3,per robot,up_wire_Bps,30,750.265,763.631,655.339,B/s (sim)
+traffic,g10|emergency|f3,per robot,down_payload_Bps,30,1232.97,1439.095,1246.221,B/s (sim)
+traffic,g10|emergency|f3,per robot,down_wire_Bps,30,2244.875,2575.902,2267.279,B/s (sim)
+traffic,g10|interactive|f3,per robot,up_payload_Bps,30,557.49,969.923,619.887,B/s (sim)
+traffic,g10|interactive|f3,per robot,up_wire_Bps,30,923.985,1799.032,1066.252,B/s (sim)
+traffic,g10|interactive|f3,per robot,down_payload_Bps,30,1622.02,1823.923,1609.364,B/s (sim)
+traffic,g10|interactive|f3,per robot,down_wire_Bps,30,2858.555,3410.551,2901.589,B/s (sim)
+traffic,g10|routine|f3,per robot,up_payload_Bps,60,761.53,1818.92,1040.141,B/s (sim)
+traffic,g10|routine|f3,per robot,up_wire_Bps,60,1509.79,3915.421,2170.279,B/s (sim)
+traffic,g10|routine|f3,per robot,down_payload_Bps,60,2021.705,3489.144,2580.599,B/s (sim)
+traffic,g10|routine|f3,per robot,down_wire_Bps,60,3706.96,6590.986,4825.277,B/s (sim)
+traffic,n1|routine|f3,per robot,up_payload_Bps,30,162.77,487.163,236.682,B/s (sim)
+traffic,n1|routine|f3,per robot,up_wire_Bps,30,264.17,793.199,385.619,B/s (sim)
+traffic,n1|routine|f3,per robot,down_payload_Bps,30,671.925,795.988,595.493,B/s (sim)
+traffic,n1|routine|f3,per robot,down_wire_Bps,30,1322.97,1518.528,1136.138,B/s (sim)
+traffic,n1|routine|f5,per robot,up_payload_Bps,50,341.045,530.333,321.329,B/s (sim)
+traffic,n1|routine|f5,per robot,up_wire_Bps,50,558.13,866.226,526.905,B/s (sim)
+traffic,n1|routine|f5,per robot,down_payload_Bps,50,1325.5,1932.697,1379.049,B/s (sim)
+traffic,n1|routine|f5,per robot,down_wire_Bps,50,2364.92,3313.555,2405.067,B/s (sim)
+traffic,n1|routine|f8,per robot,up_payload_Bps,80,489.59,537.951,411.76,B/s (sim)
+traffic,n1|routine|f8,per robot,up_wire_Bps,80,795.55,902.062,679.045,B/s (sim)
+traffic,n1|routine|f8,per robot,down_payload_Bps,80,3095.43,3395.945,2995.227,B/s (sim)
+traffic,n1|routine|f8,per robot,down_wire_Bps,80,5170.985,5632.337,4993.312,B/s (sim)
+pattern,g10,P1,messages,304,304,,,count
+pattern,g10,P1,payload_mean,304,682.5,,,B
+pattern,g10,P1,payload_p95,304,1409.0,,,B
+pattern,g10,P1,wire_mean,304,1581.9,,,B
+pattern,g10,P1,nl_share,304,0.0498,,,share
+pattern,g10,P2,messages,1004,1004,,,count
+pattern,g10,P2,payload_mean,1004,354.2,,,B
+pattern,g10,P2,payload_p95,1004,1096.45,,,B
+pattern,g10,P2,wire_mean,1004,1195.4,,,B
+pattern,g10,P2,nl_share,1004,0.0,,,share
+pattern,g10,P4,messages,41886,41886,,,count
+pattern,g10,P4,payload_mean,41886,464.6,,,B
+pattern,g10,P4,payload_p95,41886,496.0,,,B
+pattern,g10,P4,wire_mean,41886,756.8,,,B
+pattern,g10,P4,nl_share,41886,0.0,,,share
+pattern,g10,P5,messages,15910,15910,,,count
+pattern,g10,P5,payload_mean,15910,53.9,,,B
+pattern,g10,P5,payload_p95,15910,54.0,,,B
+pattern,g10,P5,wire_mean,15910,343.9,,,B
+pattern,g10,P5,nl_share,15910,0.0,,,share
+pattern,g10,P7,messages,10,10,,,count
+pattern,g10,P7,payload_mean,10,472.2,,,B
+pattern,g10,P7,payload_p95,10,481.0,,,B
+pattern,g10,P7,wire_mean,10,1384.2,,,B
+pattern,g10,P7,nl_share,10,0.0,,,share
+pattern,g10,P10,messages,96,96,,,count
+pattern,g10,P10,payload_mean,96,329.7,,,B
+pattern,g10,P10,payload_p95,96,977.0,,,B
+pattern,g10,P10,wire_mean,96,329.7,,,B
+pattern,g10,P10,nl_share,96,0.0,,,share
+model_call,coordinator_llm/AgentPlan,latency,ms,197,8920.3,17752.04,,ms
+model_call,coordinator_llm/AgentPlan,tokens,input_mean,197,,,2094.7,tokens
+model_call,coordinator_llm/AgentPlan,tokens,output_mean,197,,,874.5,tokens
+model_call,coordinator_llm/ChatIntent,latency,ms,240,4649.4,6925.51,,ms
+model_call,coordinator_llm/ChatIntent,tokens,input_mean,240,,,335.0,tokens
+model_call,coordinator_llm/ChatIntent,tokens,output_mean,240,,,280.8,tokens
+model_call,coordinator_llm/Diagnosis,latency,ms,2,6349.15,6906.295,,ms
+model_call,coordinator_llm/Diagnosis,tokens,input_mean,2,,,1405.5,tokens
+model_call,coordinator_llm/Diagnosis,tokens,output_mean,2,,,596.5,tokens
+model_call,coordinator_llm/Plan,latency,ms,129,7214.2,12304.72,,ms
+model_call,coordinator_llm/Plan,tokens,input_mean,129,,,1083.6,tokens
+model_call,coordinator_llm/Plan,tokens,output_mean,129,,,555.2,tokens
+model_call,coordinator_llm/PlanCheck,latency,ms,129,11433.3,24392.66,,ms
+model_call,coordinator_llm/PlanCheck,tokens,input_mean,129,,,882.8,tokens
+model_call,coordinator_llm/PlanCheck,tokens,output_mean,129,,,975.2,tokens
+checkpoint,coordinator,put:chat,bytes,90,48572.5,55649.15,49121.478,B
+checkpoint,coordinator,put:chat,write_ms,90,7.23,35.944,13.762,ms
+checkpoint,coordinator,put:goal,bytes,120,12444.5,19313.1,11606.042,B
+checkpoint,coordinator,put:goal,write_ms,120,2.963,56.614,10.026,ms
+checkpoint,coordinator,put:posture,bytes,120,35167.0,39941.1,33480.333,B
+checkpoint,coordinator,put:posture,write_ms,120,4.662,46.66,11.97,ms
+checkpoint,coordinator,put:report,bytes,2008,34833.5,51247.9,32974.346,B
+checkpoint,coordinator,put:report,write_ms,2008,3.098,7.804,3.809,ms
+checkpoint,coordinator,put:robot_lost,bytes,297,36076.0,44917.2,31473.185,B
+checkpoint,coordinator,put:robot_lost,write_ms,297,1.777,10.686,4.406,ms
+checkpoint,coordinator,put:robot_lost_long,bytes,171,39015.0,42801.0,39401.041,B
+checkpoint,coordinator,put:robot_lost_long,write_ms,171,3.417,20.692,4.737,ms
+checkpoint,coordinator,put:robot_recovered,bytes,297,36920.0,46694.4,33276.044,B
+checkpoint,coordinator,put:robot_recovered,write_ms,297,5.8,18.822,7.561,ms
+checkpoint,coordinator,put_writes:chat,bytes,80,10638.0,13379.65,7522.238,B
+checkpoint,coordinator,put_writes:chat,write_ms,80,31.242,117.04,34.431,ms
+checkpoint,coordinator,put_writes:goal,bytes,110,2603.0,10539.0,4207.764,B
+checkpoint,coordinator,put_writes:goal,write_ms,110,48.343,75.197,40.117,ms
+checkpoint,coordinator,put_writes:posture,bytes,110,6016.0,14848.0,7051.564,B
+checkpoint,coordinator,put_writes:posture,write_ms,110,43.056,58.308,36.969,ms
+checkpoint,coordinator,put_writes:report,bytes,1531,747.0,9266.5,3176.152,B
+checkpoint,coordinator,put_writes:report,write_ms,1531,5.114,19.041,6.79,ms
+checkpoint,coordinator,put_writes:robot_lost,bytes,264,6620.0,9566.85,4968.17,B
+checkpoint,coordinator,put_writes:robot_lost,write_ms,264,9.805,15.112,10.985,ms
+checkpoint,coordinator,put_writes:robot_lost_long,bytes,132,76.0,11035.0,3557.25,B
+checkpoint,coordinator,put_writes:robot_lost_long,write_ms,132,6.516,23.933,9.838,ms
+checkpoint,coordinator,put_writes:robot_recovered,bytes,264,6767.0,9698.95,4957.818,B
+checkpoint,coordinator,put_writes:robot_recovered,write_ms,264,11.157,25.809,14.957,ms
+checkpoint,robot,put:coordinator,bytes,4,6021.5,6316.1,6043.25,B
+checkpoint,robot,put:coordinator,write_ms,4,3.048,3.7,3.065,ms
+checkpoint,robot,put:envelope,bytes,1064,7660.0,10067.2,7244.807,B
+checkpoint,robot,put:envelope,write_ms,1064,3.739,33.527,9.335,ms
+checkpoint,robot,put:flush,bytes,40,4022.5,5388.75,4012.125,B
+checkpoint,robot,put:flush,write_ms,40,6.857,14.667,8.016,ms
+checkpoint,robot,put:interaction_end,bytes,50,3624.0,4084.0,3739.02,B
+checkpoint,robot,put:interaction_end,write_ms,50,2.03,11.222,4.448,ms
+checkpoint,robot,put:link_change,bytes,648,6664.5,9008.9,6529.56,B
+checkpoint,robot,put:link_change,write_ms,648,2.067,27.064,6.518,ms
+checkpoint,robot,put:other,bytes,20,4440.5,5311.75,4073.45,B
+checkpoint,robot,put:other,write_ms,20,12.111,34.608,17.465,ms
+checkpoint,robot,put:skill_result,bytes,605,6127.0,9214.2,6664.397,B
+checkpoint,robot,put:skill_result,write_ms,605,4.794,24.629,9.085,ms
+checkpoint,robot,put:utterance,bytes,50,1414.0,2546.65,1424.46,B
+checkpoint,robot,put:utterance,write_ms,50,8.604,22.146,8.437,ms
+checkpoint,robot,put_writes:coordinator,bytes,1,39.0,39.0,39.0,B
+checkpoint,robot,put_writes:coordinator,write_ms,1,4.323,4.323,4.323,ms
+checkpoint,robot,put_writes:envelope,bytes,912,661.0,3470.0,1128.009,B
+checkpoint,robot,put_writes:envelope,write_ms,912,26.456,41.818,27.744,ms
+checkpoint,robot,put_writes:flush,bytes,30,10.0,19.0,10.667,B
+checkpoint,robot,put_writes:flush,write_ms,30,10.983,27.302,13.024,ms
+checkpoint,robot,put_writes:interaction_end,bytes,40,104.0,453.0,241.225,B
+checkpoint,robot,put_writes:interaction_end,write_ms,40,9.837,15.317,10.254,ms
+checkpoint,robot,put_writes:link_change,bytes,540,43.0,2411.2,532.952,B
+checkpoint,robot,put_writes:link_change,write_ms,540,12.008,36.547,18.216,ms
+checkpoint,robot,put_writes:other,bytes,30,44.0,1611.55,508.8,B
+checkpoint,robot,put_writes:other,write_ms,30,21.061,31.176,18.766,ms
+checkpoint,robot,put_writes:skill_result,bytes,484,560.0,2637.0,581.864,B
+checkpoint,robot,put_writes:skill_result,write_ms,484,19.432,32.365,20.342,ms
+checkpoint,robot,put_writes:utterance,bytes,50,69.0,855.0,232.46,B
+checkpoint,robot,put_writes:utterance,write_ms,50,17.02,33.565,19.289,ms
+checkpoint,coordinator,latest checkpoint,bytes,10,49075.5,53256.6,49308.8,B
+checkpoint,robot,latest checkpoint,bytes,40,5958.0,6433.3,5454.125,B
+checkpoint,coordinator,versions per thread,count,10,307.5,357.0,310.3,count
+checkpoint,robot,versions per thread,count,40,60.0,129.3,62.025,count

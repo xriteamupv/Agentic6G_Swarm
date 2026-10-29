@@ -22,13 +22,75 @@ from a6g_devstack import manifest as mf
 RESULTS = Path("bench/results")
 
 
+def _stamp(p: Path) -> str:
+    """The write time in the file name (``..._20261028T074924Z.json``): file times are not
+    kept by a git checkout."""
+    return p.stem.rsplit("_", 1)[-1]
+
+
 def _latest(prefix: str) -> Path | None:
-    files = sorted(RESULTS.glob(f"{prefix}_*.json"), key=lambda p: p.stat().st_mtime)
+    files = _all(prefix)
     return files[-1] if files else None
 
 
 def _all(prefix: str) -> list[Path]:
-    return sorted(RESULTS.glob(f"{prefix}_*.json"), key=lambda p: p.stat().st_mtime)
+    return sorted(RESULTS.glob(f"{prefix}_*.json"), key=_stamp)
+
+
+def _current(prefix: str) -> list[Path]:
+    """The results that stand, without the ones they superseded: the latest file per label
+    (``<prefix>_<label>_<stamp>.json``), and for the unseen orders, which are repeated, every
+    run of the latest day."""
+    files = _all(prefix)
+    if prefix == "orders_unseen":
+        days = {p.name.rsplit("_", 1)[1][:8] for p in files}
+        last = max(days) if days else ""
+        return [p for p in files if p.name.rsplit("_", 1)[1][:8] == last]
+    latest: dict[str, Path] = {}
+    for p in files:  # oldest first: the last one per label wins
+        latest[p.name.rsplit("_", 1)[0]] = p
+    return sorted(latest.values(), key=_stamp)
+
+
+#: What a result's run depends on: a change here since its commit may change the result.
+CODE_PATHS = ("packages", "config", "prompts", "pyproject.toml", "uv.lock")
+
+
+def _commit_map() -> dict[str, str]:
+    """Pre-rewrite commit ids (recorded in older manifests) -> published ids."""
+    path = Path("bench/COMMIT_MAP.md")
+    out: dict[str, str] = {}
+    if path.exists():
+        for line in path.read_text().splitlines():
+            cells = [c.strip(" `") for c in line.split("|")]
+            if len(cells) > 3 and len(cells[1]) == 7 and len(cells[2]) == 7:
+                out[cells[1]] = cells[2]
+    return out
+
+
+def _git(*args: str) -> str | None:
+    import subprocess
+
+    r = subprocess.run(["git", *args], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def code_changed_since(commit: str) -> list[str] | None:
+    """Packages (or config, prompts, dependencies) changed between ``commit`` and HEAD,
+    the export module excepted; None when the commit is not in this history."""
+    ref = commit
+    if _git("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}") is None:
+        ref = _commit_map().get(commit[:7], "")
+        if not ref or _git("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}") is None:
+            return None
+    names = _git("diff", "--name-only", ref, "HEAD", "--", *CODE_PATHS) or ""
+    changed = set()
+    for n in names.splitlines():
+        if n.endswith("paper_export.py"):
+            continue
+        parts = n.split("/")
+        changed.add(parts[1] if parts[0] == "packages" and len(parts) > 1 else parts[0])
+    return sorted(changed)
 
 
 def _load(path: Path | None) -> dict[str, Any] | None:
@@ -66,7 +128,13 @@ def manifest_line(
         return f"| {name} | missing | | | | | |"
     m = data.get("manifest") or {}
     commit = (m.get("commit") or "")[:7] or "none"
-    stale = " **possibly stale**" if head and m.get("commit") and m["commit"] != head else ""
+    stale = ""
+    if head and m.get("commit") and m["commit"] != head:
+        changed = code_changed_since(m["commit"])
+        if changed is None:
+            stale = " (commit not in this history)"
+        elif changed:
+            stale = " **code changed since**: " + ", ".join(changed)
     if not m:
         stale = " **no manifest**"
     models = ", ".join(
@@ -167,6 +235,7 @@ def scarcity_section(data: dict[str, Any]) -> list[str]:
                     3,
                 ),
                 sum(r["escalations"] for r in rs),
+                max((r.get("reconcile_iterations_max") or 0) for r in rs),
                 med_iqr([r["kpi3_share"] for r in rs if r.get("kpi3_share") is not None], 3),
             ]
         )
@@ -183,13 +252,89 @@ def scarcity_section(data: dict[str, Any]) -> list[str]:
             "I1/I2/I3 violations",
             "posture -> reconciled s (wall)",
             "escalations",
+            "reconciliation rounds (max)",
             "KPI-3 share",
         ],
         out,
     )
     for what, why in (data.get("skipped") or {}).items():
         lines.append(f"\nSkipped {what}: {why}.")
-    return lines
+    return lines + _viewpoints() + SCARCITY_DEFINITIONS
+
+
+def _viewpoints() -> list[str]:
+    """Relocations of reconcile_relocate at 4 Mbps, fleet 5 (``paper/plot_campus_map.py``)."""
+    path = Path("paper/relocation_viewpoints.csv")
+    if not path.exists():
+        return []
+    with path.open() as fh:
+        rows = list(csv.DictReader(fh))
+    seen: dict[str, dict[str, str]] = {}
+    for r in rows:
+        seen.setdefault(r["poi_id"], r)
+    seeds = {r["seed"] for r in rows}
+    out = [
+        [
+            r["poi_id"],
+            r["x"],
+            r["y"],
+            r["distance_m"],
+            r["from_level"],
+            r["from_sinr_db"],
+            r["level"],
+            r["sinr_db"],
+        ]
+        for r in seen.values()
+    ]
+    agree = all((r["x"], r["y"]) == (seen[r["poi_id"]]["x"], seen[r["poi_id"]]["y"]) for r in rows)
+    return [
+        "",
+        f"**Relocation viewpoints** (`reconcile_relocate`, 4 Mbps, fleet 5; {len(seeds)} seeds, "
+        + ("all agree" if agree else "they differ: seed of the first row shown")
+        + "; campus frame, metres east and north of the datum)",
+        "",
+        *_table(
+            [
+                "post",
+                "viewpoint x",
+                "viewpoint y",
+                "distance m",
+                "level before",
+                "SINR before dB",
+                "level after",
+                "SINR after dB",
+            ],
+            out,
+        ),
+    ]
+
+
+SCARCITY_DEFINITIONS = [
+    "",
+    "**Variants.** `reconcile_off`: the network-unaware plan (video at every exposed post), no "
+    "admission; every stream starts at its nominal rate. `admission_only`: the same plan and "
+    "the same admission code as `reconcile` (per-level rate and RTT, cell cost "
+    "`rate x SE(anchor) / SE(SINR)`), one request pass; a refused flow is not adapted (no "
+    "switch to telemetry, no further rounds, no relocation): the post is held without a "
+    "stream and escalated to the operator. `reconcile`: admission plus the degradation loop "
+    "(a refused video post switches to `telemetry_plus`; a video post gives way when "
+    "telemetry is refused for capacity). `reconcile_relocate`: `reconcile`, and a video post "
+    "refused for coverage first moves to a footpath viewpoint within 20 m with a better "
+    "level, in sight of the POI.",
+    "",
+    "**Usable.** Class rates: `video_control` 4 Mbps (guaranteed), `telemetry_plus` 0.3 Mbps "
+    "(guaranteed); the video bitrate is never adapted. With admission (`admission_only`, "
+    "`reconcile`, `reconcile_relocate`) a stream is usable when its flow is granted; video "
+    "usable counts granted video flows, sensing usable counts granted video or "
+    "`telemetry_plus` flows. In `reconcile_off` the cell is shared by weighted fair share in "
+    "cell units: when the summed cost of the active streams exceeds the capacity, every "
+    "stream gets `rate x capacity / demand`, capped by the robot's uplink where it streams "
+    "(0 in lost coverage); a stream is usable when that effective rate reaches its class "
+    "rate. Oversubscription is demand / capacity. `telemetry_plus` is a post's sensing stream "
+    "without images, for basic monitoring (robot state, position and event reports); it "
+    "allows no visual verification. In the simulator streams are accounted, not "
+    "transmitted: each robot records the class it opens against its grant.",
+]
 
 
 def overhead_section(data: dict[str, Any]) -> list[str]:
@@ -393,13 +538,41 @@ def protocols_section(data: dict[str, Any]) -> list[str]:
             "Capture check (frame bytes captured / interface counters): "
             + ", ".join(f"{b} {c['ratio']}" for b, c in checks),
         ]
-    return lines
+    return lines + PROTOCOL_SETTINGS
+
+
+PROTOCOL_SETTINGS = [
+    "",
+    "**Settings** (`protolab/endpoint.py`, `protolab/lab.py`, `config/bench/protocols.yaml`). "
+    "Every binding runs over TLS 1.3 on real sockets, with TCP_NODELAY.",
+    "",
+    "- MQTT: `aiomqtt` 2.5 (paho), MQTT 3.1.1, amqtt broker at the edge; QoS 1 for "
+    "requests and replies; persistent session (clean session false; 3.1.1 has no session "
+    "expiry, the broker keeps the session); keepalive 10 s; connect timeout 10 s; on a "
+    "connection error the client reconnects after a fixed 0.5 s (no exponential backoff).",
+    "- A2A JSON-RPC and REST (`a2a-sdk`, `httpx` 0.28): request timeout 10 s; no library "
+    "retries; default connection pool (no limit, keep-alive expiry 5 s). Reused: one client "
+    "and connection for the whole block, agent card fetched once. New connection: a new "
+    "client, TLS handshake and agent-card fetch for every message. Server keep-alive 600 s.",
+    "- A2A gRPC (`grpc.aio` secure channel): default channel options, so no keepalive pings "
+    "and no retry policy (only gRPC's transparent retry of RPCs never sent).",
+    "- Delivery: every pattern is request and acknowledgement (one reply message per "
+    "request), so each binding acknowledges each message end to end. In the outage tests "
+    "the client resends the same message id every 1 s until it is acknowledged (at least "
+    "once for every binding; the server logs received ids for duplicate counts). MQTT also "
+    "redelivers by itself (QoS 1 with the persistent session), which is where its duplicate "
+    "comes from; the A2A bindings rely on the client's resend only.",
+    "- Evidence image (P6): base64 text inside the JSON message (about 422 kB per message) "
+    "against raw bytes in CBOR (about 317 kB); base64 adds one third.",
+    "- Deadlines: a contract-net round (P3) misses at 1.5 s or more; any other request "
+    "misses when its acknowledgement takes 2.0 s or more.",
+]
 
 
 def cost_rows() -> list[dict[str, Any]]:
     """``table_cost.csv``: what the system costs and buys, one row per measure."""
     rows: list[dict[str, Any]] = []
-    for p in _all("e5_kpi11"):
+    for p in _current("e5_kpi11"):
         d = json.loads(p.read_text())
         if not d.get("manifest"):
             continue  # no manifest: superseded
@@ -425,7 +598,7 @@ def cost_rows() -> list[dict[str, Any]]:
                 "source": p.name,
             }
         )
-    for p in _all("orders_unseen"):
+    for p in _current("orders_unseen"):
         d = json.loads(p.read_text())
         if not d.get("manifest"):
             continue
@@ -607,8 +780,10 @@ def export(out: Path, cfg: Any) -> dict[str, Any]:
         "# Results for the IEEE Network submission",
         "",
         f"*Exported by `a6g paper export` at commit `{(head or 'none')[:7]}`. Every number below is "
-        "from a result file with a manifest (rule 31); results whose commit is not this one are "
-        "flagged **possibly stale** (rule 31). Network results are emulated, never measured on the campus network "
+        "from a result file with a manifest (rule 31); a result made at an older commit is "
+        "flagged **code changed since** when the code it ran (packages, config, prompts, "
+        "dependencies) changed after that commit, with the changed parts named; superseded "
+        "results are left out. Network results are emulated, never measured on the campus network "
         "(rule 32). Medians with the interquartile range [Q1, Q3]; latencies with p95.*",
         "",
         "## Manifests",
@@ -618,7 +793,7 @@ def export(out: Path, cfg: Any) -> dict[str, Any]:
     ]
     for name, (p, d) in sources.items():
         md.append(manifest_line(name, p, d, head))
-    for p in _all("e5_kpi11") + _all("orders_unseen"):
+    for p in _current("e5_kpi11") + _current("orders_unseen"):
         d = json.loads(p.read_text())
         if d.get("manifest"):
             md.append(manifest_line(p.name.split("_2026")[0], p, d, head))
