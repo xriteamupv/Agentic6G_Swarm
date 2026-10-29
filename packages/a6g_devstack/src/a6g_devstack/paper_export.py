@@ -191,7 +191,54 @@ def scarcity_section(data: dict[str, Any]) -> list[str]:
     )
     for what, why in (data.get("skipped") or {}).items():
         lines.append(f"\nSkipped {what}: {why}.")
-    return lines + SCARCITY_DEFINITIONS
+    return lines + _viewpoints() + SCARCITY_DEFINITIONS
+
+
+def _viewpoints() -> list[str]:
+    """Relocations of reconcile_relocate at 4 Mbps, fleet 5 (``paper/plot_campus_map.py``)."""
+    path = Path("paper/relocation_viewpoints.csv")
+    if not path.exists():
+        return []
+    with path.open() as fh:
+        rows = list(csv.DictReader(fh))
+    seen: dict[str, dict[str, str]] = {}
+    for r in rows:
+        seen.setdefault(r["poi_id"], r)
+    seeds = {r["seed"] for r in rows}
+    out = [
+        [
+            r["poi_id"],
+            r["x"],
+            r["y"],
+            r["distance_m"],
+            r["from_level"],
+            r["from_sinr_db"],
+            r["level"],
+            r["sinr_db"],
+        ]
+        for r in seen.values()
+    ]
+    agree = all((r["x"], r["y"]) == (seen[r["poi_id"]]["x"], seen[r["poi_id"]]["y"]) for r in rows)
+    return [
+        "",
+        f"**Relocation viewpoints** (`reconcile_relocate`, 4 Mbps, fleet 5; {len(seeds)} seeds, "
+        + ("all agree" if agree else "they differ: seed of the first row shown")
+        + "; campus frame, metres east and north of the datum)",
+        "",
+        *_table(
+            [
+                "post",
+                "viewpoint x",
+                "viewpoint y",
+                "distance m",
+                "level before",
+                "SINR before dB",
+                "level after",
+                "SINR after dB",
+            ],
+            out,
+        ),
+    ]
 
 
 SCARCITY_DEFINITIONS = [
