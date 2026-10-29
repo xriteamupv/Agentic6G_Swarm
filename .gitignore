@@ -18,7 +18,7 @@ sim_gazebo/log/
 .langgraph_api/
 *.log
 
-# UPV radio DT export (114 MB, UPV data) and its reference picture: kept out of git; the
-# derived maps sim_gazebo/src/a6g_gz_worlds/sim/*_coverage_radio_dt.json are committed
+# UPV radio DT export: published compressed (n40_centroides_rsrp.csv.gz, approved by UPV);
+# the uncompressed CSV (114 MB, over GitHub's file limit) and the reference picture stay out
 sim_gazebo/data/network/*.csv
 sim_gazebo/data/network/*.png
