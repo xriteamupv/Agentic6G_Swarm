@@ -22,13 +22,75 @@ from a6g_devstack import manifest as mf
 RESULTS = Path("bench/results")
 
 
+def _stamp(p: Path) -> str:
+    """The write time in the file name (``..._20261028T074924Z.json``): file times are not
+    kept by a git checkout."""
+    return p.stem.rsplit("_", 1)[-1]
+
+
 def _latest(prefix: str) -> Path | None:
-    files = sorted(RESULTS.glob(f"{prefix}_*.json"), key=lambda p: p.stat().st_mtime)
+    files = _all(prefix)
     return files[-1] if files else None
 
 
 def _all(prefix: str) -> list[Path]:
-    return sorted(RESULTS.glob(f"{prefix}_*.json"), key=lambda p: p.stat().st_mtime)
+    return sorted(RESULTS.glob(f"{prefix}_*.json"), key=_stamp)
+
+
+def _current(prefix: str) -> list[Path]:
+    """The results that stand, without the ones they superseded: the latest file per label
+    (``<prefix>_<label>_<stamp>.json``), and for the unseen orders, which are repeated, every
+    run of the latest day."""
+    files = _all(prefix)
+    if prefix == "orders_unseen":
+        days = {p.name.rsplit("_", 1)[1][:8] for p in files}
+        last = max(days) if days else ""
+        return [p for p in files if p.name.rsplit("_", 1)[1][:8] == last]
+    latest: dict[str, Path] = {}
+    for p in files:  # oldest first: the last one per label wins
+        latest[p.name.rsplit("_", 1)[0]] = p
+    return sorted(latest.values(), key=_stamp)
+
+
+#: What a result's run depends on: a change here since its commit may change the result.
+CODE_PATHS = ("packages", "config", "prompts", "pyproject.toml", "uv.lock")
+
+
+def _commit_map() -> dict[str, str]:
+    """Pre-rewrite commit ids (recorded in older manifests) -> published ids."""
+    path = Path("bench/COMMIT_MAP.md")
+    out: dict[str, str] = {}
+    if path.exists():
+        for line in path.read_text().splitlines():
+            cells = [c.strip(" `") for c in line.split("|")]
+            if len(cells) > 3 and len(cells[1]) == 7 and len(cells[2]) == 7:
+                out[cells[1]] = cells[2]
+    return out
+
+
+def _git(*args: str) -> str | None:
+    import subprocess
+
+    r = subprocess.run(["git", *args], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def code_changed_since(commit: str) -> list[str] | None:
+    """Packages (or config, prompts, dependencies) changed between ``commit`` and HEAD,
+    the export module excepted; None when the commit is not in this history."""
+    ref = commit
+    if _git("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}") is None:
+        ref = _commit_map().get(commit[:7], "")
+        if not ref or _git("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}") is None:
+            return None
+    names = _git("diff", "--name-only", ref, "HEAD", "--", *CODE_PATHS) or ""
+    changed = set()
+    for n in names.splitlines():
+        if n.endswith("paper_export.py"):
+            continue
+        parts = n.split("/")
+        changed.add(parts[1] if parts[0] == "packages" and len(parts) > 1 else parts[0])
+    return sorted(changed)
 
 
 def _load(path: Path | None) -> dict[str, Any] | None:
@@ -66,7 +128,13 @@ def manifest_line(
         return f"| {name} | missing | | | | | |"
     m = data.get("manifest") or {}
     commit = (m.get("commit") or "")[:7] or "none"
-    stale = " **possibly stale**" if head and m.get("commit") and m["commit"] != head else ""
+    stale = ""
+    if head and m.get("commit") and m["commit"] != head:
+        changed = code_changed_since(m["commit"])
+        if changed is None:
+            stale = " (commit not in this history)"
+        elif changed:
+            stale = " **code changed since**: " + ", ".join(changed)
     if not m:
         stale = " **no manifest**"
     models = ", ".join(
@@ -504,7 +572,7 @@ PROTOCOL_SETTINGS = [
 def cost_rows() -> list[dict[str, Any]]:
     """``table_cost.csv``: what the system costs and buys, one row per measure."""
     rows: list[dict[str, Any]] = []
-    for p in _all("e5_kpi11"):
+    for p in _current("e5_kpi11"):
         d = json.loads(p.read_text())
         if not d.get("manifest"):
             continue  # before rule 31: superseded
@@ -530,7 +598,7 @@ def cost_rows() -> list[dict[str, Any]]:
                 "source": p.name,
             }
         )
-    for p in _all("orders_unseen"):
+    for p in _current("orders_unseen"):
         d = json.loads(p.read_text())
         if not d.get("manifest"):
             continue
@@ -712,8 +780,10 @@ def export(out: Path, cfg: Any) -> dict[str, Any]:
         "# Results for the IEEE Network submission",
         "",
         f"*Exported by `a6g paper export` at commit `{(head or 'none')[:7]}`. Every number below is "
-        "from a result file with a manifest (rule 31); results whose commit is not this one are "
-        "flagged **possibly stale** (rule 31). Network results are emulated, never measured on the campus network "
+        "from a result file with a manifest (rule 31); a result made at an older commit is "
+        "flagged **code changed since** when the code it ran (packages, config, prompts, "
+        "dependencies) changed after that commit, with the changed parts named; superseded "
+        "results are left out. Network results are emulated, never measured on the campus network "
         "(rule 32). Medians with the interquartile range [Q1, Q3]; latencies with p95.*",
         "",
         "## Manifests",
@@ -723,7 +793,7 @@ def export(out: Path, cfg: Any) -> dict[str, Any]:
     ]
     for name, (p, d) in sources.items():
         md.append(manifest_line(name, p, d, head))
-    for p in _all("e5_kpi11") + _all("orders_unseen"):
+    for p in _current("e5_kpi11") + _current("orders_unseen"):
         d = json.loads(p.read_text())
         if d.get("manifest"):
             md.append(manifest_line(p.name.split("_2026")[0], p, d, head))
