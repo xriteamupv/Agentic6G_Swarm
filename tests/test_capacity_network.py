@@ -194,3 +194,25 @@ async def test_g13_relocate_moves_a_post_rejected_for_coverage(tmp_path: Path) -
     assert 0 < r["relocation_distance_m"] <= 20.0 * r["relocations"]
     assert r["i1_violations"] == 0 and r["i2_violations"] == 0 and r["i3_violations"] == 0
     assert r["posts_held"] == r["exposed_pois"]
+
+
+@pytest.mark.scenario
+@pytest.mark.parametrize(("capacity", "video"), [(4.0, 0), (12.0, 1)])
+async def test_g13_admission_only_refuses_without_adapting(
+    tmp_path: Path, capacity: float, video: int
+) -> None:
+    """The admission-only baseline: the same admission as ``reconcile``, but a refused video
+    flow is not adapted (no telemetry, no relocation, one round); the post is held without
+    a stream and escalated, and I1-I3 hold. The medium post's video fits from 12 Mbps; the
+    low posts' video is refused for coverage at any capacity."""
+    from a6g_devstack import scenario_g13 as G
+
+    cfg = G.g13_config("config", capacity, "admission_only")
+    r = await G.run(cfg, tmp_path / "run", fleet=3, seed=0, variant="admission_only")
+    assert "error" not in r, r.get("error")
+    assert r["i1_violations"] == 0 and r["i2_violations"] == 0 and r["i3_violations"] == 0
+    assert r["posts_held"] == r["exposed_pois"]
+    assert r["posts_video_usable"] == r["posts_sensing_usable"] == video
+    assert r["switched_to_telemetry"] == 0 and r["relocations"] == 0
+    assert r["escalations"] == r["exposed_pois"] - video
+    assert r["reconcile_iterations_max"] == 1

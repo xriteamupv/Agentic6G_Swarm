@@ -63,9 +63,10 @@ network:
       video_control:      {ul_mbps: 4.0, guaranteed: true}
       telemetry_plus:     {ul_mbps: 0.3, guaranteed: true}
   reconcile:
-    mode: ${A6G_RECONCILE_MODE:-on}   # on | off (experiment baseline) | relocate
+    mode: ${A6G_RECONCILE_MODE:-on}   # on | off (experiment baseline) | relocate | admission_only (baseline)
     relocate_radius_m: 20
     recharge_reassign_min_priority: 80
+  sinr_shift_db: ${A6G_SINR_SHIFT_DB:-0}   # SINR sensitivity runs only (bench scarcity --sinr-shift)
   post_sensing_mode: ${A6G_POST_SENSING:-}   # video in G13; empty: posts on telemetry_plus
   stub_llm: false
   provenance:

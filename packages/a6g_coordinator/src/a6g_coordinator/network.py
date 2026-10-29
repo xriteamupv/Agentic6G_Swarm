@@ -99,7 +99,8 @@ class CapacityNetwork(NetworkBranchClient):
         s = self.coverage.nearest(*xy)
         if s is None:
             return {"cell": next(iter(self.capacity), "cell"), "sinr": -10.0, "level": "lost"}
-        return {"cell": s.get("cell"), "sinr": float(s["sinr"]), "level": s["level"]}
+        sinr = float(s["sinr"]) + self.net.sinr_shift_db
+        return {"cell": s.get("cell"), "sinr": sinr, "level": s["level"]}
 
     def cost(self, rate_mbps: float, sinr_db: float) -> float:
         """Cell units (= Mbps at the anchor or better) of streaming ``rate`` at ``sinr``."""
