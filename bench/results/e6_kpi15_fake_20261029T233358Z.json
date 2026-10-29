@@ -1,0 +1,161 @@
+{
+  "kpi": "UC2-KPI-15",
+  "definition": "precision of three retrievals against simulator ground truth: observations near a pose (P@k), statuses and notices relevant to a route (precision, recall), interaction context at a hand-over (precision@1, leaks)",
+  "model": "fake",
+  "embedder": "HashingEmbedder",
+  "fidelity": "offline, deterministic",
+  "seeds": 50,
+  "observations": {
+    "queries": 756,
+    "observations_per_seed": 80,
+    "radius_m": 25.0,
+    "retention_min": 240.0,
+    "p_at_k": {
+      "query": {
+        "1": 0.7116,
+        "3": 0.4802,
+        "5": 0.3653
+      },
+      "distance_only": {
+        "1": 0.4286,
+        "3": 0.3757,
+        "5": 0.3254
+      }
+    },
+    "r_normalised_p_at_k": {
+      "query": {
+        "1": 0.7116,
+        "3": 0.7454,
+        "5": 0.8332
+      },
+      "distance_only": {
+        "1": 0.4286,
+        "3": 0.6155,
+        "5": 0.7805
+      }
+    },
+    "by_kind": {
+      "hazard": {
+        "1": 0.6455,
+        "3": 0.7027,
+        "5": 0.8389
+      },
+      "security": {
+        "1": 0.7658,
+        "3": 0.7664,
+        "5": 0.8141
+      },
+      "maintenance": {
+        "1": 0.726,
+        "3": 0.7717,
+        "5": 0.8495
+      }
+    }
+  },
+  "route_context": {
+    "routes": 367,
+    "definition": "relevant: on the route, or on the shortest route with nothing blocked (what it went around); notices only on the ids they name",
+    "relevant_mean": 0.53,
+    "router": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "reported_mean": 0.53
+    },
+    "all_in_force": {
+      "precision": 0.1418,
+      "recall": 0.9736,
+      "reported_mean": 3.56
+    }
+  },
+  "handover": {
+    "store_kept": {
+      "handovers": 2000,
+      "store_loss": 0.0,
+      "loss_when": null,
+      "precision_at_1": 1.0,
+      "field_precision": 1.0,
+      "lost": 0.0,
+      "leaks": 0,
+      "probes": 3002
+    },
+    "store_lost_10pct_during_escort": {
+      "handovers": 2000,
+      "store_loss": 0.1,
+      "loss_when": "during",
+      "precision_at_1": 1.0,
+      "field_precision": 1.0,
+      "lost": 0.0,
+      "leaks": 0,
+      "probes": 2984
+    },
+    "store_lost_10pct_after_leaving": {
+      "handovers": 2000,
+      "store_loss": 0.1,
+      "loss_when": "after",
+      "precision_at_1": 0.9,
+      "field_precision": 1.0,
+      "lost": 0.1,
+      "leaks": 0,
+      "probes": 2650
+    }
+  },
+  "stamp": "2026-10-29T23:33:58.389635+00:00",
+  "manifest": {
+    "commit": "443367d999417f5bdc11ec2c547411951333d3ae",
+    "dirty": false,
+    "command": "a6g bench retrieval",
+    "config_dir": "config",
+    "config_sha256": {
+      "allocator.yaml": "61f02e4b8bea56ed",
+      "bench/manual_round.yaml": "da07a9c882d38634",
+      "bench/protocols.yaml": "f5155b079176b8a7",
+      "campus/upv_vera_cpi.yaml": "6c1fe74165aa1832",
+      "comms.yaml": "a037a5d6d9172c95",
+      "fleet.yaml": "8e5885270fb4b0f1",
+      "gazebo/fleet.yaml": "6ef9a1346ca29fba",
+      "interactions.yaml": "0e776ba4683c7062",
+      "knowledge.yaml": "c222a4844dc2ab45",
+      "models.yaml": "b44f9a6ecfcd63e5",
+      "network.yaml": "0425e4462ae6c5c2",
+      "profiles/gazebo.yaml": "11eb4c94b3a9a2ff",
+      "profiles/real.yaml": "bc6d5823ca4a95e1",
+      "profiles/sim.yaml": "52291f229063d99b",
+      "robots/go2_01.yaml": "f877cde419645d48",
+      "robots/go2_02.yaml": "c4bfed9582bfd02c",
+      "robots/go2_03.yaml": "bcce48836640f943",
+      "robots/go2_04.yaml": "0a9ca6c013020bad",
+      "robots/go2_05.yaml": "77a6e53af6c8cb0c",
+      "robots/summit_01.yaml": "5469b3e0d34469a6",
+      "robots/summit_02.yaml": "05fef14e455bfece",
+      "robots/summit_03.yaml": "631138048e1f0d66",
+      "sim/fleet.yaml": "30cb0df00a680c76"
+    },
+    "seeds": 50,
+    "models": {
+      "embedder": {
+        "model": "fake",
+        "fidelity": "offline"
+      }
+    },
+    "network": "stand-in",
+    "mode": "always_grant",
+    "coverage_source": "radio_dt",
+    "coverage_calibration": "plots",
+    "provenance": {
+      "cell": "UPV network document, 2026-10-26 (5G_UPV Nodo2, NRCELL-9)",
+      "ul_capacity": "measured TCP goodput of one device in the velodrome, 20 MHz (UPV)",
+      "coverage_calibration": "RSRP/SINR read from UPV's velodrome plots (no CSV)",
+      "sinr": "downlink SINR from the plots; uplink quality assumed to follow it",
+      "link_profiles_good_rtt": "measured n40 one-way 9.76 DL + 8.89 UL ms (UPV)",
+      "other": "Nexus n40 cell (Building 6G), LTE B7, n258 and n78 not modelled"
+    },
+    "time_factor": null,
+    "host": {
+      "name": "iterate-Inspiron-14-5410",
+      "os": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+      "python": "3.11.16",
+      "cpus": 8
+    },
+    "written": "2026-10-29T23:33:58.392346+00:00"
+  }
+}

@@ -1,27 +1,22 @@
 # Results for the IEEE Network submission
 
-*Exported by `a6g paper export` at commit `9586a8f`. Every number below is from a result file with a manifest (rule 31); results whose commit is not this one are flagged **possibly stale** (rule 31). Network results are emulated, never measured on the campus network (rule 32). Medians with the interquartile range [Q1, Q3]; latencies with p95.*
+*Exported by `a6g paper export` at commit `443367d`. Every number below is from a result file with a manifest (rule 31); a result made at an older commit is flagged **code changed since** when the code it ran (packages, config, prompts, dependencies) changed after that commit, with the changed parts named; superseded results are left out. Network results are emulated, never measured on the campus network (rule 32). Medians with the interquartile range [Q1, Q3]; latencies with p95.*
 
 ## Manifests
 
 | result | file | commit | models (fidelity) | network / mode / coverage | seeds | time |
 |---|---|---|---|---|---|---|
-| N1 outage sweep | `n1_outage_20261027T204600Z.json` | 8400afb **possibly stale** | all: fake (offline) | stand-in / always_grant / radio_dt | 10 | up to 200x |
-| N4 scarcity (G13) | `n4_scarcity_20261028T064228Z.json` | 9586a8f | all: fake (offline) | emulated / capacity / radio_dt | 10 | up to 200x |
-| N2 overhead | `n2_overhead_20261028T074924.json` | 9586a8f | all: fake (offline) | stand-in / always_grant / radio_dt | None | as recorded by the runs |
-| N5 protocols | `n5_protocols_20261028T011810Z.json` | 428d176 **possibly stale** | all: fake (offline) | stand-in / always_grant / radio_dt | 26 | real time (rule 33) |
-| e5_kpi11_fake | `e5_kpi11_fake_20261026T141839Z.json` | 6fdd63f **possibly stale** | coordinator_llm: fake (offline), onboard_vlm: fake (offline) | stand-in / always_grant / shadows | 20 | up to 50x |
-| e5_kpi11_gpt-5-nano+robots | `e5_kpi11_gpt-5-nano+robots_20261026T142718Z.json` | 6fdd63f **possibly stale** | coordinator_llm: gpt-5-nano (functional), onboard_vlm: gpt-5-nano (functional) | stand-in / always_grant / shadows | 20 | up to 50x |
-| e5_kpi11_fake | `e5_kpi11_fake_20261027T191202Z.json` | 8400afb **possibly stale** | coordinator_llm: fake (offline), onboard_vlm: fake (offline) | stand-in / always_grant / radio_dt | 20 | up to 50x |
-| e5_kpi11_fake+capacity22 | `e5_kpi11_fake+capacity22_20261027T191520Z.json` | 8400afb **possibly stale** | coordinator_llm: fake (offline), onboard_vlm: fake (offline) | emulated / capacity / radio_dt | 20 | up to 50x |
-| e5_kpi11_gpt-5-nano+robots | `e5_kpi11_gpt-5-nano+robots_20261027T205612Z.json` | 7046911 **possibly stale** | coordinator_llm: gpt-5-nano (functional), onboard_vlm: gpt-5-nano (functional) | stand-in / always_grant / radio_dt | 20 | up to 50x |
-| e5_kpi11_gpt-5-nano+robots+capacity22 | `e5_kpi11_gpt-5-nano+robots+capacity22_20261027T210624Z.json` | bbc4152 **possibly stale** | coordinator_llm: gpt-5-nano (functional), onboard_vlm: gpt-5-nano (functional) | emulated / capacity / radio_dt | 20 | up to 50x |
-| orders_unseen_gpt-5-nano | `orders_unseen_gpt-5-nano_20261026T143322Z.json` | 6fdd63f **possibly stale** | coordinator_llm: gpt-5-nano (functional) | stand-in / always_grant / shadows | None | world paused (who-does-what) |
-| orders_unseen_gpt-5-nano | `orders_unseen_gpt-5-nano_20261026T145219Z.json` | 9f18407 **possibly stale** | coordinator_llm: gpt-5-nano (functional) | stand-in / always_grant / shadows | None | world paused (who-does-what) |
-| orders_unseen_gpt-5-nano | `orders_unseen_gpt-5-nano_20261026T151144Z.json` | 722847e **possibly stale** dirty | coordinator_llm: gpt-5-nano (functional) | stand-in / always_grant / shadows | None | world paused (who-does-what) |
-| orders_unseen_gpt-5-nano | `orders_unseen_gpt-5-nano_20261027T213348Z.json` | 8a75765 **possibly stale** | coordinator_llm: gpt-5-nano (functional) | stand-in / always_grant / radio_dt | None | world paused (who-does-what) |
-| orders_unseen_gpt-5-nano | `orders_unseen_gpt-5-nano_20261027T214815Z.json` | 2c8d806 **possibly stale** | coordinator_llm: gpt-5-nano (functional) | stand-in / always_grant / radio_dt | None | world paused (who-does-what) |
-| orders_unseen_gpt-5-nano | `orders_unseen_gpt-5-nano_20261027T220419Z.json` | 428d176 **possibly stale** | coordinator_llm: gpt-5-nano (functional) | stand-in / always_grant / radio_dt | None | world paused (who-does-what) |
+| N1 outage sweep | `n1_outage_20261027T204600Z.json` | 8400afb **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | all: fake (offline) | stand-in / always_grant / radio_dt | 10 | up to 200x |
+| N4 scarcity (G13) | `n4_scarcity_20261029T232612Z.json` | af40683 | all: fake (offline) | emulated / capacity / radio_dt | 10 | up to 200x |
+| N2 overhead | `n2_overhead_20261028T074924.json` | 9586a8f **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | all: fake (offline) | stand-in / always_grant / radio_dt | None | as recorded by the runs |
+| N5 protocols | `n5_protocols_20261028T011810Z.json` | 428d176 **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | all: fake (offline) | stand-in / always_grant / radio_dt | 26 | real time (rule 33) |
+| e5_kpi11_fake | `e5_kpi11_fake_20261027T191202Z.json` | 8400afb **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | coordinator_llm: fake (offline), onboard_vlm: fake (offline) | stand-in / always_grant / radio_dt | 20 | up to 50x |
+| e5_kpi11_fake+capacity22 | `e5_kpi11_fake+capacity22_20261027T191520Z.json` | 8400afb **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | coordinator_llm: fake (offline), onboard_vlm: fake (offline) | emulated / capacity / radio_dt | 20 | up to 50x |
+| e5_kpi11_gpt-5-nano+robots | `e5_kpi11_gpt-5-nano+robots_20261027T205612Z.json` | 7046911 **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | coordinator_llm: gpt-5-nano (functional), onboard_vlm: gpt-5-nano (functional) | stand-in / always_grant / radio_dt | 20 | up to 50x |
+| e5_kpi11_gpt-5-nano+robots+capacity22 | `e5_kpi11_gpt-5-nano+robots+capacity22_20261027T210624Z.json` | bbc4152 **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | coordinator_llm: gpt-5-nano (functional), onboard_vlm: gpt-5-nano (functional) | emulated / capacity / radio_dt | 20 | up to 50x |
+| orders_unseen_gpt-5-nano | `orders_unseen_gpt-5-nano_20261027T213348Z.json` | 8a75765 **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | coordinator_llm: gpt-5-nano (functional) | stand-in / always_grant / radio_dt | None | world paused (who-does-what) |
+| orders_unseen_gpt-5-nano | `orders_unseen_gpt-5-nano_20261027T214815Z.json` | 2c8d806 **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | coordinator_llm: gpt-5-nano (functional) | stand-in / always_grant / radio_dt | None | world paused (who-does-what) |
+| orders_unseen_gpt-5-nano | `orders_unseen_gpt-5-nano_20261027T220419Z.json` | 428d176 **code changed since**: a6g_cli, a6g_common, a6g_coordinator, a6g_devstack, config, pyproject.toml | coordinator_llm: gpt-5-nano (functional) | stand-in / always_grant / radio_dt | None | world paused (who-does-what) |
 
 ## N1: coordinator outages and fleet sizes (UC2-KPI-2, -5, -6, -8)
 
@@ -90,52 +85,69 @@
 
 ## N4: emergency under network scarcity, G13 (UC2-KPI-3, -11)
 
-| variant | UL capacity Mbps | fleet | n | posts held | video usable | sensing usable | oversubscription | I1/I2/I3 violations | posture -> reconciled s (wall) | escalations | KPI-3 share |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| reconcile | 2.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 1 [1, 1] | n/a | 0/0/0 | 0.068 (p95 0.124) | 20 | 0.111 [0.111, 0.111] |
-| reconcile_off | 2.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 46.63 [46.63, 46.63] | 0/0/0 | 0.048 (p95 0.098) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 2.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 2 [1, 2] | n/a | 0/0/0 | 0.109 (p95 0.147) | 13 | 0.182 [0.114, 0.182] |
-| reconcile | 4.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 2 [2, 2] | n/a | 0/0/0 | 0.080 (p95 0.122) | 10 | 0.222 [0.222, 0.222] |
-| reconcile_off | 4.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 23.32 [23.32, 23.32] | 0/0/0 | 0.065 (p95 0.108) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 4.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.090 (p95 0.147) | 0 | 0.273 [0.273, 0.273] |
-| reconcile | 8.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.082 (p95 0.183) | 0 | 0.333 [0.333, 0.333] |
-| reconcile_off | 8.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 11.66 [11.66, 11.66] | 0/0/0 | 0.066 (p95 0.099) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 8.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.085 (p95 0.127) | 0 | 0.273 [0.273, 0.273] |
-| reconcile | 12.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.092 (p95 0.177) | 0 | 0.364 [0.341, 0.364] |
-| reconcile_off | 12.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 7.77 [7.77, 7.77] | 0/0/0 | 0.081 (p95 0.097) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 12.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.111 (p95 0.139) | 0 | 0.308 [0.281, 0.308] |
-| reconcile | 16.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.096 (p95 0.198) | 0 | 0.400 [0.350, 0.400] |
-| reconcile_off | 16.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 5.83 [5.83, 5.83] | 0/0/0 | 0.083 (p95 0.127) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 16.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.091 (p95 0.098) | 0 | 0.300 [0.300, 0.348] |
-| reconcile | 22.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.087 (p95 0.152) | 0 | 0.375 [0.375, 0.375] |
-| reconcile_off | 22.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 4.24 [4.24, 4.24] | 0/0/0 | 0.071 (p95 0.145) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 22.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.108 (p95 0.171) | 0 | 0.300 [0.300, 0.348] |
-| reconcile | 44.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.083 (p95 0.135) | 0 | 0.375 [0.375, 0.375] |
-| reconcile_off | 44.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 2.12 [2.12, 2.12] | 0/0/0 | 0.077 (p95 0.088) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 44.0 | 3 | 10 | 3 [3, 3] | 2 [2, 2] | 3 [3, 3] | n/a | 0/0/0 | 0.093 (p95 0.138) | 0 | 0.333 [0.333, 0.333] |
-| reconcile | 2.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 1 [1, 1] | n/a | 0/0/0 | 0.153 (p95 0.325) | 20 | 0.111 [0.111, 0.111] |
-| reconcile_off | 2.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 46.63 [46.63, 46.63] | 0/0/0 | 0.137 (p95 0.232) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 2.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 2 [2, 2] | n/a | 0/0/0 | 0.153 (p95 0.272) | 10 | 0.182 [0.182, 0.182] |
-| reconcile | 4.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 2 [2, 2] | n/a | 0/0/0 | 0.152 (p95 0.293) | 10 | 0.222 [0.222, 0.222] |
-| reconcile_off | 4.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 23.32 [23.32, 23.32] | 0/0/0 | 0.129 (p95 0.292) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 4.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.143 (p95 0.262) | 0 | 0.273 [0.273, 0.273] |
-| reconcile | 8.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.159 (p95 0.260) | 0 | 0.333 [0.333, 0.333] |
-| reconcile_off | 8.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 11.66 [11.66, 11.66] | 0/0/0 | 0.128 (p95 0.198) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 8.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.173 (p95 0.285) | 0 | 0.273 [0.273, 0.273] |
-| reconcile | 12.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.136 (p95 0.197) | 0 | 0.364 [0.364, 0.364] |
-| reconcile_off | 12.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 7.77 [7.77, 7.77] | 0/0/0 | 0.121 (p95 0.180) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 12.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.143 (p95 0.294) | 0 | 0.308 [0.308, 0.308] |
-| reconcile | 16.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.170 (p95 0.258) | 0 | 0.400 [0.400, 0.400] |
-| reconcile_off | 16.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 5.83 [5.83, 5.83] | 0/0/0 | 0.127 (p95 0.239) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 16.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.181 (p95 0.272) | 0 | 0.300 [0.300, 0.300] |
-| reconcile | 22.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.144 (p95 0.285) | 0 | 0.375 [0.375, 0.375] |
-| reconcile_off | 22.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 4.24 [4.24, 4.24] | 0/0/0 | 0.136 (p95 0.232) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 22.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.164 (p95 0.274) | 0 | 0.300 [0.300, 0.300] |
-| reconcile | 44.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.135 (p95 0.155) | 0 | 0.375 [0.375, 0.375] |
-| reconcile_off | 44.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 2.12 [2.12, 2.12] | 0/0/0 | 0.143 (p95 0.242) | 0 | 1.000 [1.000, 1.000] |
-| reconcile_relocate | 44.0 | 5 | 10 | 3 [3, 3] | 2 [2, 2] | 3 [3, 3] | n/a | 0/0/0 | 0.143 (p95 0.237) | 0 | 0.333 [0.333, 0.333] |
+| variant | UL capacity Mbps | fleet | n | posts held | video usable | sensing usable | oversubscription | I1/I2/I3 violations | posture -> reconciled s (wall) | escalations | reconciliation rounds (max) | KPI-3 share |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| admission_only | 2.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | n/a | 0/0/0 | 0.100 (p95 0.114) | 30 | 1 | 0.000 [0.000, 0.000] |
+| reconcile | 2.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 1 [1, 1] | n/a | 0/0/0 | 0.117 (p95 0.230) | 20 | 3 | 0.111 [0.111, 0.111] |
+| reconcile_off | 2.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 46.63 [46.63, 46.63] | 0/0/0 | 0.086 (p95 0.181) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 2.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 2 [1, 2] | n/a | 0/0/0 | 0.121 (p95 0.161) | 13 | 4 | 0.182 [0.114, 0.182] |
+| admission_only | 4.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | n/a | 0/0/0 | 0.099 (p95 0.165) | 30 | 1 | 0.000 [0.000, 0.000] |
+| reconcile | 4.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 2 [2, 2] | n/a | 0/0/0 | 0.102 (p95 0.147) | 10 | 3 | 0.222 [0.222, 0.222] |
+| reconcile_off | 4.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 23.32 [23.32, 23.32] | 0/0/0 | 0.095 (p95 0.137) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 4.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.127 (p95 0.142) | 0 | 3 | 0.273 [0.273, 0.273] |
+| admission_only | 8.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | n/a | 0/0/0 | 0.106 (p95 0.172) | 30 | 1 | 0.000 [0.000, 0.000] |
+| reconcile | 8.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.113 (p95 0.149) | 0 | 2 | 0.333 [0.333, 0.333] |
+| reconcile_off | 8.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 11.66 [11.66, 11.66] | 0/0/0 | 0.104 (p95 0.149) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 8.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.124 (p95 0.175) | 0 | 3 | 0.273 [0.273, 0.273] |
+| admission_only | 12.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 1 [1, 1] | n/a | 0/0/0 | 0.103 (p95 0.192) | 20 | 1 | 0.167 [0.167, 0.167] |
+| reconcile | 12.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.110 (p95 0.145) | 0 | 3 | 0.364 [0.341, 0.364] |
+| reconcile_off | 12.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 7.77 [7.77, 7.77] | 0/0/0 | 0.120 (p95 0.145) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 12.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.135 (p95 0.190) | 0 | 4 | 0.308 [0.281, 0.308] |
+| admission_only | 16.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 1 [1, 1] | n/a | 0/0/0 | 0.098 (p95 0.186) | 20 | 1 | 0.167 [0.167, 0.167] |
+| reconcile | 16.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.107 (p95 0.144) | 0 | 3 | 0.400 [0.350, 0.400] |
+| reconcile_off | 16.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 5.83 [5.83, 5.83] | 0/0/0 | 0.092 (p95 0.113) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 16.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.121 (p95 0.164) | 0 | 4 | 0.300 [0.300, 0.348] |
+| admission_only | 22.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 1 [1, 1] | n/a | 0/0/0 | 0.086 (p95 0.096) | 20 | 1 | 0.167 [0.167, 0.167] |
+| reconcile | 22.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.098 (p95 0.119) | 0 | 2 | 0.375 [0.375, 0.375] |
+| reconcile_off | 22.0 | 3 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 4.24 [4.24, 4.24] | 0/0/0 | 0.096 (p95 0.122) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 22.0 | 3 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.118 (p95 0.157) | 0 | 4 | 0.300 [0.300, 0.348] |
+| admission_only | 2.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | n/a | 0/0/0 | 0.142 (p95 0.264) | 30 | 1 | 0.000 [0.000, 0.000] |
+| reconcile | 2.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 1 [1, 1] | n/a | 0/0/0 | 0.161 (p95 0.372) | 20 | 3 | 0.111 [0.111, 0.111] |
+| reconcile_off | 2.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 46.63 [46.63, 46.63] | 0/0/0 | 0.170 (p95 0.270) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 2.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 2 [2, 2] | n/a | 0/0/0 | 0.188 (p95 0.341) | 10 | 4 | 0.182 [0.182, 0.182] |
+| admission_only | 4.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | n/a | 0/0/0 | 0.161 (p95 0.228) | 30 | 1 | 0.000 [0.000, 0.000] |
+| reconcile | 4.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 2 [2, 2] | n/a | 0/0/0 | 0.157 (p95 0.264) | 10 | 3 | 0.222 [0.222, 0.222] |
+| reconcile_off | 4.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 23.32 [23.32, 23.32] | 0/0/0 | 0.147 (p95 0.292) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 4.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.185 (p95 0.304) | 0 | 3 | 0.273 [0.273, 0.273] |
+| admission_only | 8.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | n/a | 0/0/0 | 0.150 (p95 0.249) | 30 | 1 | 0.000 [0.000, 0.000] |
+| reconcile | 8.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.192 (p95 0.303) | 0 | 2 | 0.333 [0.333, 0.333] |
+| reconcile_off | 8.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 11.66 [11.66, 11.66] | 0/0/0 | 0.157 (p95 0.288) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 8.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.203 (p95 0.339) | 0 | 3 | 0.273 [0.273, 0.273] |
+| admission_only | 12.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 1 [1, 1] | n/a | 0/0/0 | 0.172 (p95 0.274) | 20 | 1 | 0.167 [0.167, 0.167] |
+| reconcile | 12.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.161 (p95 0.292) | 0 | 3 | 0.364 [0.364, 0.364] |
+| reconcile_off | 12.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 7.77 [7.77, 7.77] | 0/0/0 | 0.170 (p95 0.248) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 12.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.185 (p95 0.428) | 0 | 4 | 0.308 [0.308, 0.308] |
+| admission_only | 16.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 1 [1, 1] | n/a | 0/0/0 | 0.154 (p95 0.316) | 20 | 1 | 0.167 [0.167, 0.167] |
+| reconcile | 16.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 3 [3, 3] | n/a | 0/0/0 | 0.193 (p95 0.290) | 0 | 3 | 0.400 [0.400, 0.400] |
+| reconcile_off | 16.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 5.83 [5.83, 5.83] | 0/0/0 | 0.150 (p95 0.281) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 16.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.184 (p95 0.334) | 0 | 3 | 0.300 [0.300, 0.300] |
+| admission_only | 22.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 1 [1, 1] | n/a | 0/0/0 | 0.140 (p95 0.173) | 20 | 1 | 0.167 [0.167, 0.167] |
+| reconcile | 22.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.158 (p95 0.219) | 0 | 2 | 0.375 [0.375, 0.375] |
+| reconcile_off | 22.0 | 5 | 10 | 3 [3, 3] | 0 [0, 0] | 0 [0, 0] | 4.24 [4.24, 4.24] | 0/0/0 | 0.147 (p95 0.319) | 0 | 1 | 1.000 [1.000, 1.000] |
+| reconcile_relocate | 22.0 | 5 | 10 | 3 [3, 3] | 1 [1, 1] | 3 [3, 3] | n/a | 0/0/0 | 0.166 (p95 0.293) | 0 | 3 | 0.300 [0.300, 0.300] |
 
 Skipped fleet 8: the campus has 3 exposed POIs (< 8).
+
+**Relocation viewpoints** (`reconcile_relocate`, 4 Mbps, fleet 5; 10 seeds, all agree; campus frame, metres east and north of the datum)
+
+| post | viewpoint x | viewpoint y | distance m | level before | SINR before dB | level after | SINR after dB |
+|---|---|---|---|---|---|---|---|
+| poi_bus_stop | 0.452 | -63.146 | 11.5 | low | -1.3 | medium | 2.9 |
+| poi_library_door | 36.805 | 30.894 | 12.9 | low | -1.2 | medium | 5.7 |
+
+**Variants.** `reconcile_off`: the network-unaware plan (video at every exposed post), no admission; every stream starts at its nominal rate. `admission_only`: the same plan and the same admission code as `reconcile` (per-level rate and RTT, cell cost `rate x SE(anchor) / SE(SINR)`), one request pass; a refused flow is not adapted (no switch to telemetry, no further rounds, no relocation): the post is held without a stream and escalated to the operator. `reconcile`: admission plus the degradation loop (a refused video post switches to `telemetry_plus`; a video post gives way when telemetry is refused for capacity). `reconcile_relocate`: `reconcile`, and a video post refused for coverage first moves to a footpath viewpoint within 20 m with a better level, in sight of the POI.
+
+**Usable.** Class rates: `video_control` 4 Mbps (guaranteed), `telemetry_plus` 0.3 Mbps (guaranteed); the video bitrate is never adapted. With admission (`admission_only`, `reconcile`, `reconcile_relocate`) a stream is usable when its flow is granted; video usable counts granted video flows, sensing usable counts granted video or `telemetry_plus` flows. In `reconcile_off` the cell is shared by weighted fair share in cell units: when the summed cost of the active streams exceeds the capacity, every stream gets `rate x capacity / demand`, capped by the robot's uplink where it streams (0 in lost coverage); a stream is usable when that effective rate reaches its class rate. Oversubscription is demand / capacity. `telemetry_plus` is a post's sensing stream without images, for basic monitoring (robot state, position and event reports); it allows no visual verification. In the simulator streams are accounted, not transmitted: each robot records the class it opens against its grant.
 
 ## N2: agent traffic and the overhead of the twin as memory
 
@@ -405,14 +417,19 @@ RTT checks: [('medium', 46.119, 'ok'), ('low', 82.963, 'ok'), ('medium', 45.26, 
 
 Capture check (frame bytes captured / interface counters): a2a_grpc 1.0, a2a_jsonrpc 1.0, a2a_jsonrpc 1.0, a2a_rest 1.0, mqtt 1.0, mqtt 1.0
 
+**Settings** (`protolab/endpoint.py`, `protolab/lab.py`, `config/bench/protocols.yaml`). Every binding runs over TLS 1.3 on real sockets, with TCP_NODELAY.
+
+- MQTT: `aiomqtt` 2.5 (paho), MQTT 3.1.1, amqtt broker at the edge; QoS 1 for requests and replies; persistent session (clean session false; 3.1.1 has no session expiry, the broker keeps the session); keepalive 10 s; connect timeout 10 s; on a connection error the client reconnects after a fixed 0.5 s (no exponential backoff).
+- A2A JSON-RPC and REST (`a2a-sdk`, `httpx` 0.28): request timeout 10 s; no library retries; default connection pool (no limit, keep-alive expiry 5 s). Reused: one client and connection for the whole block, agent card fetched once. New connection: a new client, TLS handshake and agent-card fetch for every message. Server keep-alive 600 s.
+- A2A gRPC (`grpc.aio` secure channel): default channel options, so no keepalive pings and no retry policy (only gRPC's transparent retry of RPCs never sent).
+- Delivery: every pattern is request and acknowledgement (one reply message per request), so each binding acknowledges each message end to end. In the outage tests the client resends the same message id every 1 s until it is acknowledged (at least once for every binding; the server logs received ids for duplicate counts). MQTT also redelivers by itself (QoS 1 with the persistent session), which is where its duplicate comes from; the A2A bindings rely on the client's resend only.
+- Evidence image (P6): base64 text inside the JSON message (about 422 kB per message) against raw bytes in CBOR (about 317 kB); base64 adds one third.
+- Deadlines: a contract-net round (P3) misses at 1.5 s or more; any other request misses when its acknowledgement takes 2.0 s or more.
+
 ## Costs and other measures (`table_cost.csv`)
 
 | measure | variant | n | median | p95 | unit | source |
 |---|---|---|---|---|---|---|
-| UC2-KPI-11 posture change -> reconciled envelopes | fake | 20 | 0.037 | 0.116 | s (wall) | e5_kpi11_fake_20261026T141839Z.json |
-| UC2-KPI-11 all robots answered | fake | 20 | 0.163 | 0.441 | s (wall) | e5_kpi11_fake_20261026T141839Z.json |
-| UC2-KPI-11 posture change -> reconciled envelopes | gpt-5-nano+robots | 20 | 0.046 | 0.094 | s (wall) | e5_kpi11_gpt-5-nano+robots_20261026T142718Z.json |
-| UC2-KPI-11 all robots answered | gpt-5-nano+robots | 20 | 1.821 | 2.097 | s (wall) | e5_kpi11_gpt-5-nano+robots_20261026T142718Z.json |
 | UC2-KPI-11 posture change -> reconciled envelopes | fake | 20 | 0.03 | 0.033 | s (wall) | e5_kpi11_fake_20261027T191202Z.json |
 | UC2-KPI-11 all robots answered | fake | 20 | 0.14 | 0.143 | s (wall) | e5_kpi11_fake_20261027T191202Z.json |
 | UC2-KPI-11 posture change -> reconciled envelopes | fake+capacity22 | 20 | 0.032 | 0.044 | s (wall) | e5_kpi11_fake+capacity22_20261027T191520Z.json |
@@ -421,18 +438,6 @@ Capture check (frame bytes captured / interface counters): a2a_grpc 1.0, a2a_jso
 | UC2-KPI-11 all robots answered | gpt-5-nano+robots | 20 | 1.962 | 4.058 | s (wall) | e5_kpi11_gpt-5-nano+robots_20261027T205612Z.json |
 | UC2-KPI-11 posture change -> reconciled envelopes | gpt-5-nano+robots+capacity22 | 20 | 0.03 | 0.04 | s (wall) | e5_kpi11_gpt-5-nano+robots+capacity22_20261027T210624Z.json |
 | UC2-KPI-11 all robots answered | gpt-5-nano+robots+capacity22 | 20 | 2.226 | 3.673 | s (wall) | e5_kpi11_gpt-5-nano+robots+capacity22_20261027T210624Z.json |
-| unseen orders understood | rules_first | 24 | 0.708 |  | share | orders_unseen_gpt-5-nano_20261026T143322Z.json |
-| unseen orders: envelopes sent | rules_first | 24 | 17.72 | 55.43 | s (wall) | orders_unseen_gpt-5-nano_20261026T143322Z.json |
-| unseen orders understood | model_first | 24 | 0.875 |  | share | orders_unseen_gpt-5-nano_20261026T143322Z.json |
-| unseen orders: envelopes sent | model_first | 24 | 7.68 | 19.37 | s (wall) | orders_unseen_gpt-5-nano_20261026T143322Z.json |
-| unseen orders understood | rules_first | 24 | 0.625 |  | share | orders_unseen_gpt-5-nano_20261026T145219Z.json |
-| unseen orders: envelopes sent | rules_first | 24 | 18.37 | 44.99 | s (wall) | orders_unseen_gpt-5-nano_20261026T145219Z.json |
-| unseen orders understood | model_first | 24 | 0.792 |  | share | orders_unseen_gpt-5-nano_20261026T145219Z.json |
-| unseen orders: envelopes sent | model_first | 24 | 10.0 | 21.5 | s (wall) | orders_unseen_gpt-5-nano_20261026T145219Z.json |
-| unseen orders understood | rules_first | 24 | 0.667 |  | share | orders_unseen_gpt-5-nano_20261026T151144Z.json |
-| unseen orders: envelopes sent | rules_first | 24 | 17.49 | 46.54 | s (wall) | orders_unseen_gpt-5-nano_20261026T151144Z.json |
-| unseen orders understood | model_first | 24 | 0.875 |  | share | orders_unseen_gpt-5-nano_20261026T151144Z.json |
-| unseen orders: envelopes sent | model_first | 24 | 9.47 | 27.88 | s (wall) | orders_unseen_gpt-5-nano_20261026T151144Z.json |
 | unseen orders understood | rules_first | 24 | 0.708 |  | share | orders_unseen_gpt-5-nano_20261027T213348Z.json |
 | unseen orders: envelopes sent | rules_first | 24 | 15.23 | 35.43 | s (wall) | orders_unseen_gpt-5-nano_20261027T213348Z.json |
 | unseen orders understood | model_first | 24 | 0.833 |  | share | orders_unseen_gpt-5-nano_20261027T213348Z.json |
@@ -452,14 +457,14 @@ Capture check (frame bytes captured / interface counters): a2a_grpc 1.0, a2a_jso
 | route compliance (as_mapped) | off | 500 | 0.7286 |  | share | e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json |
 | route compliance (with_steps) | kb | 500 | 1.0 |  | share | e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json |
 | route compliance (with_steps) | off | 500 | 0.5752 |  | share | e6_kpi10_gpt-5-nano+embedder_20261027T211429Z.json |
-| observation retrieval R-normalised P@1 | query | 756 | 0.8611 |  | share | e6_kpi15_embedder_20261020T151101Z.json |
-| observation retrieval R-normalised P@3 | query | 756 | 0.851 |  | share | e6_kpi15_embedder_20261020T151101Z.json |
-| observation retrieval R-normalised P@5 | query | 756 | 0.8952 |  | share | e6_kpi15_embedder_20261020T151101Z.json |
-| hand-over context precision@1 | store_kept | 2000 | 1.0 |  | share | e6_kpi15_embedder_20261020T151101Z.json |
-| hand-over leaks | store_kept | 3002 | 0 |  | count | e6_kpi15_embedder_20261020T151101Z.json |
-| hand-over context precision@1 | store_lost_10pct_during_escort | 2000 | 1.0 |  | share | e6_kpi15_embedder_20261020T151101Z.json |
-| hand-over leaks | store_lost_10pct_during_escort | 2984 | 0 |  | count | e6_kpi15_embedder_20261020T151101Z.json |
-| hand-over context precision@1 | store_lost_10pct_after_leaving | 2000 | 0.9 |  | share | e6_kpi15_embedder_20261020T151101Z.json |
-| hand-over leaks | store_lost_10pct_after_leaving | 2650 | 0 |  | count | e6_kpi15_embedder_20261020T151101Z.json |
+| observation retrieval R-normalised P@1 | query | 756 | 0.8611 |  | share | e6_kpi15_embedder_20261029T233416Z.json |
+| observation retrieval R-normalised P@3 | query | 756 | 0.851 |  | share | e6_kpi15_embedder_20261029T233416Z.json |
+| observation retrieval R-normalised P@5 | query | 756 | 0.8952 |  | share | e6_kpi15_embedder_20261029T233416Z.json |
+| hand-over context precision@1 | store_kept | 2000 | 1.0 |  | share | e6_kpi15_embedder_20261029T233416Z.json |
+| hand-over leaks | store_kept | 3002 | 0 |  | count | e6_kpi15_embedder_20261029T233416Z.json |
+| hand-over context precision@1 | store_lost_10pct_during_escort | 2000 | 1.0 |  | share | e6_kpi15_embedder_20261029T233416Z.json |
+| hand-over leaks | store_lost_10pct_during_escort | 2984 | 0 |  | count | e6_kpi15_embedder_20261029T233416Z.json |
+| hand-over context precision@1 | store_lost_10pct_after_leaving | 2000 | 0.9 |  | share | e6_kpi15_embedder_20261029T233416Z.json |
+| hand-over leaks | store_lost_10pct_after_leaving | 2650 | 0 |  | count | e6_kpi15_embedder_20261029T233416Z.json |
 | G10 runs with every check passing | var/runs/g10_n2 | 10 | 10 |  | count | var/runs/g10_n2 |
 | G10 link recovery time (UC2-KPI-12) | var/runs/g10_n2 | 6 | 734.7 | 887.1500000000001 | s (simulated) | var/runs/g10_n2 |
