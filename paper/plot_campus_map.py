@@ -14,17 +14,18 @@ import argparse
 import csv
 import json
 import math
+from itertools import pairwise
 from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from a6g_common.config import load_config  # noqa: E402
-from a6g_common.coverage import CoverageMap, map_path  # noqa: E402
-from matplotlib.collections import LineCollection  # noqa: E402
-from matplotlib.lines import Line2D  # noqa: E402
-from matplotlib.patches import FancyArrowPatch, Polygon, Rectangle  # noqa: E402
+import matplotlib.pyplot as plt
+from a6g_common.config import load_config
+from a6g_common.coverage import CoverageMap, map_path
+from matplotlib.collections import LineCollection
+from matplotlib.lines import Line2D
+from matplotlib.patches import FancyArrowPatch, Polygon, Rectangle
 
 HERE = Path(__file__).resolve().parent
 #: Coverage levels: the live view's hues (green, yellow, orange, purple), stepped so that
@@ -37,7 +38,13 @@ BOX = {"boxstyle": "square,pad=0.1", "fc": "white", "ec": "none", "alpha": 0.85}
 
 def db(v: float) -> str:
     return f"{v:.1f}".replace("-", "\u2212") + " dB"
-SHORT = {"poi_library_door": "Building 9B door", "poi_bike_rack": "Bike rack", "poi_bus_stop": "Bus stop"}
+
+
+SHORT = {
+    "poi_library_door": "Building 9B door",
+    "poi_bike_rack": "Bike rack",
+    "poi_bus_stop": "Bus stop",
+}
 
 
 def viewpoints(runs: Path, out_csv: Path) -> list[dict]:
@@ -74,8 +81,10 @@ def viewpoints(runs: Path, out_csv: Path) -> list[dict]:
     elif out_csv.exists():
         with out_csv.open() as f:
             rows = [
-                {k: (float(v) if k in ("x", "y", "sinr_db", "from_sinr_db", "distance_m") else v)
-                 for k, v in r.items()}
+                {
+                    k: (float(v) if k in ("x", "y", "sinr_db", "from_sinr_db", "distance_m") else v)
+                    for k, v in r.items()
+                }
                 for r in csv.DictReader(f)
             ]
     seed0 = [r for r in rows if int(r["seed"]) == min(int(q["seed"]) for q in rows)] if rows else []
@@ -118,7 +127,7 @@ def main() -> None:
     segs: dict[str, list] = {lv: [] for lv in LEVELS}
     for e in campus.route_graph.edges:
         pts = list(e.geometry)
-        for (x0, y0), (x1, y1) in zip(pts, pts[1:], strict=False):
+        for (x0, y0), (x1, y1) in pairwise(pts):
             n = max(1, int(math.hypot(x1 - x0, y1 - y0) // 2))
             for i in range(n):
                 a = (x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n)
@@ -136,22 +145,49 @@ def main() -> None:
     st = campus.staging_area
     xs, ys = [p[0] for p in st], [p[1] for p in st]
     ax.add_patch(
-        Rectangle((min(xs), min(ys)), max(xs) - min(xs), max(ys) - min(ys),
-                  fill=False, ec=INK, lw=0.9, ls=(0, (2, 1.2)), zorder=4)
+        Rectangle(
+            (min(xs), min(ys)),
+            max(xs) - min(xs),
+            max(ys) - min(ys),
+            fill=False,
+            ec=INK,
+            lw=0.9,
+            ls=(0, (2, 1.2)),
+            zorder=4,
+        )
     )
-    ax.annotate("Staging\n(recovery point)", (min(xs), (min(ys) + max(ys)) / 2), xytext=(-3, 0),
-                textcoords="offset points", ha="right", va="center", color=INK, bbox=BOX)
+    ax.annotate(
+        "Staging\n(recovery point)",
+        (min(xs), (min(ys) + max(ys)) / 2),
+        xytext=(-3, 0),
+        textcoords="offset points",
+        ha="right",
+        va="center",
+        color=INK,
+        bbox=BOX,
+    )
 
     # gNB site
     site = campus.network_sites[0]
     ax.plot(site["x"], site["y"], marker="^", ms=7, mfc=INK, mec="white", mew=0.6, zorder=6)
-    ax.annotate("gNB (n40)", (site["x"], site["y"]), xytext=(5, -2), textcoords="offset points",
-                ha="left", va="top", color=INK, bbox=BOX)
+    ax.annotate(
+        "gNB (n40)",
+        (site["x"], site["y"]),
+        xytext=(5, -2),
+        textcoords="offset points",
+        ha="left",
+        va="top",
+        color=INK,
+        bbox=BOX,
+    )
 
     # exposed posts with level and SINR at the post, and their relocation
     vps = {r["poi_id"]: r for r in viewpoints(args.runs, HERE / "relocation_viewpoints.csv")}
-    offsets = {"poi_library_door": (-4, 17, "right"), "poi_bike_rack": (-4, 6, "right"),
-               "poi_bus_stop": (7, -1, "left")}
+    offsets = {
+        "poi_library_door": (-4, 17, "right"),
+        "poi_bike_rack": (-4, 6, "right"),
+        "poi_bus_stop": (7, -1, "left"),
+    }
     for p in campus.pois:
         if p.poi_id not in SHORT:
             continue
@@ -163,14 +199,41 @@ def main() -> None:
         text = f"{SHORT[p.poi_id]}\n{s['level']}, {db(s['sinr'])}"
         if vp is not None:
             text += f"\n\u2192 {vp['level']}, {db(float(vp['sinr_db']))}"
-        ax.annotate(text, (x, y), xytext=(dx, dy), textcoords="offset points", ha=ha,
-                    va="bottom" if dy > 0 else "top", color=INK, bbox=BOX, zorder=10)
+        ax.annotate(
+            text,
+            (x, y),
+            xytext=(dx, dy),
+            textcoords="offset points",
+            ha=ha,
+            va="bottom" if dy > 0 else "top",
+            color=INK,
+            bbox=BOX,
+            zorder=10,
+        )
         if vp is not None:
-            ax.add_patch(FancyArrowPatch((x, y), (vp["x"], vp["y"]), arrowstyle="-|>",
-                                         mutation_scale=7, lw=0.9, color=INK, zorder=8,
-                                         shrinkA=3, shrinkB=1))
-            ax.plot(vp["x"], vp["y"], marker="D", ms=4.5, mfc=LEVEL_COLOR[vp["level"]],
-                    mec=INK, mew=0.6, zorder=9)
+            ax.add_patch(
+                FancyArrowPatch(
+                    (x, y),
+                    (vp["x"], vp["y"]),
+                    arrowstyle="-|>",
+                    mutation_scale=7,
+                    lw=0.9,
+                    color=INK,
+                    zorder=8,
+                    shrinkA=3,
+                    shrinkB=1,
+                )
+            )
+            ax.plot(
+                vp["x"],
+                vp["y"],
+                marker="D",
+                ms=4.5,
+                mfc=LEVEL_COLOR[vp["level"]],
+                mec=INK,
+                mew=0.6,
+                zorder=9,
+            )
 
     # extent: the pilot area with a margin
     px, py = [q[0] for q in pilot], [q[1] for q in pilot]
@@ -183,23 +246,36 @@ def main() -> None:
     ax.plot([x0, x0 + 50], [y0, y0], color=INK, lw=1.2, solid_capstyle="butt")
     ax.text(x0 + 25, y0 + 3, "50 m", ha="center", va="bottom", color=INK)
     nx, ny = max(px) - 8, max(py) - 30
-    ax.add_patch(FancyArrowPatch((nx, ny), (nx, ny + 22), arrowstyle="-|>", mutation_scale=8,
-                                 lw=1.0, color=INK))
+    ax.add_patch(
+        FancyArrowPatch(
+            (nx, ny), (nx, ny + 22), arrowstyle="-|>", mutation_scale=8, lw=1.0, color=INK
+        )
+    )
     ax.text(nx, ny + 24, "N", ha="center", va="bottom", color=INK, fontweight="bold")
 
     # legend: coverage levels, then the markers
     handles = [Line2D([], [], color=LEVEL_COLOR[lv], lw=2.4, label=lv) for lv in LEVELS]
     handles += [
         Line2D([], [], ls="", marker="o", mfc="white", mec=INK, ms=5, label="exposed post"),
-        Line2D([], [], ls="", marker="D", mfc="white", mec=INK, ms=3.5,
-               label="relocated post"),
+        Line2D([], [], ls="", marker="D", mfc="white", mec=INK, ms=3.5, label="relocated post"),
     ]
-    ax.legend(handles=handles, loc="lower left", frameon=False, handlelength=1.4,
-              handletextpad=0.4, borderaxespad=0.2, labelspacing=0.25, columnspacing=0.8,
-              ncol=2, title="Footpath coverage", title_fontsize=8, alignment="left")
+    ax.legend(
+        handles=handles,
+        loc="lower left",
+        frameon=False,
+        handlelength=1.4,
+        handletextpad=0.4,
+        borderaxespad=0.2,
+        labelspacing=0.25,
+        columnspacing=0.8,
+        ncol=2,
+        title="Footpath coverage",
+        title_fontsize=8,
+        alignment="left",
+    )
 
     stem = HERE / ("fig_campus_map_wide" if args.wide else "fig_campus_map")
-    fig.savefig(stem.with_suffix(".pdf"))
+    fig.savefig(stem.with_suffix(".pdf"), metadata={"CreationDate": None})  # deterministic
     fig.savefig(stem.with_suffix(".png"), dpi=600)
     print(stem.with_suffix(".pdf"), stem.with_suffix(".png"))
 
