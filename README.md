@@ -23,7 +23,7 @@ The coloured map is the 5G coverage; go2_02 has just entered a lost-coverage zon
 - [The 2D view](#the-2d-view)
 - [Installation](#installation)
 - [Running the demo](#running-the-demo)
-- [Replicating the experiments](#replicating-the-experiments)
+- [Reproducing the paper](#reproducing-the-paper)
 - [Repository layout](#repository-layout)
 - [Future work](#future-work)
 - [Citation](#citation) · [Acknowledgments](#acknowledgments) · [License](#license)
@@ -263,56 +263,94 @@ uv run a6g sim inject anomaly poi_kiosk "unattended backpack"   # the operator i
 Stopping terminal 2 (Ctrl+C) simulates a coordinator failure, and the robots carry on by
 themselves. `uv run a6g dev reset` clears all saved state between sessions.
 
-## Replicating the experiments
+## Reproducing the paper
 
-Every experiment runs on the simulator with fixed random seeds, and writes a JSON result to
-`bench/results/`. Each result carries a manifest: the commit, configuration hashes, seeds,
-models, network mode and host. The 5G network is in the loop through emulation built on
-measured data: the coverage map of UPV's calibrated radio digital twin, the cell's measured
-uplink capacity and per-level link profiles applied with `tc netem`.
+Every experiment runs on the simulator with fixed seeds and writes a JSON result to
+`bench/results/`, with a manifest: commit and dirty flag, command, configuration hashes,
+seeds, models and their fidelity, network mode, coverage source, time base and host. The 5G
+network is in the loop through emulation built on measured data: the coverage map of
+UPV's radio digital twin (calibrated with measurements on the campus), the cell's measured
+uplink capacity (22 Mbps, one device, 20 MHz) and per-level link profiles applied with
+`tc netem`. Our raw result files are in `bench/results/`, the log of the final run (checks and corrections included) in [bench/PAPER_MEASUREMENTS.md](bench/PAPER_MEASUREMENTS.md), and commit IDs recorded before 28 Oct 2026 are mapped to the published history in [bench/COMMIT_MAP.md](bench/COMMIT_MAP.md).
 
-**One command for everything:**
+**Environment.** Ubuntu 24.04, x86-64, 8 cores, 16 GB RAM; Python 3.11 from `uv` with the
+locked dependencies (`uv sync --locked`); Docker for one Postgres container; for the
+protocol benchmark, rootless Linux network namespaces (`unshare`, `ip`/`tc` from iproute2,
+`openssl`; no sudo). Postgres, once:
 
 ```bash
 docker run -d --name a6g-pg -e POSTGRES_USER=a6g -e POSTGRES_PASSWORD=a6g -e POSTGRES_DB=a6g \
-    -p 127.0.0.1:5433:5432 postgres:16   # once: the database for the G10 run
-bench/run_final.sh          # all phases: A offline, B cloud models, C protocols, then the export
-bench/run_final.sh A        # only the offline experiments (no API key needed)
+    -p 127.0.0.1:5433:5432 postgres:16
 ```
 
-The script runs the steps one after another so that timing measurements never share the
-machine, and keeps the laptop awake. It writes a log per step to `var/logs/final/` and a
-status line per step to `var/logs/final/status.txt`. Finally it exports the paper's tables
-and figure data to `paper/` (`RESULTS.md` plus CSV files).
+**Everything in one command:** `bench/run_final.sh` (phases `A` offline, `B` cloud models,
+`C` protocols, then the export; `bench/run_final.sh A` needs no API key). It runs the steps
+one after another, so that timing measurements never share the machine, keeps the machine
+awake, and logs each step to `var/logs/final/`.
 
-**Or run the experiments one by one** (times measured on the machine above):
+**One command per artefact** (times on the machine above):
 
-| Experiment | What it shows | Command | Time |
+| Paper artefact | Command | Time | Output |
 |---|---|---|---|
-| Coordinator outages | Missions complete when the coordinator fails for 60 s to forever, against three centralised baselines; fleets of 3, 5 and 8 | `uv run a6g bench baselines --jobs 6` | 1.5 h |
-| Network scarcity | An emergency over a cell of 2 to 44 Mbps: admission control, degradation and relocation for coverage, against no control | `uv run a6g bench scarcity --jobs 6` | 10 min |
-| End-to-end scenario (G10) | Patrol, an escort with a wheelchair user, a weather alert, link loss and the all-clear, with consistency checks; 10 seeds | `uv run a6g bench g10 --seeds 10 --out var/runs/g10_n2 --network capacity --checkpoint-meter --persistence postgres --pg-dsn postgresql://a6g:a6g@127.0.0.1:5433/a6g` | 7 min |
-| Emergency reaction time | From the alert to new orders published and acknowledged by every robot | `uv run a6g bench kpi11 --seeds 20` (add `--network capacity`, or `--model --robot-model` for gpt-5-nano) | 3–10 min |
-| Agent traffic and memory overhead | Messages, bytes per interaction pattern, model calls and checkpoint sizes (reads the two runs above, so run it after them) | `uv run a6g bench overhead --persistence postgres` | < 1 min |
-| Knowledge server | Place resolution, step-free routes and task planning with and without the campus knowledge server | `uv run a6g bench kb` (`--model --embedder model` with gpt-5-nano) | < 1–8 min |
-| Goal decomposition | Exact plans for 45 goals: routine, interactive, emergency, paraphrased, ambiguous, off-map and prompt-injected | `uv run a6g bench decompose` (`--model --embedder model`) | < 1–4 min |
-| Unseen operator orders | 24 orders never used in development, rules-first against model-first understanding | `uv run a6g bench orders` (needs an API key) | 15 min |
-| Agent protocols over radio links | A2A (JSON-RPC, REST, gRPC) and MQTT over emulated good, medium and low 5G links, and outages | `uv run a6g bench protocols` (`--reduced` for a short run) | 3 h 15 min |
-| Paper tables | `paper/RESULTS.md` and CSV files from the latest results | `uv run a6g paper export` | seconds |
+| Fig. 3: coordinator outages, P against B0–B2, fleets 3/5/8, 10 seeds | `uv run a6g bench baselines --jobs 6` | 1.5 h | `bench/results/n1_outage_*.json`, `paper/fig_outage.csv` |
+| Fig. 4: emergency under scarcity, 2–22 Mbps, fleets 3/5, 10 seeds; `reconcile_off`, `admission_only`, `reconcile`, `reconcile_relocate` | `uv run a6g bench scarcity --jobs 6` | 17 min | `bench/results/n4_scarcity_*.json`, `paper/fig_scarcity.csv` |
+| SINR sensitivity (±3 dB) of Fig. 4 | `uv run a6g bench scarcity --jobs 6 --sinr-shift -3 --variants reconcile,reconcile_relocate --fleets 5 --runs var/runs/n4_sinr_m3 --out bench/results/sensitivity --csv paper/fig_scarcity_sinr_m3.csv` (and `+3`) | 5 min each | as named |
+| Campus map (Fig. 2) | `uv run python paper/plot_campus_map.py` (after Fig. 4) | seconds | `paper/fig_campus_map.pdf`, `.png` |
+| Table II: agent protocols over emulated links | `uv run a6g bench protocols` (`--reduced` for a short run) | 3 h 15 min | `bench/results/n5_protocols_*.json`, `paper/table_protocols.csv` |
+| Scenario G10 (consolidated run, invariants, checkpoints) | `uv run a6g bench g10 --seeds 10 --out var/runs/g10_n2 --network capacity --checkpoint-meter --persistence postgres --pg-dsn postgresql://a6g:a6g@127.0.0.1:5433/a6g` | 7 min | `var/runs/g10_n2/` |
+| Traffic and checkpoint overhead (after G10 and Fig. 3) | `uv run a6g bench overhead --persistence postgres` | < 1 min | `bench/results/n2_overhead_*.json`, `paper/table_overhead.csv` |
+| Emergency reaction time (M1) | `uv run a6g bench kpi11 --seeds 20` (`--network capacity`; `--model --robot-model` for gpt-5-nano) | 3–10 min | `bench/results/e5_kpi11_*.json` |
+| Knowledge server (M2) | `uv run a6g bench kb` (`--model --embedder model`) | < 1–8 min | `bench/results/e6_kpi10_*.json` |
+| Retrieval precision (M3) | `uv run a6g bench retrieval` (`--embedder model`) | < 1–5 min | `bench/results/e6_kpi15_*.json` |
+| Goal decomposition | `uv run a6g bench decompose` (`--model --embedder model`) | < 1–4 min | `bench/results/e6_kpi9_*.json` |
+| Unseen operator orders (M7) | `uv run a6g bench orders` (API key; we ran it three times) | 15 min | `bench/results/orders_unseen_*.json` |
+| `paper/RESULTS.md` and the CSV files | `uv run a6g paper export` | seconds | `paper/` |
 
-Notes:
-- **Offline runs are deterministic.** They use the same seeds and a fake model, so they
-  reproduce our numbers up to timing noise.
-- **Runs with gpt-5-nano vary from one run to the next.** For example, the share of unseen
-  orders understood ranged from 62 % to 75 % over three runs. Repeat them, and report the
-  spread.
-- **The protocol benchmark sends real traffic in real time** through rootless Linux network
-  namespaces with `tc netem`. It needs `unshare`, `ip`/`tc` (iproute2) and `openssl`, but
-  no sudo. Run it on an otherwise idle machine.
-- **Our own results** are in `bench/results/`. The log of the final run, including checks
-  and corrections, is in [bench/PAPER_MEASUREMENTS.md](bench/PAPER_MEASUREMENTS.md).
-  Commit IDs recorded before 28 Oct 2026 are mapped to the published history in
-  [bench/COMMIT_MAP.md](bench/COMMIT_MAP.md).
+**Seeds, configuration, models, prompts.** Seeds are the benches' defaults (10 per cell for
+Figs. 3 and 4, 20 for M1, 50 for M3, seed 26 and 3 repeats for Table II). The configuration
+is the repository's `config/`: `network.yaml` (cell, coverage levels, uplink model, link
+profiles, flow classes), `bench/protocols.yaml` (Table II matrix), `campus/upv_vera_cpi.yaml`
+and `sim/fleet.yaml`. Cloud runs use `gpt-5-nano` for the coordinator and robot roles and
+`openai:text-embedding-3-small` for the embedder (`config/models.yaml`); robot prompts are
+versioned in `prompts/onboard_vlm/*.md` (front matter `version`), and the coordinator's
+prompts live in its code. **Offline runs with fake models reproduce every architecture
+result** (Figs. 3 and 4, invariants, checkpoints, traffic) up to timing noise; runs with
+gpt-5-nano need an API key in `.env` and vary between runs (unseen orders understood: 62–75 %
+over three runs), so repeat them and report the spread.
+
+**Definitions.**
+- *Mission completion*: all six inspection points inspected within the horizon, from the
+  simulator's own skill records (never from the coordinator's state).
+- *Time to resume*: from the robot failure to the first of its open inspections started by
+  another robot.
+- *Usable sensing*: a post's video or `telemetry_plus` flow granted by admission; without
+  admission (`reconcile_off`), its weighted fair share of the cell reaches the class rate
+  (video 4 Mbps, `telemetry_plus` 0.3 Mbps; video is never adapted).
+- *Oversubscription*: summed cost of the active streams over the cell capacity, with cost
+  `rate x SE(anchor) / SE(SINR)`, `SE(SINR) = min(0.6 log2(1 + SINR), 5.55)` (SINR linear),
+  and SINR = RSRP + 101 dB clipped to [−10, 26] dB.
+- *Deadline miss* (Table II): a contract-net round (P3) of 1.5 s or more; any other request
+  whose acknowledgement takes 2.0 s or more.
+
+**Link profiles (netem, per coverage level).** Uplink: the capacity model's rate at the
+level's lower SINR edge.
+
+| Level | Uplink | Downlink | RTT | Jitter | Loss |
+|---|---|---|---|---|---|
+| good | 9.97 Mbps | 100 Mbps | 19 ms (measured) | 5 ms | 0.1 % |
+| medium | 3.11 Mbps | 20 Mbps | 45 ms | 15 ms | 1 % |
+| low | 0.45 Mbps | 5 Mbps | 80 ms | 30 ms | 3 % |
+
+Only the good-level round-trip time is measured (n40, 9.76 ms downlink + 8.89 ms uplink);
+the other delays, jitters and losses are assumptions.
+
+**Data.** `sim_gazebo/data/network/n40_centroides_rsrp.csv.gz` is UPV's radio digital twin export (n40 RSRP,
+0.3 m above ground). The coverage maps derived from it are committed; to rebuild them,
+`gunzip -k sim_gazebo/data/network/n40_centroides_rsrp.csv.gz` and run `uv run a6g network import-coverage`.
+Buildings and footpaths are OpenStreetMap data (ODbL, see the attribution file next to the
+extract). Message traces are written by every run (`comms.jsonl` in its run directory: one
+line per inter-agent message, with pattern, binding, sizes and timings); they contain
+simulated data only.
 
 ## Repository layout
 
