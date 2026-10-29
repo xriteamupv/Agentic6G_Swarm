@@ -167,6 +167,7 @@ def scarcity_section(data: dict[str, Any]) -> list[str]:
                     3,
                 ),
                 sum(r["escalations"] for r in rs),
+                max((r.get("reconcile_iterations_max") or 0) for r in rs),
                 med_iqr([r["kpi3_share"] for r in rs if r.get("kpi3_share") is not None], 3),
             ]
         )
@@ -183,13 +184,42 @@ def scarcity_section(data: dict[str, Any]) -> list[str]:
             "I1/I2/I3 violations",
             "posture -> reconciled s (wall)",
             "escalations",
+            "reconciliation rounds (max)",
             "KPI-3 share",
         ],
         out,
     )
     for what, why in (data.get("skipped") or {}).items():
         lines.append(f"\nSkipped {what}: {why}.")
-    return lines
+    return lines + SCARCITY_DEFINITIONS
+
+
+SCARCITY_DEFINITIONS = [
+    "",
+    "**Variants.** `reconcile_off`: the network-unaware plan (video at every exposed post), no "
+    "admission; every stream starts at its nominal rate. `admission_only`: the same plan and "
+    "the same admission code as `reconcile` (per-level rate and RTT, cell cost "
+    "`rate x SE(anchor) / SE(SINR)`), one request pass; a refused flow is not adapted (no "
+    "switch to telemetry, no further rounds, no relocation): the post is held without a "
+    "stream and escalated to the operator. `reconcile`: admission plus the degradation loop "
+    "(a refused video post switches to `telemetry_plus`; a video post gives way when "
+    "telemetry is refused for capacity). `reconcile_relocate`: `reconcile`, and a video post "
+    "refused for coverage first moves to a footpath viewpoint within 20 m with a better "
+    "level, in sight of the POI.",
+    "",
+    "**Usable.** Class rates: `video_control` 4 Mbps (guaranteed), `telemetry_plus` 0.3 Mbps "
+    "(guaranteed); the video bitrate is never adapted. With admission (`admission_only`, "
+    "`reconcile`, `reconcile_relocate`) a stream is usable when its flow is granted; video "
+    "usable counts granted video flows, sensing usable counts granted video or "
+    "`telemetry_plus` flows. In `reconcile_off` the cell is shared by weighted fair share in "
+    "cell units: when the summed cost of the active streams exceeds the capacity, every "
+    "stream gets `rate x capacity / demand`, capped by the robot's uplink where it streams "
+    "(0 in lost coverage); a stream is usable when that effective rate reaches its class "
+    "rate. Oversubscription is demand / capacity. `telemetry_plus` is a post's sensing stream "
+    "without images, for basic monitoring (robot state, position and event reports); it "
+    "allows no visual verification. In the simulator streams are accounted, not "
+    "transmitted: each robot records the class it opens against its grant.",
+]
 
 
 def overhead_section(data: dict[str, Any]) -> list[str]:
