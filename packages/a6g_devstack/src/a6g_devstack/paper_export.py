@@ -423,7 +423,35 @@ def protocols_section(data: dict[str, Any]) -> list[str]:
             "Capture check (frame bytes captured / interface counters): "
             + ", ".join(f"{b} {c['ratio']}" for b, c in checks),
         ]
-    return lines
+    return lines + PROTOCOL_SETTINGS
+
+
+PROTOCOL_SETTINGS = [
+    "",
+    "**Settings** (`protolab/endpoint.py`, `protolab/lab.py`, `config/bench/protocols.yaml`). "
+    "Every binding runs over TLS 1.3 on real sockets, with TCP_NODELAY.",
+    "",
+    "- MQTT: `aiomqtt` 2.5 (paho), MQTT 3.1.1, amqtt broker at the edge; QoS 1 for "
+    "requests and replies; persistent session (clean session false; 3.1.1 has no session "
+    "expiry, the broker keeps the session); keepalive 10 s; connect timeout 10 s; on a "
+    "connection error the client reconnects after a fixed 0.5 s (no exponential backoff).",
+    "- A2A JSON-RPC and REST (`a2a-sdk`, `httpx` 0.28): request timeout 10 s; no library "
+    "retries; default connection pool (no limit, keep-alive expiry 5 s). Reused: one client "
+    "and connection for the whole block, agent card fetched once. New connection: a new "
+    "client, TLS handshake and agent-card fetch for every message. Server keep-alive 600 s.",
+    "- A2A gRPC (`grpc.aio` secure channel): default channel options, so no keepalive pings "
+    "and no retry policy (only gRPC's transparent retry of RPCs never sent).",
+    "- Delivery: every pattern is request and acknowledgement (one reply message per "
+    "request), so each binding acknowledges each message end to end. In the outage tests "
+    "the client resends the same message id every 1 s until it is acknowledged (at least "
+    "once for every binding; the server logs received ids for duplicate counts). MQTT also "
+    "redelivers by itself (QoS 1 with the persistent session), which is where its duplicate "
+    "comes from; the A2A bindings rely on the client's resend only.",
+    "- Evidence image (P6): base64 text inside the JSON message (about 422 kB per message) "
+    "against raw bytes in CBOR (about 317 kB); base64 adds one third.",
+    "- Deadlines: a contract-net round (P3) misses at 1.5 s or more; any other request "
+    "misses when its acknowledgement takes 2.0 s or more.",
+]
 
 
 def cost_rows() -> list[dict[str, Any]]:
