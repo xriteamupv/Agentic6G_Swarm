@@ -35,13 +35,18 @@ def test_median_and_iqr() -> None:
     assert paper_export.med_iqr([], 0) == "n/a"
 
 
-def test_results_from_another_commit_are_flagged(tmp_path: Path) -> None:
+def test_results_from_another_commit_are_flagged(tmp_path: Path, monkeypatch) -> None:
     data = {"manifest": {"commit": "a" * 40, "models": {}}}
     line = paper_export.manifest_line("x", tmp_path / "x.json", data, "b" * 40)
-    assert "possibly stale" in line
+    assert "commit not in this history" in line
     assert "no manifest" in paper_export.manifest_line("x", tmp_path / "x.json", {}, "b" * 40)
     same = paper_export.manifest_line("x", tmp_path / "x.json", data, "a" * 40)
-    assert "stale" not in same
+    assert "changed" not in same and "history" not in same
+    monkeypatch.setattr(paper_export, "code_changed_since", lambda c: ["a6g_coordinator"])
+    line = paper_export.manifest_line("x", tmp_path / "x.json", data, "b" * 40)
+    assert "**code changed since**: a6g_coordinator" in line
+    monkeypatch.setattr(paper_export, "code_changed_since", lambda c: [])
+    assert "changed" not in paper_export.manifest_line("x", tmp_path / "x.json", data, "b" * 40)
 
 
 def test_export_writes_results_and_cost_table(tmp_path: Path, monkeypatch) -> None:

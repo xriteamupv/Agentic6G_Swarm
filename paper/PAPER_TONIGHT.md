@@ -17,8 +17,8 @@ the release; line numbers can differ slightly there).*
   **B5 run:** the emulator agrees with the paper's ±3 dB ranges at the sweep resolution.
 - **C done:** `paper/fig_campus_map.pdf` / `.png` (one column) and a double-column variant;
   the two low posts relocate about 12 m to medium-coverage viewpoints (5.7 and 2.9 dB).
-- **D done** except the GitHub release and the Zenodo DOI, which need your GitHub
-  account (steps below): code, `paper/`, the radio DT export and a "Reproducing the paper"
+- **D done** except the GitHub release and the Zenodo DOI, which need the GitHub
+  account in the web UI (steps below): code, `paper/`, the radio DT export and a "Reproducing the paper"
   README section are on `main`, tagged `ieee-network-2026`.
 - **Also rerun:** retrieval precision (M3), last run on 20 Oct, before this week's campus
   changes: identical numbers, now with manifests.
@@ -261,7 +261,7 @@ stand-in, scenario), which is that of `af40683`.
    secrets (scan for API keys, tokens and private keys: none; only `.env.example` files with
    empty values) and no personal data (all people in the scenarios are simulated; no
    e-mail addresses in the tree).
-3. **Tag:** `ieee-network-2026` on `main` (@@MAINCOMMIT@@).
+3. **Tag:** `ieee-network-2026` on `main` (commit `5d36a26`; pushed).
 4. **Release and DOI: to do in the GitHub web UI** (the GitHub CLI is not installed here):
    first enable the repository in Zenodo (zenodo.org → GitHub → switch on
    `xriteamupv/Agentic6G_Swarm`), then create the release from the tag (Releases → Draft a
