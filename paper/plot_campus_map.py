@@ -25,7 +25,7 @@ from a6g_common.config import load_config
 from a6g_common.coverage import CoverageMap, map_path
 from matplotlib.collections import LineCollection
 from matplotlib.lines import Line2D
-from matplotlib.patches import FancyArrowPatch, Polygon, Rectangle
+from matplotlib.patches import FancyArrowPatch, Polygon
 
 HERE = Path(__file__).resolve().parent
 #: Coverage levels: the live view's hues (green, yellow, orange, purple), stepped so that
@@ -105,22 +105,40 @@ def main() -> None:
         s = min(samples, key=lambda s: (s["x"] - x) ** 2 + (s["y"] - y) ** 2)
         return s["level"]
 
+    # The wide version turns the map so that the pilot area's long side is horizontal (a
+    # panoramic figure); the north arrow shows the true north. The column version is north-up.
+    pilot0 = campus.pilot_area
+    theta = 0.0
+    if args.wide:
+        edges = list(zip(pilot0, [*pilot0[1:], pilot0[0]], strict=True))
+        (ax0, ay0), (ax1, ay1) = max(edges, key=lambda e: math.dist(*e))
+        theta = -math.atan2(ay1 - ay0, ax1 - ax0)
+        theta = (theta + math.pi / 2) % math.pi - math.pi / 2  # keep north pointing upwards
+    ct, st_ = math.cos(theta), math.sin(theta)
+
+    def T(x: float, y: float) -> tuple[float, float]:
+        return (x * ct - y * st_, x * st_ + y * ct)
+
+    def Tp(points) -> list[tuple[float, float]]:
+        return [T(x, y) for x, y in points]
+
     plt.rcParams.update(
         {"font.size": 8, "font.family": "DejaVu Sans", "axes.linewidth": 0.6, "pdf.fonttype": 42}
     )
-    width_mm, height_mm = (181, 110) if args.wide else (88, 72)
+    width_mm, height_mm = (181, 98) if args.wide else (88, 72)
     fig = plt.figure(figsize=(width_mm / 25.4, height_mm / 25.4))
-    ax = fig.add_axes([0, 0, 1, 1])
+    legend_mm = 7 if args.wide else 0  # the wide version has its legend in a row below
+    ax = fig.add_axes([0, legend_mm / height_mm, 1, 1 - legend_mm / height_mm])
     ax.set_aspect("equal")
     ax.axis("off")
 
     # pilot area and buildings (OSM footprints; trees are left out)
-    pilot = campus.pilot_area
+    pilot = Tp(pilot0)
     ax.add_patch(Polygon(pilot, closed=True, fill=False, ec=MUTED, lw=0.6, ls=(0, (3, 2))))
     heights = campus.obstacle_heights or []
     for poly, h in zip(campus.obstacles, heights, strict=False):
         if h is not None:
-            ax.add_patch(Polygon(poly, closed=True, fc=BUILDING, ec="#BDBDBD", lw=0.3))
+            ax.add_patch(Polygon(Tp(poly), closed=True, fc=BUILDING, ec="#BDBDBD", lw=0.3))
 
     # footpaths, each 2 m piece coloured by the nearest coverage sample; a dark casing keeps
     # the light yellow readable on white
@@ -132,7 +150,7 @@ def main() -> None:
             for i in range(n):
                 a = (x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n)
                 b = (x0 + (x1 - x0) * (i + 1) / n, y0 + (y1 - y0) * (i + 1) / n)
-                segs[level_at((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)].append([a, b])
+                segs[level_at((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)].append([T(*a), T(*b)])
     lw = 2.2 if not args.wide else 2.6
     allsegs = [s for lv in LEVELS for s in segs[lv]]
     ax.add_collection(LineCollection(allsegs, colors=INK, linewidths=lw + 0.9, capstyle="round"))
@@ -142,13 +160,12 @@ def main() -> None:
         )
 
     # staging area: the only link-recovery point
-    st = campus.staging_area
+    st = Tp(campus.staging_area)
     xs, ys = [p[0] for p in st], [p[1] for p in st]
     ax.add_patch(
-        Rectangle(
-            (min(xs), min(ys)),
-            max(xs) - min(xs),
-            max(ys) - min(ys),
+        Polygon(
+            st,
+            closed=True,
             fill=False,
             ec=INK,
             lw=0.9,
@@ -158,21 +175,22 @@ def main() -> None:
     )
     ax.annotate(
         "Staging\n(recovery point)",
-        (min(xs), (min(ys) + max(ys)) / 2),
-        xytext=(-3, 0),
+        (max(xs), min(ys)) if args.wide else (min(xs), (min(ys) + max(ys)) / 2),
+        xytext=(2, -2) if args.wide else (-3, 0),
         textcoords="offset points",
-        ha="right",
-        va="center",
+        ha="left" if args.wide else "right",
+        va="top" if args.wide else "center",
         color=INK,
         bbox=BOX,
     )
 
     # gNB site
     site = campus.network_sites[0]
-    ax.plot(site["x"], site["y"], marker="^", ms=7, mfc=INK, mec="white", mew=0.6, zorder=6)
+    sx, sy = T(site["x"], site["y"])
+    ax.plot(sx, sy, marker="^", ms=7, mfc=INK, mec="white", mew=0.6, zorder=6)
     ax.annotate(
         "gNB (n40)",
-        (site["x"], site["y"]),
+        (sx, sy),
         xytext=(5, -2),
         textcoords="offset points",
         ha="left",
@@ -188,13 +206,18 @@ def main() -> None:
         "poi_bike_rack": (-4, 6, "right"),
         "poi_bus_stop": (7, -1, "left"),
     }
+    wide_offsets = {
+        "poi_library_door": (-6, 8, "right"),
+        "poi_bike_rack": (-6, 7, "right"),
+        "poi_bus_stop": (8, -2, "left"),
+    }
     for p in campus.pois:
         if p.poi_id not in SHORT:
             continue
         s = cmap.nearest(p.pose.x, p.pose.y)
-        x, y = p.pose.x, p.pose.y
+        x, y = T(p.pose.x, p.pose.y)
         ax.plot(x, y, marker="o", ms=6, mfc=LEVEL_COLOR[s["level"]], mec=INK, mew=0.8, zorder=7)
-        dx, dy, ha = offsets[p.poi_id]
+        dx, dy, ha = (wide_offsets if args.wide else offsets)[p.poi_id]
         vp = vps.get(p.poi_id)
         text = f"{SHORT[p.poi_id]}\n{s['level']}, {db(s['sinr'])}"
         if vp is not None:
@@ -211,10 +234,11 @@ def main() -> None:
             zorder=10,
         )
         if vp is not None:
+            vx, vy = T(float(vp["x"]), float(vp["y"]))
             ax.add_patch(
                 FancyArrowPatch(
                     (x, y),
-                    (vp["x"], vp["y"]),
+                    (vx, vy),
                     arrowstyle="-|>",
                     mutation_scale=7,
                     lw=0.9,
@@ -225,8 +249,8 @@ def main() -> None:
                 )
             )
             ax.plot(
-                vp["x"],
-                vp["y"],
+                vx,
+                vy,
                 marker="D",
                 ms=4.5,
                 mfc=LEVEL_COLOR[vp["level"]],
@@ -241,17 +265,22 @@ def main() -> None:
     ax.set_xlim(min(px) - m, max(px) + m)
     ax.set_ylim(min(py) - m, max(py) + m)
 
-    # scale bar and north arrow (the campus frame is east-north, heading 0)
+    # scale bar and north arrow (the campus frame is east-north, heading 0, turned by theta
+    # in the wide version)
     x0, y0 = max(px) - 58, min(py) + 4
     ax.plot([x0, x0 + 50], [y0, y0], color=INK, lw=1.2, solid_capstyle="butt")
     ax.text(x0 + 25, y0 + 3, "50 m", ha="center", va="bottom", color=INK)
-    nx, ny = max(px) - 8, max(py) - 30
+    nx, ny = (max(px) - 8, max(py) - 30) if not args.wide else (min(px) + 12, max(py) - 30)
+    ux, uy = T(0.0, 22.0)  # north, 22 m long
     ax.add_patch(
         FancyArrowPatch(
-            (nx, ny), (nx, ny + 22), arrowstyle="-|>", mutation_scale=8, lw=1.0, color=INK
+            (nx, ny), (nx + ux, ny + uy), arrowstyle="-|>", mutation_scale=8, lw=1.0, color=INK
         )
     )
-    ax.text(nx, ny + 24, "N", ha="center", va="bottom", color=INK, fontweight="bold")
+    lab = 1.12 if args.wide else 24 / 22  # the column version: label 2 m above the tip
+    ax.text(
+        nx + ux * lab, ny + uy * lab, "N", ha="center", va="bottom", color=INK, fontweight="bold"
+    )
 
     # legend: coverage levels, then the markers
     handles = [Line2D([], [], color=LEVEL_COLOR[lv], lw=2.4, label=lv) for lv in LEVELS]
@@ -259,20 +288,33 @@ def main() -> None:
         Line2D([], [], ls="", marker="o", mfc="white", mec=INK, ms=5, label="exposed post"),
         Line2D([], [], ls="", marker="D", mfc="white", mec=INK, ms=3.5, label="relocated post"),
     ]
-    ax.legend(
-        handles=handles,
-        loc="lower left",
-        frameon=False,
-        handlelength=1.4,
-        handletextpad=0.4,
-        borderaxespad=0.2,
-        labelspacing=0.25,
-        columnspacing=0.8,
-        ncol=2,
-        title="Footpath coverage",
-        title_fontsize=8,
-        alignment="left",
-    )
+    if args.wide:  # one row below the map, led by its title
+        lead = Line2D([], [], ls="", marker="", label="Footpath coverage:")
+        fig.legend(
+            handles=[lead, *handles],
+            loc="lower center",
+            frameon=False,
+            handlelength=1.6,
+            handletextpad=0.4,
+            borderaxespad=0.15,
+            columnspacing=1.3,
+            ncol=len(handles) + 1,
+        )
+    else:
+        ax.legend(
+            handles=handles,
+            loc="lower left",
+            frameon=False,
+            handlelength=1.4,
+            handletextpad=0.4,
+            borderaxespad=0.2,
+            labelspacing=0.25,
+            columnspacing=0.8,
+            ncol=2,
+            title="Footpath coverage",
+            title_fontsize=8,
+            alignment="left",
+        )
 
     stem = HERE / ("fig_campus_map_wide" if args.wide else "fig_campus_map")
     fig.savefig(stem.with_suffix(".pdf"), metadata={"CreationDate": None})  # deterministic

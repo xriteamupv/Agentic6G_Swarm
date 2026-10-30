@@ -234,7 +234,7 @@ stand-in, scenario), which is that of `af40683`.
 
 - `paper/fig_campus_map.pdf` (vector) and `paper/fig_campus_map.png` (600 dpi): one
   column, 88 × 72 mm, all text 8 pt, no branding. Double-column variant:
-  `paper/fig_campus_map_wide.pdf` / `.png` (181 × 110 mm).
+  `paper/fig_campus_map_wide.pdf` / `.png` (181 × 98 mm, turned so that the pilot area lies horizontally; the north arrow shows true north; legend in one row below).
 - Script: `paper/plot_campus_map.py` (deterministic; reads the campus and coverage files of
   the simulator and the relocation viewpoints of `reconcile_relocate` at 4 Mbps, fleet 5,
   also saved in `paper/relocation_viewpoints.csv`).
