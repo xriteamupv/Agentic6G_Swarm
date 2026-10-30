@@ -91,6 +91,105 @@ def viewpoints(runs: Path, out_csv: Path) -> list[dict]:
     return seed0
 
 
+def _seg_dist(a, b, c, d) -> float:
+    """Distance between segments ab and cd (0 when they cross)."""
+
+    def cross(o, p, q):
+        return (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0])
+
+    d1, d2, d3, d4 = cross(c, d, a), cross(c, d, b), cross(a, b, c), cross(a, b, d)
+    if d1 * d2 < 0 and d3 * d4 < 0:
+        return 0.0
+
+    def pt(p, u, v):
+        ux, uy = v[0] - u[0], v[1] - u[1]
+        n = ux * ux + uy * uy
+        t = 0.0 if n == 0 else max(0.0, min(1.0, ((p[0] - u[0]) * ux + (p[1] - u[1]) * uy) / n))
+        return math.hypot(p[0] - u[0] - t * ux, p[1] - u[1] - t * uy)
+
+    return min(pt(a, c, d), pt(b, c, d), pt(c, a, b), pt(d, a, b))
+
+
+def _rect_seg_dist(r, a, b) -> float:
+    """Distance between rectangle r = (x0, y0, x1, y1) and segment ab."""
+    x0, y0, x1, y1 = r
+    if x0 <= a[0] <= x1 and y0 <= a[1] <= y1:
+        return 0.0
+    sides = [((x0, y0), (x1, y0)), ((x1, y0), (x1, y1)), ((x1, y1), (x0, y1)), ((x0, y1), (x0, y0))]
+    return min(_seg_dist(a, b, c, d) for c, d in sides)
+
+
+def place_clear(fig, ax, ann, labels, segs, seg_lw, arrows, points, lines) -> None:
+    """Move ``ann`` to the nearest offset where its box touches no footpath (with its
+    casing), arrow, marker, other label or line, and join it to its post with a short
+    leader line that crosses no footpath away from the post. Display units (pixels)."""
+    fig.canvas.draw()
+    rend = fig.canvas.get_renderer()
+    px_pt = fig.dpi / 72.0
+    to = ax.transData.transform
+    anchor = to(ann.xy)
+    pad = 2.0 * px_pt
+    obst = [(to(a), to(b), seg_lw / 2 * px_pt + pad) for a, b in segs]
+    n_paths = len(obst)
+    obst += [(to(a), to(b), 2.5 * px_pt) for a, b in arrows]
+    obst += [(to(a), to(b), 1.5 * px_pt) for a, b in lines]
+    dots = [(to((x, y)), r * px_pt + pad) for x, y, r in points]
+    others = []
+    for lb in labels:
+        if lb is not ann:
+            e = lb.get_bbox_patch().get_window_extent(rend)
+            others.append((e.x0 - pad, e.y0 - pad, e.x1 + pad, e.y1 + pad))
+    frame = ax.get_window_extent(rend)
+    ann.set_ha("center")
+    ann.set_va("center")
+    ann.set_multialignment("left")
+    best = None
+    for dx in range(-240, 241, 4):
+        for dy in range(-140, 141, 4):
+            ann.xyann = (dx, dy)
+            ann.update_bbox_position_size(rend)
+            e = ann.get_bbox_patch().get_window_extent(rend)
+            r = (e.x0, e.y0, e.x1, e.y1)
+            if r[0] < frame.x0 + pad or r[2] > frame.x1 - pad:
+                continue
+            if r[1] < frame.y0 + pad or r[3] > frame.y1 - pad:
+                continue
+            if any(not (r[2] < o[0] or r[0] > o[2] or r[3] < o[1] or r[1] > o[3]) for o in others):
+                continue
+            if any(_rect_seg_dist(r, a, b) < w for a, b, w in obst):
+                continue
+            if any(_rect_seg_dist(r, c, c) < w for c, w in dots):
+                continue
+            # leader: drawn towards the box centre and clipped at the box (where nothing
+            # else lies), so the segment post -> centre must be clear outside the post
+            qx, qy = (r[0] + r[2]) / 2, (r[1] + r[3]) / 2
+            length = math.hypot(qx - anchor[0], qy - anchor[1])
+            start = 6 * px_pt  # the post marker and its own footpath
+            crossings = 0
+            if length > start:
+                u = ((qx - anchor[0]) / length, (qy - anchor[1]) / length)
+                a = (anchor[0] + u[0] * start, anchor[1] + u[1] * start)
+                if any(_seg_dist(a, (qx, qy), c, c) < w for c, w in dots):
+                    continue  # never through a marker
+                if any(_seg_dist(a, (qx, qy), p, q) < 1.0 for p, q, _ in obst[n_paths:]):
+                    continue  # nor through an arrow or line
+                crossings = sum(_seg_dist(a, (qx, qy), p, q) < 1.0 for p, q, _ in obst[:n_paths])
+            # a short leader, crossing as few footpaths as possible
+            score = length + 40 * px_pt * crossings
+            if best is None or score < best[0]:
+                best = (score, dx, dy, length, crossings)
+    if best is None:
+        raise SystemExit("no clear place for the label")
+    ann.xyann = (best[1], best[2])
+    ann.arrowprops = {"arrowstyle": "-", "lw": 0.6, "color": INK, "shrinkA": 0, "shrinkB": 3.5}
+    ann._arrow_relpos = (0.5, 0.5)
+    ann.arrow_patch = FancyArrowPatch((0, 0), (1, 1), **ann.arrowprops)
+    print(
+        f"label placed at offset {best[1]}, {best[2]} pt; "
+        f"leader {best[3] / px_pt:.1f} pt (to the box centre), crossing {best[4]} footpath(s)"
+    )
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=Path, default=Path("var/runs/n4_scarcity"))
@@ -173,30 +272,37 @@ def main() -> None:
             zorder=4,
         )
     )
-    ax.annotate(
-        "Staging\n(recovery point)",
-        (max(xs), min(ys)) if args.wide else (min(xs), (min(ys) + max(ys)) / 2),
-        xytext=(2, -2) if args.wide else (-3, 0),
-        textcoords="offset points",
-        ha="left" if args.wide else "right",
-        va="top" if args.wide else "center",
-        color=INK,
-        bbox=BOX,
+    labels = []  # every label (wide version: kept clear of markers, arrows and footpaths)
+    points = []  # (x, y, radius in points) of every marker
+    labels.append(
+        ax.annotate(
+            "Staging\n(recovery point)",
+            (max(xs), min(ys)) if args.wide else (min(xs), (min(ys) + max(ys)) / 2),
+            xytext=(2, -2) if args.wide else (-3, 0),
+            textcoords="offset points",
+            ha="left" if args.wide else "right",
+            va="top" if args.wide else "center",
+            color=INK,
+            bbox=BOX,
+        )
     )
 
     # gNB site
     site = campus.network_sites[0]
     sx, sy = T(site["x"], site["y"])
     ax.plot(sx, sy, marker="^", ms=7, mfc=INK, mec="white", mew=0.6, zorder=6)
-    ax.annotate(
-        "gNB (n40)",
-        (sx, sy),
-        xytext=(5, -2),
-        textcoords="offset points",
-        ha="left",
-        va="top",
-        color=INK,
-        bbox=BOX,
+    points.append((sx, sy, 4.0))
+    labels.append(
+        ax.annotate(
+            "gNB (n40)",
+            (sx, sy),
+            xytext=(5, -2),
+            textcoords="offset points",
+            ha="left",
+            va="top",
+            color=INK,
+            bbox=BOX,
+        )
     )
 
     # exposed posts with level and SINR at the post, and their relocation
@@ -211,18 +317,21 @@ def main() -> None:
         "poi_bike_rack": (-6, 7, "right"),
         "poi_bus_stop": (8, -2, "left"),
     }
+    arrows: list = []
+    door = None
     for p in campus.pois:
         if p.poi_id not in SHORT:
             continue
         s = cmap.nearest(p.pose.x, p.pose.y)
         x, y = T(p.pose.x, p.pose.y)
         ax.plot(x, y, marker="o", ms=6, mfc=LEVEL_COLOR[s["level"]], mec=INK, mew=0.8, zorder=7)
+        points.append((x, y, 3.5))
         dx, dy, ha = (wide_offsets if args.wide else offsets)[p.poi_id]
         vp = vps.get(p.poi_id)
         text = f"{SHORT[p.poi_id]}\n{s['level']}, {db(s['sinr'])}"
         if vp is not None:
             text += f"\n\u2192 {vp['level']}, {db(float(vp['sinr_db']))}"
-        ax.annotate(
+        ann = ax.annotate(
             text,
             (x, y),
             xytext=(dx, dy),
@@ -231,8 +340,12 @@ def main() -> None:
             va="bottom" if dy > 0 else "top",
             color=INK,
             bbox=BOX,
-            zorder=10,
+            # wide version: label boxes under markers and arrows
+            zorder=5 if args.wide else 10,
         )
+        labels.append(ann)
+        if p.poi_id == "poi_library_door":
+            door = ann
         if vp is not None:
             vx, vy = T(float(vp["x"]), float(vp["y"]))
             ax.add_patch(
@@ -248,6 +361,8 @@ def main() -> None:
                     shrinkB=1,
                 )
             )
+            arrows.append(((x, y), (vx, vy)))
+            points.append((vx, vy, 3.0))
             ax.plot(
                 vx,
                 vy,
@@ -281,6 +396,19 @@ def main() -> None:
     ax.text(
         nx + ux * lab, ny + uy * lab, "N", ha="center", va="bottom", color=INK, fontweight="bold"
     )
+
+    if args.wide and door is not None:
+        place_clear(
+            fig,
+            ax,
+            door,
+            labels,
+            allsegs,
+            lw + 0.9,
+            arrows,
+            points,
+            [((x0, y0), (x0 + 50, y0)), ((nx, ny), (nx + ux, ny + uy))],
+        )
 
     # legend: coverage levels, then the markers
     handles = [Line2D([], [], color=LEVEL_COLOR[lv], lw=2.4, label=lv) for lv in LEVELS]
