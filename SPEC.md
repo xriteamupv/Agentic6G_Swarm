@@ -2,7 +2,7 @@
 
 > **How to use this file.** Put it at the repository root (as `SPEC.md`, or merge the "Rules" section into `CLAUDE.md`) and ask Claude Code: *"Implement SPEC.md phase by phase. Stop at the end of each phase, run the acceptance tests, and report."* Do not skip phases. Anything marked **TODO(UPV)** is an open question for the team; implement it as configuration with a safe default, never as a hard-coded guess.
 >
-> **Parts.** Sections 1–15 are the base specification. **Part A1** (Gazebo first, real robots indoors) replaces §13 P4. **Part A2** (multi-model agents and inter-agent communication research, stages C0–C6) makes every agent model-based and turns the messaging layer into a research instrument; it amends §2 rule 3, §8.2–8.4, §10.3, §11 and §13 P5 (§A2.10). **Part A3** (UC2 completeness against the final D2.1, stages E1–E7) adds the campus knowledge base and retrieval, constraint-aware guidance with forgetting, the flood twin and risk picture, two-branch reconciliation, KPI instrumentation and governance hardening; it amends the sections listed in §A3.12. **Current order of work:** Part A2 stages C0 → C1 → C2 → C3 → C5 → C4 in simulation with cloud models, with Part A3 interleaved as in §A3.11 (E1–E3 first, for the IEEE Network submission); then the real robots (P4b, P4c, P5 Jetson benchmark) together with C6 (self-hosted models). **Part A4** (results for the IEEE Network submission, stages N0–N6, 2026-10-26) puts the network in the loop: result manifests, the outage sweep, agent traffic and checkpoint overhead, coverage levels from the n40 network twin, a network stand-in that can refuse with the degradation loop, the protocol micro-benchmark over emulated radio links, and the paper export; it amends §5, §12, §A1.4, §A1.12.1, §A2.5.4, §A2.7, §A3.7 and §A3.8 (§A4.11).
+> **Parts.** Sections 1–15 are the base specification. **Part A1** (Gazebo first, real robots indoors) replaces §13 P4. **Part A2** (multi-model agents and inter-agent communication research, stages C0–C6) makes every agent model-based and turns the messaging layer into a research instrument; it amends §2 rule 3, §8.2–8.4, §10.3, §11 and §13 P5 (§A2.10). **Part A3** (UC2 completeness against the final D2.1, stages E1–E7) adds the campus knowledge base and retrieval, constraint-aware guidance with forgetting, the flood twin and risk picture, two-branch reconciliation, KPI instrumentation and governance hardening; it amends the sections listed in §A3.12. **Current order of work:** Part A2 stages C0 → C1 → C2 → C3 → C5 → C4 in simulation with cloud models, with Part A3 interleaved as in §A3.11 (E1–E3 first, for the IEEE Network submission); then the real robots (P4b, P4c, P5 Jetson benchmark) together with C6 (self-hosted models). **Part A4** (results for the IEEE Network submission, stages N0–N6, 2026-10-26) puts the network in the loop: result manifests, the outage sweep, agent traffic and checkpoint overhead, coverage levels from the n40 network twin, a network stand-in that can refuse with the degradation loop, the protocol micro-benchmark over emulated radio links, and the paper export; it amends §5, §12, §A1.4, §A1.12.1, §A2.5.4, §A2.7, §A3.7 and §A3.8 (§A4.11). **Part A5** (future work after the submission, 2026-11-02) sets workstreams W1–W5: multi-agent against single-agent, cloud and local models on robotic tasks, inter-agent protocols, semantic LiDAR streaming and a standardisation study, after the workstation migration (W0).
 
 ---
 
@@ -2013,3 +2013,121 @@ Then update `PAPER_MEASUREMENTS.md` (new sections for N1–N5, validity column) 
 - TODO(UPV): level thresholds and the uplink rates per level, from the uplink survey. The cell capacity is swept in G13, so its default only matters for G10.
 - TODO(UPV): root or `CAP_NET_ADMIN` on the workstation for the network namespaces of N5.
 - TODO(UPV): whether `recover_to_coverage` becomes the default link-loss policy (after N3b).
+
+## A5. Future work after the IEEE Network submission: single vs multi-agent, models on robotic tasks, protocols, LiDAR semantics and standards
+
+*Added on 2026-11-02, after the submission of 30 Oct 2026. It turns the user's five lines of future work into workstreams W1–W5, with the workstation migration (stage W0) as their prerequisite. Work happens on the `develop` branch; `main` stays frozen while the paper is under review (the revision, when the reviews arrive, takes priority over this part). Items marked **TODO(UPV)** become configuration with safe defaults.*
+
+This part extends §A2 (multi-model agents and the messaging layer), §A3.8 (benches) and §A4 (network in the loop, protocol micro-benchmark). Everything else in this specification, Parts A1–A4 and rules 1–33 still applies, in particular: KPI targets are orientative, no function is dropped or simplified to meet a target, and results are reported as measured with a manifest (rule 31).
+
+### A5.1 Additional rules (extend §A4.2)
+
+34. **Fair comparisons.** Whenever two architectures, models or protocols are compared, they share the scenario, the seeds, the tools, the prompts' content (adapted only where an architecture needs it), the network conditions and the time base; the manifest records what differs, and nothing else may differ.
+35. **Established benchmark methodology, robotic tasks.** Model and agent comparisons follow the metrics and protocols of established public benchmarks (function-calling accuracy as in BFCL, reliability over repeated trials as `pass^k` in τ-bench, latency and throughput as in the llama.cpp / vLLM benchmarking tools) but apply them to this system's own robotic task sets; scores on generic benchmarks are cited, not re-measured.
+36. **Repeat what is stochastic.** Every run that involves a model is repeated (k ≥ 3, k = 5 where cost allows) and reported with its spread; offline runs (fake models) need no repeats.
+37. **Local means measured locally.** A result labelled "local model" or "on board" names the hardware (GPU or Jetson module, power mode), the runtime (llama.cpp, vLLM, Ollama…), the model file and its quantisation, and records energy where the platform exposes it (`tegrastats`, NVML, RAPL).
+
+### A5.2 Stage W0: workstation migration (prerequisite)
+
+The development environment moves from the laptop to the new workstation, which also unblocks stage C2 (Gazebo perception, §A2.9) and W4.
+
+- **Repository:** clone `develop` from GitHub. The local-only branches `backup/pre-rewrite` and `backup/main-before-squash` are never pushed: they move as a git bundle.
+- **Local state not in git**, moved by hand (never committed): `.env` (API keys), `~/.config/a6g/` (chat-UI service secrets), the uncompressed radio DT CSV (or `gunzip` the committed `.csv.gz`), `var/runs/` only where a bench must resume or a result needs re-inspection (bench results themselves are committed), and the Claude Code memory of the project.
+- **Toolchain:** Ubuntu 24.04; `uv` (Python 3.11 from `uv.lock`); Docker with the `a6g-pg` Postgres 16 container (127.0.0.1:5433); Node.js ≥ 20 with pnpm (chat UI, `deploy/ui/build.sh`); ROS 2 Jazzy and Gazebo Harmonic for `sim_gazebo/` (`colcon build --symlink-install`, then `uv run a6g campus build`); iproute2, `unshare` and `openssl` for the protocol lab; the NVIDIA driver, CUDA and a local model runtime (llama.cpp and/or vLLM) for W2.
+- **Acceptance:** on the workstation, `uv sync --locked`, `a6g config validate`, the full test suite (`pytest`) and the Gazebo suite (`pytest --gazebo`) pass; one offline bench (`a6g bench scarcity --variants reconcile --fleets 3 --seeds 2`) reproduces the committed numbers; the 2D demo and the Gazebo stack start; the host block of a result manifest names the workstation.
+- TODO(UPV): the workstation's CPU, RAM, GPU (model, VRAM), whether it is also the edge host of §15, and root or `CAP_NET_ADMIN` for the network namespaces (§A4.13).
+
+### A5.3 Workstream W1: multi-agent against single-agent
+
+**Question.** When does distributing decisions between a coordinator agent and per-robot agents pay off against one agent that runs the whole fleet, and at what cost?
+
+**Variants** (rule 34: same model per role, same skill tools, same scenarios and seeds):
+- **S1, single agent with every robot's tools:** one LangGraph agent holds the twin and calls every robot's skills (MCP) directly; it plans, allocates, sequences and replans each robot's work; robots run no agent.
+- **S2, single agent with deterministic executors:** one agent plans and allocates; each robot runs a deterministic executor (envelope sequencing and the link-loss policy without a model), like the baselines' central twin (B2) but with the same model as the proposed system.
+- **M, the proposed system** (coordinator plus robot agents), with robot models on and off (`--robot-llm`).
+
+**Scenarios:** G10 (consolidated story), G13 (scarcity), the outage sweep (coordinator crash 60 s–∞), the unseen orders (§A3.8), fleets 3, 5 and 8.
+
+**Metrics:** mission completion and task ratio; decision latency (order → envelopes acknowledged, posture change → reconciled envelopes); model calls, input and output tokens and cost per mission; context size per call against fleet size (the single agent's context grows with the fleet); messages and bytes per robot (`a6g comms report`); robustness: completion and time to resume under coordinator outage and link loss (S1 has a single point of failure); correctness checks of G10 (invariants, decision chain).
+
+**Build:** `fleet.defaults.architecture: multi | single_tools | single_executors` (the robot runtime keeps its MCP server; S1 gives the coordinator a tool per robot skill; S2 reuses the robot runtime with `--no-llm` and a deterministic evaluator); `a6g bench architectures` over the scenarios above, with the outage sweep's machinery (`bench_baselines.py`).
+
+**Acceptance:** all three variants pass the G10 checks at fleet 3 with fake models; the bench runs offline (fake models) and with one cloud model (k = 3); results exported with the metrics above.
+
+### A5.4 Workstream W2: cloud and local models on robotic tasks
+
+**Question.** Which models, cloud or local (edge GPU, Jetson on the Go2 dock), can take each agent role, with what accuracy, reliability, latency, cost and energy?
+
+**Task suites** (this system's own, rule 35):
+- coordinator: goal decomposition (`bench/decompose/goals.yaml`, 45 goals), unseen orders (`bench/orders/unseen.yaml`, 24), knowledge-server use (`bench/kb/`), explanation of decisions (a labelled set of "why" questions with the decision log as ground truth: new);
+- robot cognitive core (§A2.3): envelope evaluation, deliberation, negotiation (bids), replanning and reporting decisions, as labelled cases drawn from G10 and G13 logs (new set, with expected decision and acceptable alternatives);
+- perception: VLM triage on rendered camera frames from Gazebo (after C2), with injected anomalies as ground truth.
+
+**Metrics:** task accuracy as each suite defines it; function-calling and structured-output validity (BFCL-style: schema-valid, correct tool, correct arguments); reliability `pass^k` (k = 5); latency (time to first token, total, output tokens/s), input and output tokens, cost per task; energy per task for local runs (rule 37); robustness: prompt-injection items and out-of-map requests (already in the decomposition set).
+
+**Models:** cloud: gpt-5-nano and gpt-5-mini (current default and one step up), one Claude and one Gemini model of comparable class; local: two or three open-weight families (e.g. Qwen, Gemma, Llama) in sizes that fit the edge GPU and the Jetson, each with its quantisation. Reasoning effort is a variable of its own (§ `models.yaml`: `minimal | low | medium`).
+
+**Build:** `a6g bench models --suite <suite> --models <list> --repeats k` (a runner over `config/models.yaml` roles with per-run overrides; one result file per suite with a row per model and repeat); an extension of `bench/onboard_vlm.py` for the Jetson; a summary table and Pareto plots (accuracy against latency and against cost or energy).
+
+**Acceptance:** the runner executes every suite with the fake model and with gpt-5-nano (k = 3); one local model served by llama.cpp on the workstation completes the coordinator suites; manifests carry rule 37's fields.
+
+### A5.5 Workstream W3: inter-agent protocols (continuing §A4.8)
+
+**Question.** Which inter-agent protocol and binding suits each interaction pattern (P1–P11) over a constrained, failing radio link, beyond latency?
+
+**Extensions of the protocol micro-benchmark:**
+- bindings: A2A over every transport the SDK offers (JSON-RPC, REST, gRPC; a newer A2A version when released), MCP as an agent-to-robot alternative to A2A, ANP (Agent Network Protocol, including its identity and onboarding), MQTT 5 (session expiry, shared subscriptions) against 3.1.1, Zenoh and DDS (the ROS 2-native options), HTTP/3 over QUIC where the SDKs allow;
+- network: from `tc netem` profiles to a packet-level 5G emulation (Simu5G emulation mode or ns-3 5G-LENA, already planned for the revision), then the campus n40 network itself when available;
+- measures beyond latency and bytes: deadline misses, outage recovery and duplicates (as now); connection and onboarding cost (handshakes, discovery, agent cards, identity); security overhead (mutual TLS, signed messages); behaviour under partitions (the failure experiments of report item E3: twin-store loss, edge partition, network partition).
+
+**Also:** publish the full protocol table in the repository (rendered page next to `paper/table_protocols.csv`).
+
+**Acceptance:** the extended matrix runs in reduced scope on the workstation; at least one packet-level RAN profile reproduces the netem `good` level within its measured RTT; results exported with per-pattern recommendations.
+
+### A5.6 Workstream W4: semantic communications for LiDAR streaming
+
+**Question.** How can robots stream LiDAR to the edge within the uplink each coverage level allows, while keeping what the edge tasks need?
+
+**Steps:**
+1. **Data:** record LiDAR (and odometry) from the Gazebo Go2 and Summit models along the patrol routes and posts, with ground truth (obstacles, people, injected anomalies) — after W0 and C2.
+2. **Encoding ladder,** each with its rate: raw point clouds; geometry codecs (Draco, MPEG G-PCC); range-image and learned compression; task-oriented semantics (occupancy-grid deltas, detected objects and anomalies with their poses, change detection against the map).
+3. **Rate against task quality:** for each encoding, the uplink rate against the edge tasks' accuracy (detection, map update, anomaly triage) and the end-to-end latency.
+4. **Into the system:** a `lidar` flow class whose encoding the reconciliation loop (§A3.7, §A4.7) chooses per coverage level and cell capacity, extending the paper's ladder (video → telemetry) to a semantic one; scenario G13 rerun with LiDAR posts.
+
+**Acceptance:** the dataset and a rate–quality curve for at least three encodings; the `lidar` flow class admitted by the capacity stand-in and degraded by the loop in G13 with I1–I3 holding.
+
+### A5.7 Workstream W5: standardisation study
+
+**Question.** Where do this system's functions and interfaces sit in current and emerging standards, and where could it contribute?
+
+**Scope** (every reference to be checked against the current release before use):
+- 3GPP: 6G use cases and service requirements (SA1), AI agents and AI/ML in the 6G system architecture (SA2), network exposure for applications (SA6, SEAL, CAPIF);
+- ETSI: ENI (experiential networked intelligence), ZSM (zero-touch management), MEC (the coordinator at the edge), SAI (securing AI);
+- network APIs: CAMARA and GSMA Open Gateway (Quality on Demand, device location and status): the real counterpart of the capacity stand-in;
+- O-RAN: non-real-time and near-real-time RIC applications for QoS and slicing;
+- ITU-T: machine learning in future networks (Y.3172 family);
+- agent protocols: A2A (Linux Foundation), MCP, ANP, related IETF drafts;
+- robots and AI: ISO 13482 and ISO 10218 (safety), IEEE 1872 (robot ontologies), the EU AI Act (high-risk, transparency, logging: §A3.9).
+
+**Output:** `docs/STANDARDS.md` on `develop`: for each body, the relevant documents and their status, the mapping to this system's components (coordinator, robot agents, twin, admission and reconciliation, protocols, logging), gaps, and candidate contributions (e.g. requirements for agent-to-network QoS negotiation, twin consistency invariants I1–I3).
+
+**Acceptance:** the mapping covers every component of the architecture figure and every body listed, with document numbers and release checked.
+
+### A5.8 Order of work and dependencies
+
+1. **W0** (now): migration, then C2 (Gazebo perception) on the workstation.
+2. **W2** runner and coordinator suites, then **W1** (its model choices come from W2), in parallel with **W5** (reading and mapping).
+3. **W3** with the packet-level RAN and the partition experiments (also useful for the revision).
+4. **W4** after C2 provides rendered LiDAR and camera data.
+5. The revision of the paper, when the reviews arrive, interrupts this order.
+
+### A5.9 Out of scope (this part)
+
+Indoor operation (UC2 is outdoor only); physical-robot campaigns beyond what C6 and P4b/P4c already plan; training new models (W4 may fine-tune small codecs, not foundation models).
+
+### A5.10 Open items
+
+- TODO(UPV): workstation hardware and permissions (§A5.2).
+- TODO(UPV): cloud budget for W1/W2 runs (models, repeats) and which non-OpenAI providers may be used.
+- TODO(UPV): which Jetson module and power modes the Go2 dock offers for local models (W2) and whether the dock may run them during patrols.
+- TODO(UPV): access to the campus n40 network and to the Network-as-Code/CAPIF server for W3 and W5.
