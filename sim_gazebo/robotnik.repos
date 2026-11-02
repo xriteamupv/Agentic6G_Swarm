@@ -1,0 +1,31 @@
+# Robotnik sources for the Gazebo Summit-XL model (ROS 2 Jazzy), pinned to the commits used here.
+#   mkdir -p ~/robotnik_ws/src && cd ~/robotnik_ws/src && vcs import robotnik < <repo>/sim_gazebo/robotnik.repos
+repositories:
+  robotnik_common:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_common.git
+    version: 0153704842c35f115da65c7404d6ce6392f9c817
+  robotnik_description:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_description.git
+    version: 751059edd6af3a9c083018cfaee59e4496d46580
+  robotnik_interfaces:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_interfaces.git
+    version: ee903abca2ede1872b4cfa264b435f4a11e7f081
+  robotnik_moveit_configs:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_moveit_configs.git
+    version: 45bc50947eafc3f1abd2492e9ac0e367843882e5
+  robotnik_sensors:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_sensors.git
+    version: e5186c343910b86a924201edb256f79eb0f73295
+  robotnik_simulation:
+    type: git
+    url: https://github.com/RobotnikAutomation/robotnik_simulation.git
+    version: 8273bc97470c6c4ec532b4223f0af0e0ab18e644
+  robotnik_teleop_panel:
+    type: git
+    url: https://github.com/RobotnikAutomation/teleop_panel.git
+    version: 21d3e5335366390d0c79acb9875a1839236afe3d
