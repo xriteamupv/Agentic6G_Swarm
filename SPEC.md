@@ -2,7 +2,7 @@
 
 > **How to use this file.** Put it at the repository root (as `SPEC.md`, or merge the "Rules" section into `CLAUDE.md`) and ask Claude Code: *"Implement SPEC.md phase by phase. Stop at the end of each phase, run the acceptance tests, and report."* Do not skip phases. Anything marked **TODO(UPV)** is an open question for the team; implement it as configuration with a safe default, never as a hard-coded guess.
 >
-> **Parts.** Sections 1–15 are the base specification. **Part A1** (Gazebo first, real robots indoors) replaces §13 P4. **Part A2** (multi-model agents and inter-agent communication research, stages C0–C6) makes every agent model-based and turns the messaging layer into a research instrument; it amends §2 rule 3, §8.2–8.4, §10.3, §11 and §13 P5 (§A2.10). **Part A3** (UC2 completeness against the final D2.1, stages E1–E7) adds the campus knowledge base and retrieval, constraint-aware guidance with forgetting, the flood twin and risk picture, two-branch reconciliation, KPI instrumentation and governance hardening; it amends the sections listed in §A3.12. **Current order of work:** Part A2 stages C0 → C1 → C2 → C3 → C5 → C4 in simulation with cloud models, with Part A3 interleaved as in §A3.11 (E1–E3 first, for the IEEE Network submission); then the real robots (P4b, P4c, P5 Jetson benchmark) together with C6 (self-hosted models). **Part A4** (results for the IEEE Network submission, stages N0–N6, 2026-10-26) puts the network in the loop: result manifests, the outage sweep, agent traffic and checkpoint overhead, coverage levels from the n40 network twin, a network stand-in that can refuse with the degradation loop, the protocol micro-benchmark over emulated radio links, and the paper export; it amends §5, §12, §A1.4, §A1.12.1, §A2.5.4, §A2.7, §A3.7 and §A3.8 (§A4.11). **Part A5** (future work after the submission, 2026-11-02) sets workstreams W1–W5: multi-agent against single-agent, cloud and local models on robotic tasks, inter-agent protocols, semantic LiDAR streaming and a standardisation study, after the workstation migration (W0).
+> **Parts.** Sections 1–15 are the base specification. **Part A1** (Gazebo first, real robots indoors) replaces §13 P4. **Part A2** (multi-model agents and inter-agent communication research, stages C0–C6) makes every agent model-based and turns the messaging layer into a research instrument; it amends §2 rule 3, §8.2–8.4, §10.3, §11 and §13 P5 (§A2.10). **Part A3** (UC2 completeness against the final D2.1, stages E1–E7) adds the campus knowledge base and retrieval, constraint-aware guidance with forgetting, the flood twin and risk picture, two-branch reconciliation, KPI instrumentation and governance hardening; it amends the sections listed in §A3.12. **Current order of work:** Part A2 stages C0 → C1 → C2 → C3 → C5 → C4 in simulation with cloud models, with Part A3 interleaved as in §A3.11 (E1–E3 first, for the IEEE Network submission); then the real robots (P4b, P4c, P5 Jetson benchmark) together with C6 (self-hosted models). **Part A4** (results for the IEEE Network submission, stages N0–N6, 2026-10-26) puts the network in the loop: result manifests, the outage sweep, agent traffic and checkpoint overhead, coverage levels from the n40 network twin, a network stand-in that can refuse with the degradation loop, the protocol micro-benchmark over emulated radio links, and the paper export; it amends §5, §12, §A1.4, §A1.12.1, §A2.5.4, §A2.7, §A3.7 and §A3.8 (§A4.11). **Part A5** (future work after the submission, 2026-11-02) sets workstreams W1–W5: multi-agent against single-agent, cloud and local models on robotic tasks, inter-agent protocols, semantic LiDAR streaming and a standardisation study, after setting up the workstation as a GPU node (W0).
 
 ---
 
@@ -2016,7 +2016,7 @@ Then update `PAPER_MEASUREMENTS.md` (new sections for N1–N5, validity column) 
 
 ## A5. Future work after the IEEE Network submission: single vs multi-agent, models on robotic tasks, protocols, LiDAR semantics and standards
 
-*Added on 2026-11-02, after the submission of 30 Oct 2026. It turns the user's five lines of future work into workstreams W1–W5, with the workstation migration (stage W0) as their prerequisite. Work happens on the `develop` branch; `main` stays frozen while the paper is under review (the revision, when the reviews arrive, takes priority over this part). Items marked **TODO(UPV)** become configuration with safe defaults.*
+*Added on 2026-11-02, after the submission of 30 Oct 2026. It turns the user's five lines of future work into workstreams W1–W5, with the workstation as a GPU node (stage W0) as their prerequisite. Work happens on the `develop` branch; `main` stays frozen while the paper is under review (the revision, when the reviews arrive, takes priority over this part). Items marked **TODO(UPV)** become configuration with safe defaults.*
 
 This part extends §A2 (multi-model agents and the messaging layer), §A3.8 (benches) and §A4 (network in the loop, protocol micro-benchmark). Everything else in this specification, Parts A1–A4 and rules 1–33 still applies, in particular: KPI targets are orientative, no function is dropped or simplified to meet a target, and results are reported as measured with a manifest (rule 31).
 
@@ -2027,15 +2027,21 @@ This part extends §A2 (multi-model agents and the messaging layer), §A3.8 (ben
 36. **Repeat what is stochastic.** Every run that involves a model is repeated (k ≥ 3, k = 5 where cost allows) and reported with its spread; offline runs (fake models) need no repeats.
 37. **Local means measured locally.** A result labelled "local model" or "on board" names the hardware (GPU or Jetson module, power mode), the runtime (llama.cpp, vLLM, Ollama…), the model file and its quantisation, and records energy where the platform exposes it (`tegrastats`, NVML, RAPL).
 
-### A5.2 Stage W0: workstation migration (prerequisite)
+### A5.2 Stage W0: the workstation as a GPU node (prerequisite)
 
-The development environment moves from the laptop to the new workstation, which also unblocks stage C2 (Gazebo perception, §A2.9) and W4.
+The laptop stays the main development machine. The workstation (Windows 11) is used **only for GPU-demanding work**, through WSL2 (Ubuntu 24.04), which also unblocks stage C2 (Gazebo perception, §A2.9) and W4.
 
-- **Repository:** clone `develop` from GitHub. The local-only branches `backup/pre-rewrite` and `backup/main-before-squash` are never pushed: they move as a git bundle.
-- **Local state not in git**, moved by hand (never committed): `.env` (API keys), `~/.config/a6g/` (chat-UI service secrets), the uncompressed radio DT CSV (or `gunzip` the committed `.csv.gz`), `var/runs/` only where a bench must resume or a result needs re-inspection (bench results themselves are committed), and the Claude Code memory of the project.
-- **Toolchain:** Ubuntu 24.04; `uv` (Python 3.11 from `uv.lock`); Docker with the `a6g-pg` Postgres 16 container (127.0.0.1:5433); Node.js ≥ 20 with pnpm (chat UI, `deploy/ui/build.sh`); ROS 2 Jazzy and Gazebo Harmonic for `sim_gazebo/` (`colcon build --symlink-install`, then `uv run a6g campus build`); iproute2, `unshare` and `openssl` for the protocol lab; the NVIDIA driver, CUDA and a local model runtime (llama.cpp and/or vLLM) for W2.
-- **Acceptance:** on the workstation, `uv sync --locked`, `a6g config validate`, the full test suite (`pytest`) and the Gazebo suite (`pytest --gazebo`) pass; one offline bench (`a6g bench scarcity --variants reconcile --fleets 3 --seeds 2`) reproduces the committed numbers; the 2D demo and the Gazebo stack start; the host block of a result manifest names the workstation.
-- TODO(UPV): the workstation's CPU, RAM, GPU (model, VRAM), whether it is also the edge host of §15, and root or `CAP_NET_ADMIN` for the network namespaces (§A4.13).
+| Runs on the workstation (WSL2, GPU) | Stays on the laptop |
+|---|---|
+| Gazebo with GPU rendering: rendered cameras and VLM triage (C2), the Gazebo suite (`pytest --gazebo`), LiDAR and camera recording for W4 | the 2D simulator, the demo and the chat UI |
+| local model serving for W2 (llama.cpp and/or vLLM, OpenAI-compatible), reached from the laptop over the LAN as an edge GPU | every other bench: 2D-simulator benches, cloud-model runs, the protocol lab (§A4.8, W3), Postgres |
+| W4 codec experiments (learned compression, semantic extraction) | W1, W5, documentation, git operations that publish (`main`, tags) |
+
+- **Code** moves through git: the workstation clones `develop` and pulls; commits made there are pushed to `develop` with the same identity (`xr@iteam.upv.es`). Generated datasets (LiDAR, frames) stay on the workstation's WSL file system and are copied to the laptop only when needed; their manifests (rule 31) name the workstation.
+- **Models served on the workstation** are used from the laptop through the existing endpoint variables of `config/models.yaml` (`A6G_*_URL`, e.g. `A6G_COORDINATOR_LLM_URL=http://<workstation>:8080/v1`); a result's manifest names the serving host, runtime, model file and quantisation (rule 37), and the measured latency then includes the LAN, as for a real edge server.
+- **WSL2 specifics:** the NVIDIA driver is installed in Windows only (CUDA inside WSL comes from the WSL CUDA toolkit, never a Linux driver); Gazebo's GUI uses WSLg and GPU rendering through Mesa's D3D12 driver; the repository lives in the WSL file system (not `/mnt/c`); `networkingMode=mirrored` in `.wslconfig` makes WSL services reachable on the LAN (with Windows firewall rules for the served ports); systemd is enabled in `/etc/wsl.conf`; Windows sleep is disabled during long runs. ROS 2 stays inside the workstation (no DDS traffic between the two machines).
+- **Acceptance:** in WSL2, `nvidia-smi` sees the GPU; `uv sync --locked`, `a6g config validate` and the unit tests (`pytest -m "not scenario"`) pass; the Gazebo suite (`pytest --gazebo`) passes, with a rendered camera frame and a GPU LiDAR scan saved from the Go2 model; a local model served on the workstation answers a request from the laptop, and the coordinator suites of W2 run against it from the laptop.
+- TODO(UPV): the workstation's CPU, RAM and GPU (model, VRAM); Windows 11 build (mirrored networking needs 22H2 or later); its LAN address or host name; whether it may stay on for long runs.
 
 ### A5.3 Workstream W1: multi-agent against single-agent
 
@@ -2115,7 +2121,7 @@ The development environment moves from the laptop to the new workstation, which 
 
 ### A5.8 Order of work and dependencies
 
-1. **W0** (now): migration, then C2 (Gazebo perception) on the workstation.
+1. **W0** (now): the workstation as a GPU node (WSL2), then C2 (Gazebo perception) there.
 2. **W2** runner and coordinator suites, then **W1** (its model choices come from W2), in parallel with **W5** (reading and mapping).
 3. **W3** with the packet-level RAN and the partition experiments (also useful for the revision).
 4. **W4** after C2 provides rendered LiDAR and camera data.
@@ -2127,7 +2133,7 @@ Indoor operation (UC2 is outdoor only); physical-robot campaigns beyond what C6 
 
 ### A5.10 Open items
 
-- TODO(UPV): workstation hardware and permissions (§A5.2).
+- TODO(UPV): workstation hardware, Windows build and LAN address (§A5.2).
 - TODO(UPV): cloud budget for W1/W2 runs (models, repeats) and which non-OpenAI providers may be used.
 - TODO(UPV): which Jetson module and power modes the Go2 dock offers for local models (W2) and whether the dock may run them during patrols.
 - TODO(UPV): access to the campus n40 network and to the Network-as-Code/CAPIF server for W3 and W5.
