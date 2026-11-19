@@ -16,7 +16,7 @@ import os
 from a6g_common.clock import SystemClock
 from a6g_common.config import ModelRole, load_config
 from a6g_common.ids import new_id
-from a6g_common.models import chat_model
+from a6g_common.models import chat_model, mark_unavailable
 from a6g_interactions import InteractionClient
 from a6g_kb import KnowledgeClient
 from a6g_observability.decision_log import DecisionLog
@@ -34,6 +34,7 @@ def _model(cfg):
         return chat_model(ModelRole.COORDINATOR_LLM, cfg.models)
     except Exception as exc:  # e.g. no OPENAI_API_KEY: deterministic templates still work
         log.warning("coordinator LLM unavailable (%s); using templates", exc)
+        mark_unavailable(exc)
         return None
 
 

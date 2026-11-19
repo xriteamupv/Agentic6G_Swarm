@@ -1337,3 +1337,32 @@ async def test_swarm_updates_are_told_apart_from_answers(tmp_path: Path) -> None
         await stack.stop()
     replies = [m for m in answer["messages"] if isinstance(m, AIMessage) and m.text]
     assert replies and not any(m.response_metadata.get("a6g_update") for m in replies)
+
+
+async def test_the_operator_is_told_when_the_model_is_unavailable(tmp_path: Path) -> None:
+    """With an expired API key the templates still answer, and the chat says so once."""
+
+    class AuthenticationError(Exception):
+        pass
+
+    class ExpiredKey:
+        def with_structured_output(self, *args, **kwargs):
+            return self
+
+        async def ainvoke(self, *args, **kwargs):
+            raise AuthenticationError("Error code: 401 - Your API key has expired.")
+
+    cfg = load_config("config", env={}, fleet_file="sim/fleet.yaml")
+    stack = SimStack(cfg, tmp_path / "s", model=ExpiredKey())
+    await stack.start()
+    try:
+        await stack.coordinator.chat("m1", "Patrol the campus")
+        state = await stack.coordinator.state("m1")
+        tasks = state.get("tasks") or {}
+        assert any(t["spec"]["kind"] == "survey_sector" for t in tasks.values())  # templates
+        texts = [str(m.content) for m in state["messages"] if isinstance(m, AIMessage)]
+        notices = [t for t in texts if "language model is unavailable" in t]
+        assert notices and "API key was rejected" in notices[-1]
+        assert texts[-1].count("language model is unavailable") == 1
+    finally:
+        await stack.stop()

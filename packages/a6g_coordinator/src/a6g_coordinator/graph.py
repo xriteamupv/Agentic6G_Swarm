@@ -47,7 +47,7 @@ from a6g_common.clock import Clock
 from a6g_common.config import A6GConfig, RobotManifest, load_manifest
 from a6g_common.ids import IdFactory
 from a6g_common.messages import untrusted
-from a6g_common.models import LLMTrace, one_sentence, structured_call
+from a6g_common.models import MODEL_HEALTH, LLMTrace, one_sentence, structured_call
 from a6g_common.schemas import (
     Award,
     Decision,
@@ -332,10 +332,22 @@ class _Run:
         else:
             self.call(name, args, result, latency_s)
 
+    def model_unavailable(self, reason: str) -> None:
+        """Tell the operator, once per request, that the model could not be used and the
+        rule-based templates answered instead (the fallback is otherwise invisible)."""
+        text = (
+            f"⚠️ The language model is unavailable ({reason}): this request was handled "
+            "with the rule-based templates."
+        )
+        if text not in self.notes:
+            self.note(text)
+
     def thoughts(self, step: str, trace: LLMTrace) -> None:
         """The model's reasoning summary, kept in the chat (it streamed live while thinking).
         OpenAI leaves the summary out of about one call in four (gpt-5-nano, 2026-10-26):
         the step and its time are still shown, so every model call is visible."""
+        if trace.unavailable:
+            self.model_unavailable(trace.unavailable)
         if trace.used_fallback or trace.latency_s <= 0:
             return  # no model answer: nothing was thought
         thoughts = trace.thoughts or "_(The model gave no summary of its reasoning this time.)_"
@@ -3547,6 +3559,8 @@ def build_graph(deps: CoordinatorDeps) -> StateGraph:
                 f"(escorts finish first): {', '.join(concluded) or 'none'}.",
                 template,
             )
+            if templated and not fast and deps.model is not None and MODEL_HEALTH["unavailable"]:
+                run.model_unavailable(MODEL_HEALTH["unavailable"])
             run.decide(
                 DecisionKind.ARBITRATE,
                 {"posture": posture, "preempted": preempted, "concluded": concluded},

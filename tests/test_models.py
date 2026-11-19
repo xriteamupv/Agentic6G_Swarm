@@ -61,3 +61,33 @@ async def test_structured_invoke_json_path_retry_and_fallback() -> None:
 
 async def test_one_sentence_falls_back_without_model() -> None:
     assert await one_sentence(None, "s", "p", "template") == ("template", True)
+
+
+class AuthenticationError(Exception):
+    """Stands in for the provider's error on an expired or revoked API key."""
+
+
+class _ExpiredKeyModel:
+    def with_structured_output(self, *args, **kwargs):
+        return self
+
+    async def ainvoke(self, *args, **kwargs):
+        raise AuthenticationError("Error code: 401 - Your API key has expired.")
+
+
+async def test_an_unavailable_model_is_reported_with_its_reason() -> None:
+    from a6g_common import models
+
+    class Plan(BaseModel):
+        steps: list[str] = []
+
+    value, trace = await models.structured_call(
+        _ExpiredKeyModel(), Plan, [HumanMessage("plan")], lambda: Plan(steps=["template"])
+    )
+    assert value.steps == ["template"] and trace.used_fallback
+    assert trace.unavailable and "API key" in trace.unavailable
+    assert models.MODEL_HEALTH["unavailable"] == trace.unavailable
+    # a model that answers clears it
+    ok = fake_model(['{"steps": ["a"]}'])
+    _, trace = await models.structured_call(ok, Plan, [HumanMessage("plan")], lambda: Plan())
+    assert not trace.used_fallback and models.MODEL_HEALTH["unavailable"] is None

@@ -463,6 +463,7 @@ async def plan(
         total.message_id = total.message_id or trace.message_id
         if trace.used_fallback:
             total.used_fallback = True
+            total.unavailable = trace.unavailable
             return None, total, ["the model did not answer"]
         value = tidy(value, ctx)
         errors = validate(value, ctx)

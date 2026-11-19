@@ -126,6 +126,35 @@ class LLMTrace:
     used_fallback: bool = False
     input_tokens: int | None = None  # rule 23: tokens per model call, when reported
     output_tokens: int | None = None
+    #: Why the model could not be used (key rejected, quota, unreachable...), when it fell
+    #: back for that reason; None when it answered or was not configured.
+    unavailable: str | None = None
+
+
+#: The last known state of the model endpoint in this process: ``unavailable`` holds the
+#: reason of the last failed call (or of a failed creation) until a call succeeds again.
+MODEL_HEALTH: dict[str, str | None] = {"unavailable": None}
+
+
+def unavailable_reason(exc: BaseException) -> str:
+    """A short operator-facing reason for a model endpoint failure."""
+    name = type(exc).__name__
+    text = str(exc).lower()
+    if "Authentication" in name or "PermissionDenied" in name or "api key" in text:
+        return "the API key was rejected: expired, revoked or without access"
+    if "RateLimit" in name or "quota" in text:
+        return "rate limit or quota exceeded"
+    if "Timeout" in name or "timed out" in text:
+        return "the model did not answer in time"
+    if "Connection" in name:
+        return "the model endpoint is unreachable"
+    return f"{name}"
+
+
+def mark_unavailable(exc: BaseException) -> str:
+    reason = unavailable_reason(exc)
+    MODEL_HEALTH["unavailable"] = reason
+    return reason
 
 
 def reasoning_text(content: Any) -> str:
@@ -193,6 +222,7 @@ async def structured_call(
     trace = LLMTrace()
     if model is None:
         trace.used_fallback = True
+        trace.unavailable = MODEL_HEALTH["unavailable"]  # set when creating it failed
         return fallback(), trace
     config = None if visible else NOSTREAM
     started = time.perf_counter()
@@ -206,6 +236,8 @@ async def structured_call(
             usage = getattr(raw, "usage_metadata", None) or {}
             trace.input_tokens = usage.get("input_tokens")
             trace.output_tokens = usage.get("output_tokens")
+        if raw is not None:
+            MODEL_HEALTH["unavailable"] = None  # it answered
         _record(schema, trace)
         return value, trace
 
@@ -228,12 +260,14 @@ async def structured_call(
             except Exception as exc:
                 if "BadRequest" not in type(exc).__name__:  # endpoint down, timeout ...
                     log.warning("model unavailable, using fallback: %s", exc)
+                    trace.unavailable = mark_unavailable(exc)
                     return done(fallback(), fell_back=True)
                 log.info("native structured output rejected, trying JSON in text: %s", exc)
                 break
         else:
             return done(fallback(), fell_back=True)
-    value, raw, fell_back = await _json_in_text(model, schema, messages, fallback, config)
+    value, raw, fell_back, reason = await _json_in_text(model, schema, messages, fallback, config)
+    trace.unavailable = reason
     return done(value, raw, fell_back)
 
 
@@ -254,7 +288,7 @@ async def _json_in_text(
     messages: Sequence[BaseMessage],
     fallback: Callable[[], M],
     config: dict[str, Any] | None = NOSTREAM,
-) -> tuple[M, Any, bool]:
+) -> tuple[M, Any, bool, str | None]:
     schema_hint = json.dumps(schema.model_json_schema(), separators=(",", ":"))
     prompt = [
         *messages,
@@ -264,15 +298,15 @@ async def _json_in_text(
         try:
             async with time_flows():
                 reply = await model.ainvoke(prompt, config=config)
-            return _parse(_text(reply.content), schema), reply, False
+            return _parse(_text(reply.content), schema), reply, False, None
         except (ValidationError, ValueError) as exc:
             log.info("JSON output invalid (attempt %d): %s", attempt + 1, exc)
             retry = HumanMessage(f"That was invalid ({exc}). Reply with valid JSON only.")
             prompt = [*prompt, retry]
         except Exception as exc:  # endpoint down, timeout ...
             log.warning("model unavailable, using fallback: %s", exc)
-            break
-    return fallback(), None, True
+            return fallback(), None, True, mark_unavailable(exc)
+    return fallback(), None, True, None
 
 
 async def one_sentence(
@@ -288,7 +322,9 @@ async def one_sentence(
             )
     except Exception as exc:
         log.warning("model unavailable, using template justification: %s", exc)
+        mark_unavailable(exc)
         return fallback, True
+    MODEL_HEALTH["unavailable"] = None
     text = reply.content if isinstance(reply.content, str) else ""
     text = " ".join(text.split())
     if not text:
